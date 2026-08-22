@@ -1,0 +1,147 @@
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query'
+import * as api from '../api'
+import { INBOX } from '../views'
+import type { List, Todo, TodoFilter, View } from '../types'
+
+export const TODOS_KEY = ['todos'] as const
+export const TODO_KEY = ['todo'] as const
+
+const todosKey = (filter: TodoFilter) => [...TODOS_KEY, filter] as const
+const todoKey = (id: string) => [...TODO_KEY, id] as const
+
+export function useTodos(filter: TodoFilter) {
+  return useQuery({
+    queryKey: todosKey(filter),
+    queryFn: () => api.fetchTodos(filter),
+  })
+}
+
+export function useTodo(id: string) {
+  return useQuery({ queryKey: todoKey(id), queryFn: () => api.fetchTodo(id) })
+}
+
+function writeTodo(
+  qc: QueryClient,
+  id: string,
+  write: (todo: Todo) => Todo | null,
+) {
+  qc.setQueriesData<Todo[]>({ queryKey: TODOS_KEY }, (todos) =>
+    todos?.flatMap((todo) => {
+      if (todo.id !== id) return [todo]
+      const next = write(todo)
+      return next ? [next] : []
+    }),
+  )
+  qc.setQueryData<Todo | null>(todoKey(id), (todo) => (todo ? write(todo) : todo))
+}
+
+function useOptimisticTodo<TVars>(
+  mutationFn: (vars: TVars) => Promise<unknown>,
+  apply: (qc: QueryClient, vars: TVars) => void,
+) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn,
+    onMutate: async (vars: TVars) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: TODOS_KEY }),
+        qc.cancelQueries({ queryKey: TODO_KEY }),
+      ])
+      const snapshot = [
+        ...qc.getQueriesData({ queryKey: TODOS_KEY }),
+        ...qc.getQueriesData({ queryKey: TODO_KEY }),
+      ]
+      apply(qc, vars)
+      return { snapshot }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TODOS_KEY })
+      qc.invalidateQueries({ queryKey: TODO_KEY })
+    },
+  })
+}
+
+function useRefetchingTodo<TVars>(mutationFn: (vars: TVars) => Promise<unknown>) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: TODOS_KEY })
+      qc.invalidateQueries({ queryKey: TODO_KEY })
+    },
+  })
+}
+
+export function useCreateTodo() {
+  return useRefetchingTodo(api.createTodo)
+}
+
+export function useUpdateTodo() {
+  return useOptimisticTodo<{ id: string; patch: Partial<Todo> }>(
+    ({ id, patch }) => api.updateTodo(id, patch),
+    (qc, { id, patch }) => writeTodo(qc, id, (todo) => ({ ...todo, ...patch })),
+  )
+}
+
+export function useDeleteTodo() {
+  return useOptimisticTodo<string>(
+    (id) => api.removeTodo(id),
+    (qc, id) => writeTodo(qc, id, () => null),
+  )
+}
+
+export function useCreateSubtodo() {
+  return useRefetchingTodo(({ todoId, title }: { todoId: string; title: string }) =>
+    api.createSubtodo(todoId, title),
+  )
+}
+
+export function useUpdateSubtodo() {
+  return useOptimisticTodo<{
+    todoId: string
+    subtodoId: string
+    patch: { title?: string; completed?: boolean }
+  }>(
+    ({ subtodoId, patch }) => api.updateSubtodo(subtodoId, patch),
+    (qc, { todoId, subtodoId, patch }) =>
+      writeTodo(qc, todoId, (todo) => ({
+        ...todo,
+        subtodos: todo.subtodos.map((s) =>
+          s.id === subtodoId ? { ...s, ...patch } : s,
+        ),
+      })),
+  )
+}
+
+export function useDeleteSubtodo() {
+  return useOptimisticTodo<{ todoId: string; subtodoId: string }>(
+    ({ subtodoId }) => api.removeSubtodo(subtodoId),
+    (qc, { todoId, subtodoId }) =>
+      writeTodo(qc, todoId, (todo) => ({
+        ...todo,
+        subtodos: todo.subtodos.filter((s) => s.id !== subtodoId),
+      })),
+  )
+}
+
+export function newTodoFields(title: string, view: View, lists: List[]) {
+  const list = view.kind === 'list' ? lists.find((l) => l.id === view.id) : null
+
+  return {
+    title,
+    listId: view.kind === 'list' ? view.id : INBOX,
+    projectId: view.kind === 'project' ? view.id : (list?.projectId ?? null),
+    important: view.kind === 'smart' && view.id === 'important',
+    myDay: view.kind === 'smart' && view.id === 'today',
+    dueDate: null,
+  }
+}

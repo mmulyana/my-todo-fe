@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #1c1a1f;
+  --color-surface: #222026;
+  --color-raised: #2a2830;
+  --color-line: #33303a;
+  --color-fg: #f0eff4;
+  --color-muted: #95909e;
+  --color-accent: #5675f0;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :root {
+    font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
+      sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--color-fg);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0 solid;
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--color-muted);
+    outline-offset: 1px;
+  }
+}
