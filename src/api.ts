@@ -1,19 +1,84 @@
 import { todayISO } from './lib/dates'
 import type { List, Project, Subtodo, Todo, TodoFilter } from './types'
 
-const ENDPOINT = 'https://mytodo.mmulyana.com/api/graphql'
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
+
+let refreshPromise: Promise<string> | null = null
+
+async function refreshAccessToken(): Promise<string> {
+  const refreshToken = localStorage.getItem('refreshToken')
+  if (!refreshToken) throw new Error('No refresh token')
+
+  const res = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `mutation RefreshToken($token: String!) {
+        refreshToken(token: $token) {
+          accessToken
+          refreshToken
+        }
+      }`,
+      variables: { token: refreshToken },
+    }),
+  })
+  const json = await res.json()
+  if (json.errors?.length || !json.data?.refreshToken) {
+    throw new Error(json.errors?.[0]?.message || 'Failed to refresh token')
+  }
+
+  const { accessToken, refreshToken: newRefreshToken } = json.data.refreshToken
+  localStorage.setItem('accessToken', accessToken)
+  localStorage.setItem('refreshToken', newRefreshToken)
+  return accessToken
+}
+
+function isUnauthenticated(json: any): boolean {
+  return json.errors?.some(
+    (e: any) => e.extensions?.code === 'UNAUTHENTICATED' || e.extensions?.originalError?.statusCode === 401,
+  )
+}
 
 async function gql<T>(
   query: string,
   variables?: Record<string, unknown>,
+  signal?: AbortSignal,
+  isRetry = false,
 ): Promise<T> {
-  const res = await fetch(ENDPOINT, {
+  const token = localStorage.getItem('accessToken')
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(BASE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ query, variables }),
+    signal,
   })
   const json = await res.json()
-  if (json.errors?.length) throw new Error(json.errors[0].message)
+
+  if (json.errors?.length) {
+    if (!isRetry && isUnauthenticated(json) && localStorage.getItem('refreshToken')) {
+      try {
+        if (!refreshPromise) {
+          refreshPromise = refreshAccessToken().finally(() => {
+            refreshPromise = null
+          })
+        }
+        await refreshPromise
+        return gql<T>(query, variables, signal, true)
+      } catch {
+        logout()
+        throw new Error('Session expired, please sign in again')
+      }
+    }
+    throw new Error(json.errors[0].message)
+  }
+
   return json.data as T
 }
 
@@ -118,6 +183,7 @@ export async function createTodo(fields: NewTodoFields): Promise<Todo> {
 export async function updateTodo(
   id: string,
   patch: Partial<Todo>,
+  signal?: AbortSignal,
 ): Promise<void> {
   const input: Record<string, unknown> = { id }
   if (patch.title !== undefined) input.title = patch.title
@@ -132,6 +198,7 @@ export async function updateTodo(
   await gql(
     `mutation ($input: UpdateTodoInput!) { updateTodo(input: $input) { id } }`,
     { input },
+    signal,
   )
 }
 
@@ -156,10 +223,12 @@ export async function createSubtodo(
 export async function updateSubtodo(
   id: string,
   patch: { title?: string; completed?: boolean },
+  signal?: AbortSignal,
 ): Promise<void> {
   await gql(
     `mutation ($input: UpdateTodoInput!) { updateTodo(input: $input) { id } }`,
     { input: { id, ...patch } },
+    signal,
   )
 }
 
@@ -241,4 +310,51 @@ export async function updateProject(
 
 export async function removeProject(id: string): Promise<void> {
   await gql(`mutation ($id: ID!) { removeProject(id: $id) { id } }`, { id })
+}
+
+export async function login(email: string, password: string): Promise<import('./types').AuthPayload> {
+  const data = await gql<{ login: import('./types').AuthPayload }>(
+    `mutation Login($input: LoginInput!) {
+      login(input: $input) {
+        accessToken
+        refreshToken
+        user {
+          id
+          email
+          username
+        }
+      }
+    }`,
+    { input: { email, password } }
+  )
+  localStorage.setItem('accessToken', data.login.accessToken)
+  localStorage.setItem('refreshToken', data.login.refreshToken)
+  return data.login
+}
+
+export async function register(email: string, username: string, password: string): Promise<import('./types').AuthPayload> {
+  const data = await gql<{ register: import('./types').AuthPayload }>(
+    `mutation Register($input: RegisterInput!) {
+      register(input: $input) {
+        accessToken
+        refreshToken
+        user {
+          id
+          email
+          username
+          createdAt
+        }
+      }
+    }`,
+    { input: { email, username, password } }
+  )
+  localStorage.setItem('accessToken', data.register.accessToken)
+  localStorage.setItem('refreshToken', data.register.refreshToken)
+  return data.register
+}
+
+export function logout() {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  window.location.href = '/login'
 }

@@ -1,8 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { Icon, type IconName } from "./icons";
-import { SidebarComposer } from "./sidebar-composer";
 import { SidebarTree } from "./sidebar-tree";
-import { useProjects } from "../hooks/useProjects";
 import { cn } from "@/lib/utils";
 import type { SmartListId } from "@/types";
 
@@ -77,6 +75,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           <SidebarTree />
         </nav>
+
+        <div className="px-1 mt-4">
+          <button
+            onClick={() => {
+              import("../api").then(({ logout }) => logout());
+            }}
+            className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-lg text-fg/50 hover:bg-surface/50 transition-colors cursor-pointer"
+          >
+            <span className="shrink-0 [&_svg]:w-4.5 [&_svg]:h-4.5">
+              <Icon name="sun" />{" "}
+            </span>
+            <span className="flex-1 truncate text-left">Logout</span>
+          </button>
+        </div>
       </aside>
     </>
   );

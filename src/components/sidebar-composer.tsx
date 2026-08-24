@@ -5,7 +5,6 @@ import type { Project } from "../types";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -22,7 +21,7 @@ type SidebarComposerProps = {
 type ProjectFormValues = {
   name: string;
   parentId: string;
-  code: string
+  code: string;
 };
 
 const defaultValues: ProjectFormValues = { name: "", parentId: "", code: "" };
@@ -69,9 +68,6 @@ export function SidebarComposer({ projects }: SidebarComposerProps) {
         <form onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
-            <DialogDescription>
-              Add a new project to organize your tasks.
-            </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-3.5 my-1">
@@ -87,19 +83,6 @@ export function SidebarComposer({ projects }: SidebarComposerProps) {
                 autoFocus
                 placeholder="Enter project name..."
                 {...register("name", { required: true })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="code-name"
-                className="text-xs font-medium text-muted"
-              >
-                Code
-              </label>
-              <Input
-                id="code-name"
-                placeholder="Enter project code..."
-                {...register("code")}
               />
             </div>
 

@@ -60,10 +60,12 @@ function useOptimisticTodo<TVars>(
       apply(qc, vars)
       return { snapshot }
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
+      if (err instanceof DOMException && err.name === 'AbortError') return
       ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSettled: () => {
+    onSettled: (_data, err) => {
+      if (err instanceof DOMException && err.name === 'AbortError') return
       qc.invalidateQueries({ queryKey: TODOS_KEY })
       qc.invalidateQueries({ queryKey: TODO_KEY })
     },
@@ -86,8 +88,8 @@ export function useCreateTodo() {
 }
 
 export function useUpdateTodo() {
-  return useOptimisticTodo<{ id: string; patch: Partial<Todo> }>(
-    ({ id, patch }) => api.updateTodo(id, patch),
+  return useOptimisticTodo<{ id: string; patch: Partial<Todo>; signal?: AbortSignal }>(
+    ({ id, patch, signal }) => api.updateTodo(id, patch, signal),
     (qc, { id, patch }) => writeTodo(qc, id, (todo) => ({ ...todo, ...patch })),
   )
 }
@@ -110,8 +112,9 @@ export function useUpdateSubtodo() {
     todoId: string
     subtodoId: string
     patch: { title?: string; completed?: boolean }
+    signal?: AbortSignal
   }>(
-    ({ subtodoId, patch }) => api.updateSubtodo(subtodoId, patch),
+    ({ subtodoId, patch, signal }) => api.updateSubtodo(subtodoId, patch, signal),
     (qc, { todoId, subtodoId, patch }) =>
       writeTodo(qc, todoId, (todo) => ({
         ...todo,

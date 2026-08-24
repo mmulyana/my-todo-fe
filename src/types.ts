@@ -46,3 +46,17 @@ export type TodoFilter = {
   projectId?: string
   q?: string
 }
+
+export type User = {
+  id: string
+  email: string
+  username: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type AuthPayload = {
+  accessToken: string
+  refreshToken: string
+  user: User
+}

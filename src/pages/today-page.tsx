@@ -1,5 +1,4 @@
 import { useSearchParams } from "react-router-dom";
-import { Sun } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
 import { AddTodoBar } from "../components/add-todo-bar";

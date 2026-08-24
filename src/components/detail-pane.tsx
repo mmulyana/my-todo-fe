@@ -16,8 +16,9 @@ import {
   useUpdateTodo,
 } from "../hooks/useTodos";
 import { useProjects } from "../hooks/useProjects";
-import type { Todo } from "../types";
-import { X, Plus, Trash2, Calendar, Sun, Check } from "lucide-react";
+import { useDebouncedField } from "../hooks/useDebouncedField";
+import type { Subtodo, Todo } from "../types";
+import { X, Plus, Trash2, Sun, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectCombobox } from "@/components/project-combobox";
 
@@ -38,10 +39,19 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
   const updateSubtodo = useUpdateSubtodo();
   const deleteSubtodo = useDeleteSubtodo();
 
-  if (!todo) return null;
+  const update = (patch: Partial<Todo>, signal?: AbortSignal) =>
+    updateTodo.mutate({ id: todo!.id, patch, signal });
 
-  const update = (patch: Partial<Todo>) =>
-    updateTodo.mutate({ id: todo.id, patch });
+  const [titleDraft, onTitleChange] = useDebouncedField(
+    todo?.title ?? "",
+    (title, signal) => update({ title }, signal),
+  );
+  const [noteDraft, onNoteChange] = useDebouncedField(
+    todo?.note ?? "",
+    (note, signal) => update({ note }, signal),
+  );
+
+  if (!todo) return null;
 
   const addSubtask = () => {
     const title = stepDraft.trim();
@@ -103,8 +113,8 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
             "flex-1 min-w-0 border-none bg-transparent text-lg font-semibold outline-none",
             todo.completed && "text-muted line-through",
           )}
-          value={todo.title}
-          onChange={(e) => update({ title: e.target.value })}
+          value={titleDraft}
+          onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Task title..."
           aria-label="Todo title"
         />
@@ -117,57 +127,31 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
               <p className="text-sm text-fg/50">Sub task</p>
             )}
             {todo.subtodos.map((step) => (
-              <div
+              <SubtodoRow
                 key={step.id}
-                className="group/sub flex items-center gap-2.5 rounded-lg transition-colors"
-              >
-                <button
-                  className={cn(
-                    "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
-                    step.completed
-                      ? "bg-accent border-accent text-white"
-                      : "border-line hover:border-muted bg-raised",
-                  )}
-                  onClick={() =>
-                    updateSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                      patch: { completed: !step.completed },
-                    })
-                  }
-                >
-                  {step.completed && <Check strokeWidth={3} size={12} />}
-                </button>
-
-                <input
-                  className={cn(
-                    "flex-1 border-none bg-transparent text-sm outline-none",
-                    step.completed && "text-muted line-through",
-                  )}
-                  value={step.title}
-                  onChange={(e) =>
-                    updateSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                      patch: { title: e.target.value },
-                    })
-                  }
-                  placeholder="Sub-task title..."
-                />
-
-                <button
-                  className="opacity-0 group-hover/sub:opacity-100 p-1 rounded hover:bg-white/10 text-muted hover:text-red-400 transition-opacity cursor-pointer"
-                  onClick={() =>
-                    deleteSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                    })
-                  }
-                  title="Delete sub-task"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                step={step}
+                onToggle={() =>
+                  updateSubtodo.mutate({
+                    todoId: todo.id,
+                    subtodoId: step.id,
+                    patch: { completed: !step.completed },
+                  })
+                }
+                onTitleChange={(title, signal) =>
+                  updateSubtodo.mutate({
+                    todoId: todo.id,
+                    subtodoId: step.id,
+                    patch: { title },
+                    signal,
+                  })
+                }
+                onDelete={() =>
+                  deleteSubtodo.mutate({
+                    todoId: todo.id,
+                    subtodoId: step.id,
+                  })
+                }
+              />
             ))}
             <form
               className="flex items-center gap-2 text-muted"
@@ -236,8 +220,8 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
           <span className="text-sm">Note</span>
           <textarea
             className="w-full p-2 rounded-lg border border-line bg-raised  text-xs outline-none focus:border-accent resize-y"
-            value={todo.note}
-            onChange={(e) => update({ note: e.target.value })}
+            value={noteDraft}
+            onChange={(e) => onNoteChange(e.target.value)}
             placeholder="Add note..."
             rows={3}
           />
@@ -255,5 +239,50 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
         </button>
       </div>
     </aside>
+  );
+}
+
+type SubtodoRowProps = {
+  step: Subtodo;
+  onToggle: () => void;
+  onTitleChange: (title: string, signal: AbortSignal) => void;
+  onDelete: () => void;
+};
+
+function SubtodoRow({ step, onToggle, onTitleChange, onDelete }: SubtodoRowProps) {
+  const [titleDraft, onChange] = useDebouncedField(step.title, onTitleChange);
+
+  return (
+    <div className="group/sub flex items-center gap-2.5 rounded-lg transition-colors">
+      <button
+        className={cn(
+          "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
+          step.completed
+            ? "bg-accent border-accent text-white"
+            : "border-line hover:border-muted bg-raised",
+        )}
+        onClick={onToggle}
+      >
+        {step.completed && <Check strokeWidth={3} size={12} />}
+      </button>
+
+      <input
+        className={cn(
+          "flex-1 border-none bg-transparent text-sm outline-none",
+          step.completed && "text-muted line-through",
+        )}
+        value={titleDraft}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Sub-task title..."
+      />
+
+      <button
+        className="opacity-0 group-hover/sub:opacity-100 p-1 rounded hover:bg-white/10 text-muted hover:text-red-400 transition-opacity cursor-pointer"
+        onClick={onDelete}
+        title="Delete sub-task"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
   );
 }

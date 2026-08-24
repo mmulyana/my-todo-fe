@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { DetailPane } from '../components/detail-pane'
-import { Sidebar } from '@/components/Sidebar'
+import { Sidebar } from '@/components/sidebar'
 
 export function AppLayout() {
   const [params, setParams] = useSearchParams()

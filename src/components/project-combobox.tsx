@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Box, Check, ChevronsUpDown, Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { childProjects } from "../projects";
 import type { Project } from "../types";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,11 +33,6 @@ export function ProjectCombobox({
   className
 }: ProjectComboboxProps) {
   const [open, setOpen] = React.useState(false);
-
-  const topLevelProjects = React.useMemo(
-    () => childProjects(projects, null),
-    [projects]
-  );
 
   const selectedProject = React.useMemo(
     () => projects.find((p) => p.id === value),
