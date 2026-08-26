@@ -18,11 +18,30 @@ export function useTodos(filter: TodoFilter) {
   return useQuery({
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
+    gcTime: 0,
   })
 }
 
 export function useTodo(id: string) {
   return useQuery({ queryKey: todoKey(id), queryFn: () => api.fetchTodo(id) })
+}
+
+export function useActiveTodos(filter: TodoFilter) {
+  return useQuery({
+    queryKey: todosKey(filter),
+    queryFn: () => api.fetchTodos(filter),
+    select: (todos) => todos.filter((t) => !t.completed),
+    gcTime: 0,
+  })
+}
+
+export function useCompletedTodos(filter: TodoFilter) {
+  return useQuery({
+    queryKey: todosKey(filter),
+    queryFn: () => api.fetchTodos(filter),
+    select: (todos) => todos.filter((t) => t.completed),
+    gcTime: 0,
+  })
 }
 
 function writeTodo(
@@ -38,6 +57,14 @@ function writeTodo(
     }),
   )
   qc.setQueryData<Todo | null>(todoKey(id), (todo) => (todo ? write(todo) : todo))
+}
+
+function shouldSkipInvalidate(vars: unknown): boolean {
+  return (
+    typeof vars === 'object' &&
+    vars !== null &&
+    (vars as { skipInvalidate?: boolean }).skipInvalidate === true
+  )
 }
 
 function useOptimisticTodo<TVars>(
@@ -64,8 +91,9 @@ function useOptimisticTodo<TVars>(
       if (err instanceof DOMException && err.name === 'AbortError') return
       ctx?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSettled: (_data, err) => {
+    onSettled: (_data, err, vars) => {
       if (err instanceof DOMException && err.name === 'AbortError') return
+      if (shouldSkipInvalidate(vars)) return
       qc.invalidateQueries({ queryKey: TODOS_KEY })
       qc.invalidateQueries({ queryKey: TODO_KEY })
     },
@@ -88,7 +116,12 @@ export function useCreateTodo() {
 }
 
 export function useUpdateTodo() {
-  return useOptimisticTodo<{ id: string; patch: Partial<Todo>; signal?: AbortSignal }>(
+  return useOptimisticTodo<{
+    id: string
+    patch: Partial<Todo>
+    signal?: AbortSignal
+    skipInvalidate?: boolean
+  }>(
     ({ id, patch, signal }) => api.updateTodo(id, patch, signal),
     (qc, { id, patch }) => writeTodo(qc, id, (todo) => ({ ...todo, ...patch })),
   )
@@ -113,6 +146,7 @@ export function useUpdateSubtodo() {
     subtodoId: string
     patch: { title?: string; completed?: boolean }
     signal?: AbortSignal
+    skipInvalidate?: boolean
   }>(
     ({ subtodoId, patch, signal }) => api.updateSubtodo(subtodoId, patch, signal),
     (qc, { todoId, subtodoId, patch }) =>

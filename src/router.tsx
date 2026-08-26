@@ -7,6 +7,7 @@ import ProjectPage from "./pages/project-page";
 import TodayPage from "./pages/today-page";
 import LoginPage from "./pages/login-page";
 import AllPage from "./pages/all-page";
+import TodoDetailPage from "./pages/todo-detail-page";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
           { path: "important", element: <ImportantPage /> },
           { path: "all", element: <AllPage /> },
           { path: "projects/:projectId", element: <ProjectPage /> },
+          { path: "todo/:todoId", element: <TodoDetailPage /> },
           { path: "*", element: <Navigate to="/today" replace /> },
         ],
       },

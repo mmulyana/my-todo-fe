@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Icon } from "./icons";
+import { CompletedSection } from "./completed-section";
 import {
   formatDue,
+  fromISODate,
   isOverdue,
   nextWeekISO,
   todayISO,
+  toISODate,
   tomorrowISO,
 } from "../lib/dates";
 import {
@@ -18,9 +21,26 @@ import {
 import { useProjects } from "../hooks/useProjects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
 import type { Subtodo, Todo } from "../types";
-import { X, Plus, Trash2, Sun, Check } from "lucide-react";
+import {
+  X,
+  Plus,
+  Trash2,
+  Sun,
+  Check,
+  Star,
+  Box,
+  Calendar,
+  CalendarDays,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectCombobox } from "@/components/project-combobox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import type { ReactNode } from "react";
 
 type DetailPaneProps = {
   todoId: string;
@@ -28,6 +48,14 @@ type DetailPaneProps = {
 };
 
 export function DetailPane({ todoId, onClose }: DetailPaneProps) {
+  return (
+    <aside className="detail relative hidden lg:flex flex-col gap-4 min-h-0 overflow-y-auto bg-surface border border-line rounded-2xl w-[440px] shrink-0 shadow-sm">
+      <DetailPaneContent todoId={todoId} onClose={onClose} />
+    </aside>
+  );
+}
+
+export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
   const [stepDraft, setStepDraft] = useState("");
 
   const { data: todo } = useTodo(todoId);
@@ -60,37 +88,19 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
     setStepDraft("");
   };
 
+  const activeSubtodos = todo.subtodos.filter((s) => !s.completed);
+  const completedSubtodos = todo.subtodos.filter((s) => s.completed);
+
   return (
-    <aside className="detail relative hidden lg:flex flex-col gap-4 min-h-0 overflow-y-auto bg-surface border border-line rounded-2xl w-[440px] shrink-0 shadow-sm">
-      <div className="shrink-0 h-12 px-1.5 py-3.5 border-b border-line flex items-center justify-between gap-2 w-full">
-        <ProjectCombobox
-          projects={projects}
-          value={todo.projectId ?? ""}
-          onChange={(val) => update({ projectId: val || null })}
-          placeholder="No Project"
-          className="h-fit py-1.5 w-fit rounded-lg bg-transparent border-none hover:bg-white/5"
-        />
-        <div className="flex gap-2">
-          <button
-            className={cn(
-              "flex items-center gap-2.5 text-sm py-1.5 px-2.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer text-left",
-              todo.myDay ? "text-accent font-medium" : "text-fg",
-            )}
-            onClick={() => update({ myDay: !todo.myDay })}
-          >
-            <Sun className="w-4 h-4 shrink-0" />
-            <span className="flex-1">
-              {todo.myDay ? "Remove Today" : "Add Today"}
-            </span>
-          </button>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-white/5 transition-colors cursor-pointer"
-            title="Close details"
-          >
-            <X size={18} strokeWidth={2} />
-          </button>
-        </div>
+    <>
+      <div className="shrink-0 h-12 px-4 py-3.5 border-b border-line flex items-center justify-end w-full">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-white/5 transition-colors cursor-pointer"
+          title="Close details"
+        >
+          <X size={18} strokeWidth={2} />
+        </button>
       </div>
 
       <div className="px-4 flex items-center gap-3">
@@ -101,7 +111,13 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
               ? "bg-accent border-accent text-white"
               : "border-line hover:border-muted bg-raised",
           )}
-          onClick={() => update({ completed: !todo.completed })}
+          onClick={() =>
+            updateTodo.mutate({
+              id: todo.id,
+              patch: { completed: !todo.completed },
+              skipInvalidate: true,
+            })
+          }
           aria-label={
             todo.completed ? "Mark as incomplete" : "Mark as completed"
           }
@@ -120,13 +136,128 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
         />
       </div>
 
+      <div className="px-4 flex flex-col gap-0.5">
+        <MetaRow icon={<Box className="w-4 h-4" />} label="Project">
+          <ProjectCombobox
+            projects={projects}
+            value={todo.projectId ?? ""}
+            onChange={(val) => update({ projectId: val || null })}
+            placeholder="No Project"
+            className="h-fit py-1 px-2 w-fit rounded-lg bg-transparent border-none hover:bg-white/5 text-sm"
+          />
+        </MetaRow>
+
+        <MetaRow icon={<Star className="w-4 h-4" />} label="Important">
+          <button
+            className={cn(
+              "inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs cursor-pointer transition-colors",
+              todo.important
+                ? "bg-amber-400/15 text-amber-400 font-medium"
+                : "bg-white/5 text-muted hover:text-fg hover:bg-white/10",
+            )}
+            onClick={() => update({ important: !todo.important })}
+            aria-pressed={todo.important}
+          >
+            <Star
+              className={cn("w-3.5 h-3.5", todo.important && "fill-amber-400")}
+            />
+            {todo.important ? "Important" : "Not important"}
+          </button>
+        </MetaRow>
+
+        <MetaRow icon={<Sun className="w-4 h-4" />} label="Today">
+          <button
+            className={cn(
+              "inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs cursor-pointer transition-colors",
+              todo.myDay
+                ? "bg-accent/15 text-accent font-medium"
+                : "bg-white/5 text-muted hover:text-fg hover:bg-white/10",
+            )}
+            onClick={() => update({ myDay: !todo.myDay })}
+            aria-pressed={todo.myDay}
+          >
+            <Sun className="w-3.5 h-3.5" />
+            {todo.myDay ? "My Day" : "Add to My Day"}
+          </button>
+        </MetaRow>
+
+        <MetaRow icon={<Calendar className="w-4 h-4" />} label="Due Date">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className="grid place-items-center p-1.5 rounded-lg text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  aria-label="Pick a date"
+                  title="Pick a date"
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarPicker
+                  mode="single"
+                  selected={
+                    todo.dueDate ? fromISODate(todo.dueDate) : undefined
+                  }
+                  onSelect={(date) =>
+                    update({ dueDate: date ? toISODate(date) : null })
+                  }
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {todo.dueDate ? (
+              <>
+                <span
+                  className={cn(
+                    "text-sm",
+                    isOverdue(todo.dueDate) && !todo.completed
+                      ? "text-red-400 font-medium"
+                      : "text-fg",
+                  )}
+                >
+                  {formatDue(todo.dueDate)}
+                </span>
+                <button
+                  className="text-xs text-muted hover:text-fg cursor-pointer"
+                  onClick={() => update({ dueDate: null })}
+                >
+                  Clear
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  onClick={() => update({ dueDate: todayISO() })}
+                >
+                  Today
+                </button>
+                <button
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  onClick={() => update({ dueDate: tomorrowISO() })}
+                >
+                  Tomorrow
+                </button>
+                <button
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  onClick={() => update({ dueDate: nextWeekISO() })}
+                >
+                  Next Week
+                </button>
+              </>
+            )}
+          </div>
+        </MetaRow>
+      </div>
+
       <div className="px-4">
         <div>
           <div className="flex flex-col gap-2">
             {!!todo.subtodos.length && (
               <p className="text-sm text-fg/50">Sub task</p>
             )}
-            {todo.subtodos.map((step) => (
+            {activeSubtodos.map((step) => (
               <SubtodoRow
                 key={step.id}
                 step={step}
@@ -135,6 +266,7 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
                     todoId: todo.id,
                     subtodoId: step.id,
                     patch: { completed: !step.completed },
+                    skipInvalidate: true,
                   })
                 }
                 onTitleChange={(title, signal) =>
@@ -153,6 +285,38 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
                 }
               />
             ))}
+
+            <CompletedSection count={completedSubtodos.length}>
+              {completedSubtodos.map((step) => (
+                <SubtodoRow
+                  key={step.id}
+                  step={step}
+                  onToggle={() =>
+                    updateSubtodo.mutate({
+                      todoId: todo.id,
+                      subtodoId: step.id,
+                      patch: { completed: !step.completed },
+                      skipInvalidate: true,
+                    })
+                  }
+                  onTitleChange={(title, signal) =>
+                    updateSubtodo.mutate({
+                      todoId: todo.id,
+                      subtodoId: step.id,
+                      patch: { title },
+                      signal,
+                    })
+                  }
+                  onDelete={() =>
+                    deleteSubtodo.mutate({
+                      todoId: todo.id,
+                      subtodoId: step.id,
+                    })
+                  }
+                />
+              ))}
+            </CompletedSection>
+
             <form
               className="flex items-center gap-2 text-muted"
               onSubmit={(e) => {
@@ -170,49 +334,6 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
                 className="flex-1 min-w-0 border-none bg-transparent text-sm text-fg outline-none placeholder:text-muted"
               />
             </form>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 mt-8">
-          <div
-            className={cn(
-              "flex items-center gap-2.5 text-sm",
-              todo.dueDate && isOverdue(todo.dueDate) && !todo.completed
-                ? "text-red-400 font-medium"
-                : "text-muted",
-            )}
-          >
-            <span className="flex-1 text-xs">
-              {todo.dueDate ? `Due ${formatDue(todo.dueDate)}` : "Due Date"}
-            </span>
-            {todo.dueDate && (
-              <button
-                className="text-xs text-muted hover:text-fg cursor-pointer"
-                onClick={() => update({ dueDate: null })}
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
-              onClick={() => update({ dueDate: todayISO() })}
-            >
-              Today
-            </button>
-            <button
-              className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
-              onClick={() => update({ dueDate: tomorrowISO() })}
-            >
-              Tomorrow
-            </button>
-            <button
-              className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
-              onClick={() => update({ dueDate: nextWeekISO() })}
-            >
-              Next Week
-            </button>
           </div>
         </div>
 
@@ -238,7 +359,25 @@ export function DetailPane({ todoId, onClose }: DetailPaneProps) {
           <span>Delete</span>
         </button>
       </div>
-    </aside>
+    </>
+  );
+}
+
+type MetaRowProps = {
+  icon: ReactNode;
+  label: string;
+  children: ReactNode;
+};
+
+function MetaRow({ icon, label, children }: MetaRowProps) {
+  return (
+    <div className="flex items-center gap-3 min-h-9">
+      <div className="flex items-center gap-2 w-28 shrink-0 text-sm text-muted">
+        <span className="shrink-0">{icon}</span>
+        <span>{label}</span>
+      </div>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
   );
 }
 

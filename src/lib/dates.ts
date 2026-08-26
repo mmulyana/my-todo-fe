@@ -4,6 +4,11 @@ export function toISODate(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
+export function fromISODate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 export function todayISO(): string {
   return toISODate(new Date())
 }

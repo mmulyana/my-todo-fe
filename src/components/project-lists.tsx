@@ -111,7 +111,7 @@ function SectionHeader({
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
-            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-0 group-hover/sec:opacity-100 focus-visible:opacity-100 hover:bg-white/10 hover:text-fg cursor-pointer"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-100 sm:opacity-0 sm:group-hover/sec:opacity-100 sm:focus-visible:opacity-100 hover:bg-white/10 hover:text-fg cursor-pointer"
             onClick={onAddTodo}
             aria-label={`Add a todo in ${name}`}
             title={`Add a todo in ${name}`}
@@ -173,7 +173,7 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
       {!collapsed && (
         <div className="flex flex-col">
           {todos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} />
+            <TodoRow key={todo.id} todo={todo} skipInvalidate />
           ))}
 
           {adding && (
@@ -184,7 +184,6 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
                 autoFocus
                 hideComboboxes
                 onCancel={() => setAdding(false)}
-                onSuccess={() => setAdding(false)}
                 placeholder={`Add a task to ${list.name}`}
                 className="p-0 focus-within:border-none bg-transparent border-none shadow-none"
               />
@@ -220,7 +219,7 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
         <ListSection
           key={list.id}
           list={list}
-          todos={todos.filter((t) => t.listId === list.id && !t.completed)}
+          todos={todos.filter((t) => t.listId === list.id)}
         />
       ))}
 

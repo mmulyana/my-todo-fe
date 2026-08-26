@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "./icons";
 import { formatDue, isOverdue, todayISO } from "../lib/dates";
 import {
@@ -9,7 +9,14 @@ import {
 } from "../hooks/useTodos";
 import type { Todo } from "../types";
 import { cn } from "@/lib/utils";
-import { Box, Calendar, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import {
+  Box,
+  Calendar,
+  ChevronDown,
+  ChevronRight,
+  Star,
+  Trash2,
+} from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,6 +27,7 @@ import {
 type TodoRowProps = {
   todo: Todo;
   showProject?: boolean;
+  skipInvalidate?: boolean;
 };
 
 function duePill(todo: Todo) {
@@ -32,23 +40,36 @@ function duePill(todo: Todo) {
   return "bg-white/5 text-fg/70";
 }
 
-export function TodoRow({ todo, showProject }: TodoRowProps) {
+export function TodoRow({ todo, showProject, skipInvalidate }: TodoRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [, setParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const updateTodo = useUpdateTodo();
   const updateSubtodo = useUpdateSubtodo();
   const deleteTodo = useDeleteTodo();
 
   const patchTodo = (patch: Partial<Todo>) =>
-    updateTodo.mutate({ id: todo.id, patch });
+    updateTodo.mutate({ id: todo.id, patch, skipInvalidate });
 
   const onToggleComplete = () => patchTodo({ completed: !todo.completed });
 
-  const onToggleSubtodo = (subtodoId: string, completed: boolean) =>
-    updateSubtodo.mutate({ todoId: todo.id, subtodoId, patch: { completed } });
+  const onToggleImportant = () => patchTodo({ important: !todo.important });
 
-  const onSelect = () =>
+  const onToggleSubtodo = (subtodoId: string, completed: boolean) =>
+    updateSubtodo.mutate({
+      todoId: todo.id,
+      subtodoId,
+      patch: { completed },
+      skipInvalidate,
+    });
+
+  const onSelect = () => {
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    if (!isDesktop) {
+      navigate(`/todo/${todo.id}`);
+      return;
+    }
     setParams(
       (prev) => {
         if (prev.get("todo") === todo.id) prev.delete("todo");
@@ -57,6 +78,7 @@ export function TodoRow({ todo, showProject }: TodoRowProps) {
       },
       { replace: true },
     );
+  };
 
   const onDelete = () => {
     setParams(
@@ -134,6 +156,27 @@ export function TodoRow({ todo, showProject }: TodoRowProps) {
               </button>
 
               <div className="flex items-center gap-2 shrink-0 text-[12px] text-muted">
+                <button
+                  type="button"
+                  className={cn(
+                    "shrink-0 transition-opacity",
+                    todo.important
+                      ? "text-amber-400 opacity-100"
+                      : "text-muted opacity-0 group-hover/row:opacity-100 hover:text-amber-400",
+                  )}
+                  onClick={onToggleImportant}
+                  aria-label={
+                    todo.important
+                      ? "Remove from Important"
+                      : "Mark as Important"
+                  }
+                  aria-pressed={todo.important}
+                >
+                  <Star
+                    size={16}
+                    className={todo.important ? "fill-amber-400" : ""}
+                  />
+                </button>
                 {showProject && todo.project?.name && (
                   <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
                     <Box size={15} />

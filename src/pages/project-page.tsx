@@ -160,7 +160,7 @@ export default function ProjectPage() {
       )}
 
       {rootTodos.map((todo) => (
-        <TodoRow key={todo.id} todo={todo} />
+        <TodoRow key={todo.id} todo={todo} skipInvalidate />
       ))}
 
       {!query && (
