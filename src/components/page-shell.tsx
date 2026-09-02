@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Menu } from "lucide-react";
+import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
 
 type PageShellProps = {
@@ -19,10 +21,20 @@ export function PageShell({
   children,
   footer = null,
 }: PageShellProps) {
+  const { openSidebar } = useSidebarContext();
+
   return (
     <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 bg-surface rounded-2xl border border-line overflow-hidden shadow-sm relative">
       <header className="shrink-0 px-3.75 border-b border-line flex items-center justify-between gap-4 w-full h-12">
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
+          <button
+            type="button"
+            onClick={openSidebar}
+            aria-label="Open menu"
+            className="lg:hidden -ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           {trail.length > 0 && (
             <nav
               className="flex flex-wrap items-center gap-1.5 text-sm text-muted"
