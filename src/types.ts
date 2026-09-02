@@ -17,6 +17,7 @@ export type Todo = {
   dueDate: string | null
   createdAt: string
   project: Project | null
+  list: List | null
   subtodoCount: number
   completedTodos: number
 }

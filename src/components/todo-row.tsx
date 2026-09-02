@@ -15,6 +15,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  List as ListIcon,
   Star,
   Trash2,
 } from "lucide-react";
@@ -191,6 +192,11 @@ export function TodoRow({ todo, showProject, skipInvalidate }: TodoRowProps) {
                   <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
                     <Box size={15} />
                     {todo.project?.name}
+                  </span>
+                )}
+                {todo.list?.name && (
+                  <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
+                    {todo.list.name}
                   </span>
                 )}
                 {todo.dueDate && (

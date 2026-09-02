@@ -97,6 +97,7 @@ type RawTodo = {
   createdAt: string
   subtodos: RawSubtodo[]
   project: Project | null
+  list: List | null
   subtodoCount: number | null
   completedTodos: number | null
 }
@@ -113,6 +114,7 @@ const TODO_FIELDS = `
   dueDate
   createdAt
   project { id, name, code }
+  list { id name projectId }
   subtodos { id title completed }
   subtodoCount
   completedTodos
@@ -131,6 +133,7 @@ const toTodo = (r: RawTodo): Todo => ({
   createdAt: r.createdAt,
   subtodos: r.subtodos ?? [],
   project: r.project ?? null,
+  list: r.list ?? null,
   subtodoCount: r.subtodoCount ?? 0,
   completedTodos: r.completedTodos ?? 0,
 })
