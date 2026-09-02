@@ -97,6 +97,8 @@ type RawTodo = {
   createdAt: string
   subtodos: RawSubtodo[]
   project: Project | null
+  subtodoCount: number | null
+  completedTodos: number | null
 }
 
 const TODO_FIELDS = `
@@ -112,6 +114,8 @@ const TODO_FIELDS = `
   createdAt
   project { id, name, code }
   subtodos { id title completed }
+  subtodoCount
+  completedTodos
 `
 
 const toTodo = (r: RawTodo): Todo => ({
@@ -126,7 +130,9 @@ const toTodo = (r: RawTodo): Todo => ({
   dueDate: r.dueDate,
   createdAt: r.createdAt,
   subtodos: r.subtodos ?? [],
-  project: r.project ?? null
+  project: r.project ?? null,
+  subtodoCount: r.subtodoCount ?? 0,
+  completedTodos: r.completedTodos ?? 0,
 })
 
 export async function fetchLists(): Promise<List[]> {

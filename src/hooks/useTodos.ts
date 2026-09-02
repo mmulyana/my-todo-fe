@@ -150,12 +150,20 @@ export function useUpdateSubtodo() {
   }>(
     ({ subtodoId, patch, signal }) => api.updateSubtodo(subtodoId, patch, signal),
     (qc, { todoId, subtodoId, patch }) =>
-      writeTodo(qc, todoId, (todo) => ({
-        ...todo,
-        subtodos: todo.subtodos.map((s) =>
-          s.id === subtodoId ? { ...s, ...patch } : s,
-        ),
-      })),
+      writeTodo(qc, todoId, (todo) => {
+        const prev = todo.subtodos.find((s) => s.id === subtodoId)
+        const delta =
+          patch.completed !== undefined && prev && prev.completed !== patch.completed
+            ? (patch.completed ? 1 : -1)
+            : 0
+        return {
+          ...todo,
+          subtodos: todo.subtodos.map((s) =>
+            s.id === subtodoId ? { ...s, ...patch } : s,
+          ),
+          completedTodos: todo.completedTodos + delta,
+        }
+      }),
   )
 }
 

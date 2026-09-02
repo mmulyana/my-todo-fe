@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Icon } from "./icons";
-import { CompletedSection } from "./completed-section";
 import {
   formatDue,
   fromISODate,
@@ -87,9 +86,6 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
     createSubtodo.mutate({ todoId: todo.id, title });
     setStepDraft("");
   };
-
-  const activeSubtodos = todo.subtodos.filter((s) => !s.completed);
-  const completedSubtodos = todo.subtodos.filter((s) => s.completed);
 
   return (
     <>
@@ -257,7 +253,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             {!!todo.subtodos.length && (
               <p className="text-sm text-fg/50">Sub task</p>
             )}
-            {activeSubtodos.map((step) => (
+            {todo.subtodos.map((step) => (
               <SubtodoRow
                 key={step.id}
                 step={step}
@@ -285,37 +281,6 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
                 }
               />
             ))}
-
-            <CompletedSection count={completedSubtodos.length}>
-              {completedSubtodos.map((step) => (
-                <SubtodoRow
-                  key={step.id}
-                  step={step}
-                  onToggle={() =>
-                    updateSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                      patch: { completed: !step.completed },
-                      skipInvalidate: true,
-                    })
-                  }
-                  onTitleChange={(title, signal) =>
-                    updateSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                      patch: { title },
-                      signal,
-                    })
-                  }
-                  onDelete={() =>
-                    deleteSubtodo.mutate({
-                      todoId: todo.id,
-                      subtodoId: step.id,
-                    })
-                  }
-                />
-              ))}
-            </CompletedSection>
 
             <form
               className="flex items-center gap-2 text-muted"

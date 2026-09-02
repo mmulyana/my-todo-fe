@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Icon } from "./icons";
+import { CircularProgress } from "./circular-progress";
 import { formatDue, isOverdue, todayISO } from "../lib/dates";
 import {
   useDeleteTodo,
@@ -177,6 +178,15 @@ export function TodoRow({ todo, showProject, skipInvalidate }: TodoRowProps) {
                     className={todo.important ? "fill-amber-400" : ""}
                   />
                 </button>
+                {todo.subtodoCount > 0 && (
+                  <div className="flex items-center gap-1 text-xs rounded-lg bg-white/5 text-white/50 px-2 py-1">
+                    <CircularProgress
+                      value={todo.completedTodos}
+                      total={todo.subtodoCount}
+                    />
+                    <p><span className="text-white">{todo.completedTodos}</span>/{todo.subtodoCount}</p>
+                  </div>
+                )}
                 {showProject && todo.project?.name && (
                   <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
                     <Box size={15} />
