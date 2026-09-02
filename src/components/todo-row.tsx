@@ -15,7 +15,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
-  List as ListIcon,
   Star,
   Trash2,
 } from "lucide-react";
