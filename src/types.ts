@@ -4,6 +4,19 @@ export type Subtodo = {
   completed: boolean
 }
 
+export type AttachmentType = 'IMAGE' | 'FILE' | 'LINK'
+
+export type Attachment = {
+  id: string
+  filename: string
+  url: string
+  mimeType: string | null
+  size: number | null
+  type: AttachmentType
+  todoId: string | null
+  projectId: string | null
+}
+
 export type Todo = {
   id: string
   listId: string | null
@@ -18,6 +31,7 @@ export type Todo = {
   createdAt: string
   project: Project | null
   list: List | null
+  attachments: Attachment[]
   subtodoCount: number
   completedTodos: number
 }

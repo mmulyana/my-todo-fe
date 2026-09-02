@@ -178,6 +178,20 @@ export function useDeleteSubtodo() {
   )
 }
 
+export function useCreateAttachment() {
+  return useRefetchingTodo(api.createAttachment)
+}
+
+export function useDeleteAttachment() {
+  return useRefetchingTodo((id: string) => api.removeAttachment(id))
+}
+
+export function useUploadAttachment() {
+  return useRefetchingTodo(({ file, todoId }: { file: File; todoId: string }) =>
+    api.uploadAttachment(file, todoId),
+  )
+}
+
 export function newTodoFields(title: string, view: View, lists: List[]) {
   const list = view.kind === 'list' ? lists.find((l) => l.id === view.id) : null
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "./icons";
+import { AttachmentSection } from "./attachment-section";
 import {
   formatDue,
   fromISODate,
@@ -311,6 +312,10 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             placeholder="Add note..."
             rows={3}
           />
+        </div>
+
+        <div className="mt-4">
+          <AttachmentSection todoId={todo.id} attachments={todo.attachments} />
         </div>
       </div>
       <div className="pb-4 mt-auto px-4 flex items-center justify-between text-xs text-muted">

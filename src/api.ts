@@ -1,7 +1,13 @@
 import { todayISO } from './lib/dates'
-import type { List, Project, Subtodo, Todo, TodoFilter } from './types'
+import type { Attachment, AttachmentType, List, Project, Subtodo, Todo, TodoFilter } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
+const API_ORIGIN = new URL(BASE_URL).origin
+const REST_BASE_URL = `${API_ORIGIN}/api`
+
+export function resolveAttachmentUrl(url: string): string {
+  return url.startsWith('/') ? `${API_ORIGIN}${url}` : url
+}
 
 let refreshPromise: Promise<string> | null = null
 
@@ -98,6 +104,7 @@ type RawTodo = {
   subtodos: RawSubtodo[]
   project: Project | null
   list: List | null
+  attachments: Attachment[]
   subtodoCount: number | null
   completedTodos: number | null
 }
@@ -116,6 +123,7 @@ const TODO_FIELDS = `
   project { id, name, code }
   list { id name projectId }
   subtodos { id title completed }
+  attachments { id filename url mimeType size type todoId projectId }
   subtodoCount
   completedTodos
 `
@@ -134,6 +142,7 @@ const toTodo = (r: RawTodo): Todo => ({
   subtodos: r.subtodos ?? [],
   project: r.project ?? null,
   list: r.list ?? null,
+  attachments: r.attachments ?? [],
   subtodoCount: r.subtodoCount ?? 0,
   completedTodos: r.completedTodos ?? 0,
 })
@@ -242,6 +251,67 @@ export async function updateSubtodo(
 }
 
 export const removeSubtodo = removeTodo
+
+const ATTACHMENT_FIELDS = `id filename url mimeType size type todoId projectId`
+
+export async function createAttachment(input: {
+  todoId: string
+  url: string
+  filename: string
+  type: AttachmentType
+}): Promise<Attachment> {
+  const data = await gql<{ createAttachment: Attachment }>(
+    `mutation ($input: CreateAttachmentInput!) {
+       createAttachment(input: $input) { ${ATTACHMENT_FIELDS} }
+     }`,
+    { input },
+  )
+  return data.createAttachment
+}
+
+export async function removeAttachment(id: string): Promise<void> {
+  await gql(`mutation ($id: ID!) { removeAttachment(id: $id) { id } }`, { id })
+}
+
+export async function uploadAttachment(
+  file: File,
+  todoId: string,
+  isRetry = false,
+): Promise<Attachment> {
+  const token = localStorage.getItem('accessToken')
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('todoId', todoId)
+  formData.append('type', 'IMAGE')
+
+  const res = await fetch(`${REST_BASE_URL}/attachments/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  })
+
+  if (res.status === 401 && !isRetry && localStorage.getItem('refreshToken')) {
+    try {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null
+        })
+      }
+      await refreshPromise
+      return uploadAttachment(file, todoId, true)
+    } catch {
+      logout()
+      throw new Error('Session expired, please sign in again')
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message || 'Failed to upload attachment')
+  }
+
+  return res.json()
+}
 
 export async function createList(
   name: string,
