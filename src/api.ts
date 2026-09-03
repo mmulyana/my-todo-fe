@@ -2,7 +2,7 @@ import { todayISO } from './lib/dates'
 import type { Attachment, AttachmentType, List, Project, Subtodo, Todo, TodoFilter } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
-const API_ORIGIN = new URL(BASE_URL).origin
+const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin
 const REST_BASE_URL = `${API_ORIGIN}/api`
 
 export function resolveAttachmentUrl(url: string): string {
