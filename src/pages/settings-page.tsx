@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Check, Copy, KeyRound, Trash2 } from "lucide-react";
+import { KeyRound, Trash2 } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { NewTokenModal } from "../components/new-token-modal";
+import { CopyButton } from "../components/copy-button";
+import { McpSetupGuide } from "../components/mcp-setup-guide";
 import { Button } from "@/components/ui/button";
 import { useApiTokens, useRevokeApiToken } from "../hooks/useApiTokens";
 import { API_ORIGIN } from "../api";
@@ -16,48 +18,6 @@ function formatDate(iso: string | null) {
     month: "short",
     day: "numeric",
   });
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? (
-        <>
-          <Check className="w-3.5 h-3.5" /> Copied
-        </>
-      ) : (
-        <>
-          <Copy className="w-3.5 h-3.5" /> Copy
-        </>
-      )}
-    </Button>
-  );
-}
-
-function mcpConfigSnippet(token: string) {
-  return JSON.stringify(
-    {
-      mcpServers: {
-        "my-todo": {
-          command: "npx",
-          args: ["-y", "mcp-remote", MCP_URL, "--header", `Authorization: Bearer ${token}`],
-        },
-      },
-    },
-    null,
-    2,
-  );
 }
 
 export default function SettingsPage() {
@@ -112,27 +72,10 @@ export default function SettingsPage() {
               </code>
               <CopyButton text={revealedToken.token} />
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <p className="text-xs font-medium text-muted">
-                Claude Desktop config (claude_desktop_config.json)
-              </p>
-              <div className="flex items-start gap-2">
-                <pre className="flex-1 min-w-0 overflow-x-auto rounded-md border border-line bg-raised px-3 py-2 text-xs font-mono text-fg whitespace-pre">
-                  {mcpConfigSnippet(revealedToken.token)}
-                </pre>
-                <CopyButton text={mcpConfigSnippet(revealedToken.token)} />
-              </div>
-              <p className="text-[11px] text-muted">
-                For Claude Code:{" "}
-                <code className="text-fg">
-                  claude mcp add --transport http my-todo {MCP_URL} --header "Authorization:
-                  Bearer {revealedToken.token}"
-                </code>
-              </p>
-            </div>
           </section>
         )}
+
+        <McpSetupGuide mcpUrl={MCP_URL} token={revealedToken?.token ?? null} />
 
         <section className="flex flex-col gap-2">
           <h3 className="text-xs font-medium text-muted">Active tokens</h3>
