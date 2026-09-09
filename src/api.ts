@@ -1,8 +1,8 @@
 import { todayISO } from './lib/dates'
-import type { Attachment, AttachmentType, List, Project, Subtodo, Todo, TodoFilter } from './types'
+import type { ApiToken, Attachment, AttachmentType, List, NewApiToken, Project, Subtodo, Todo, TodoFilter } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
-const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin
+export const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin
 const REST_BASE_URL = `${API_ORIGIN}/api`
 
 export function resolveAttachmentUrl(url: string): string {
@@ -311,6 +311,63 @@ export async function uploadAttachment(
   }
 
   return res.json()
+}
+
+// note: helper buat rest json umum dengan retry setelah refresh jika mendapat 401 endpoint token memakai rest bkn graph
+async function restFetch<T>(
+  path: string,
+  options: RequestInit = {},
+  isRetry = false,
+): Promise<T> {
+  const token = localStorage.getItem('accessToken')
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> | undefined),
+  }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const res = await fetch(`${REST_BASE_URL}${path}`, { ...options, headers })
+
+  if (res.status === 401 && !isRetry && localStorage.getItem('refreshToken')) {
+    try {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null
+        })
+      }
+      await refreshPromise
+      return restFetch<T>(path, options, true)
+    } catch {
+      logout()
+      throw new Error('Session expired, please sign in again')
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message || `Request failed (${res.status})`)
+  }
+
+  if (res.status === 204) return undefined as T
+  return res.json()
+}
+
+export async function fetchApiTokens(): Promise<ApiToken[]> {
+  return restFetch<ApiToken[]>('/tokens')
+}
+
+export async function createApiToken(
+  name: string,
+  expiresInDays?: number | null,
+): Promise<NewApiToken> {
+  return restFetch<NewApiToken>('/tokens', {
+    method: 'POST',
+    body: JSON.stringify({ name, expiresInDays }),
+  })
+}
+
+export async function revokeApiToken(id: string): Promise<void> {
+  await restFetch<void>(`/tokens/${id}`, { method: 'DELETE' })
 }
 
 export async function createList(

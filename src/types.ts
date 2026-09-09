@@ -77,3 +77,15 @@ export type AuthPayload = {
   refreshToken: string
   user: User
 }
+
+export type ApiToken = {
+  id: string
+  name: string
+  prefix: string
+  lastUsedAt: string | null
+  expiresAt: string | null
+  revokedAt: string | null
+  createdAt: string
+}
+
+export type NewApiToken = ApiToken & { token: string }
