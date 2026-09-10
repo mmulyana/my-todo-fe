@@ -29,7 +29,7 @@ export type Todo = {
   myDay: boolean
   dueDate: string | null
   createdAt: string
-  project: Project | null
+  project: TodoProject | null
   list: List | null
   attachments: Attachment[]
   subtodoCount: number
@@ -48,6 +48,12 @@ export type Project = {
   description: string | null
   parentId: string | null
   code?: string | null
+}
+
+export type TodoProject = {
+  id: string
+  name: string
+  code: string | null
 }
 
 export type SmartListId = 'today' | 'important' | 'all'
