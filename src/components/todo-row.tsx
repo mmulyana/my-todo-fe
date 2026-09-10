@@ -28,6 +28,7 @@ import {
 type TodoRowProps = {
   todo: Todo;
   showProject?: boolean;
+  showList?: boolean;
   skipInvalidate?: boolean;
 };
 
@@ -41,7 +42,12 @@ function duePill(todo: Todo) {
   return "bg-white/5 text-fg/70";
 }
 
-export function TodoRow({ todo, showProject, skipInvalidate }: TodoRowProps) {
+export function TodoRow({
+  todo,
+  showProject,
+  showList = true,
+  skipInvalidate,
+}: TodoRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -193,7 +199,7 @@ export function TodoRow({ todo, showProject, skipInvalidate }: TodoRowProps) {
                     {todo.project?.name}
                   </span>
                 )}
-                {todo.list?.name && (
+                {showList && todo.list?.name && (
                   <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
                     {todo.list.name}
                   </span>

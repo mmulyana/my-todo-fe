@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { KeyRound, Trash2 } from "lucide-react";
+import { KeyRound, Share2, Trash2 } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { NewTokenModal } from "../components/new-token-modal";
 import { CopyButton } from "../components/copy-button";
@@ -28,7 +28,8 @@ export default function SettingsPage() {
 
   return (
     <PageShell
-      title="Settings"
+      title="MCP"
+      icon={<Share2 />}
       actions={
         <Button size="sm" onClick={() => setModalOpen(true)}>
           <KeyRound className="w-3.5 h-3.5" /> New token

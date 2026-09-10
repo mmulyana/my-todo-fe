@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
           { path: "all", element: <AllPage /> },
           { path: "projects/:projectId", element: <ProjectPage /> },
           { path: "todo/:todoId", element: <TodoDetailPage /> },
-          { path: "settings", element: <SettingsPage /> },
+          { path: "mcp", element: <SettingsPage /> },
           { path: "*", element: <Navigate to="/today" replace /> },
         ],
       },

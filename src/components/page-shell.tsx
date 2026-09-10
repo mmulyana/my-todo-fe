@@ -16,6 +16,7 @@ type PageShellProps = {
 
 export function PageShell({
   title,
+  icon,
   actions,
   trail = [],
   children,
@@ -52,6 +53,9 @@ export function PageShell({
                 </span>
               ))}
             </nav>
+          )}
+          {icon && (
+            <span className="ml-1.5 shrink-0 text-muted [&_svg]:w-4 [&_svg]:h-4">{icon}</span>
           )}
           <h1 className="ml-1.5 h-fit m-0 text-sm tracking-[-0.02em] truncate font-medium text-white">
             {title}

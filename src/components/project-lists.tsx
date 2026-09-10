@@ -149,11 +149,15 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
   const updateList = useUpdateList();
   const deleteList = useDeleteList();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(
+    null,
+  );
   const [adding, setAdding] = useState(false);
 
+  const collapsed = collapsedOverride ?? todos.length === 0;
+
   const openTodoField = () => {
-    setCollapsed(false);
+    setCollapsedOverride(false);
     setAdding(true);
   };
 
@@ -162,7 +166,7 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
       <SectionHeader
         name={list.name}
         collapsed={collapsed}
-        onToggleCollapsed={() => setCollapsed((v) => !v)}
+        onToggleCollapsed={() => setCollapsedOverride(!collapsed)}
         onUpdateName={(newName) =>
           updateList.mutate({ id: list.id, name: newName })
         }
@@ -173,7 +177,7 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
       {!collapsed && (
         <div className="flex flex-col">
           {todos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} skipInvalidate />
+            <TodoRow key={todo.id} todo={todo} showList={false} skipInvalidate />
           ))}
 
           {adding && (
