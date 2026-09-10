@@ -7,9 +7,7 @@ export function useApiTokens() {
   return useQuery({ queryKey: API_TOKENS_KEY, queryFn: api.fetchApiTokens })
 }
 
-// Not built on useOptimistic (see hooks/optimistic.ts) - a token's plaintext
-// only exists in this mutation's resolved value, so the caller needs
-// mutation.data back, not a silently-patched cache entry.
+// note: sengaja ga pake useOptimistic karena plaintext token harus dari response
 export function useCreateApiToken() {
   const qc = useQueryClient()
   return useMutation({
