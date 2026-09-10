@@ -31,7 +31,7 @@ export default function SettingsPage() {
       title="MCP"
       icon={<Share2 />}
       actions={
-        <Button size="sm" onClick={() => setModalOpen(true)}>
+        <Button size="sm" className="gap-1" onClick={() => setModalOpen(true)}>
           <KeyRound className="w-3.5 h-3.5" /> New token
         </Button>
       }
@@ -39,7 +39,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 px-3.5">
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-medium text-white">MCP Access</h2>
-          <p className="text-xs text-muted leading-relaxed max-w-2xl">
+          <p className="text-sm text-muted leading-relaxed max-w-3xl">
             Personal access tokens let external MCP clients - Claude Desktop, Claude Code -
             read and manage your todos on your behalf. Each token acts as you; revoke one the
             moment you stop using the client it was made for.
@@ -79,7 +79,7 @@ export default function SettingsPage() {
         <McpSetupGuide mcpUrl={MCP_URL} token={revealedToken?.token ?? null} />
 
         <section className="flex flex-col gap-2">
-          <h3 className="text-xs font-medium text-muted">Active tokens</h3>
+          <h3 className="text-sm font-medium text-muted">Active tokens</h3>
 
           {isLoading && <p className="text-xs text-muted">Loading...</p>}
 
@@ -117,6 +117,7 @@ export default function SettingsPage() {
                       type="button"
                       variant="outline"
                       size="sm"
+                      className="gap-1"
                       disabled={revokeToken.isPending}
                       onClick={() => {
                         if (confirm(`Revoke "${token.name}"? Any client using it will stop working.`)) {

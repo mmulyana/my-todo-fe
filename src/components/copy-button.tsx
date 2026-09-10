@@ -9,6 +9,7 @@ export function CopyButton({ text }: { text: string }) {
     <Button
       type="button"
       variant="outline"
+      className="gap-1"
       size="sm"
       onClick={() => {
         navigator.clipboard.writeText(text);
