@@ -25,7 +25,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
     <section className="flex flex-col gap-3 rounded-xl border border-line p-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-medium text-white">How to connect</h3>
-        <p className="text-xs text-muted leading-relaxed max-w-2xl">
+        <p className="text-sm text-muted leading-relaxed max-w-3xl">
           Pick the client you use. You'll need a token from above - the steps
           below use{" "}
           {token ? "your latest one" : "a placeholder until you create one"}.
@@ -39,7 +39,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              "px-3 py-1.5 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer",
+              "px-3 py-1.5 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer",
               tab === t.id
                 ? "border-accent text-white"
                 : "border-transparent text-muted hover:text-fg",
@@ -51,7 +51,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
       </div>
 
       {tab === "desktop" ? (
-        <ol className="flex flex-col gap-3 text-xs text-fg/90">
+        <ol className="flex flex-col gap-3 text-sm text-fg/90">
           <li className="flex flex-col gap-1">
             <span className="text-muted">1. Open the config file</span>
             <span className="font-mono text-[11px] text-fg">
@@ -129,7 +129,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
         </ol>
       )}
 
-      <p className="text-[11px] text-muted border-t border-line pt-3">
+      <p className="text-sm text-muted border-t border-line pt-3">
         Getting a 401 or the tool doesn't show up? The token is likely wrong,
         revoked, or expired - create a new one above and swap it in. Revoke a
         token any time from the list below to disconnect that client.

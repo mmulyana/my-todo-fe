@@ -28,7 +28,15 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    "plugins": [
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "../my-todo-be/src/schema.gql",
+        "tadaOutputLocation": "./src/graphql-env.d.ts"
+      }
+    ]
   },
   "include": ["src"]
 }

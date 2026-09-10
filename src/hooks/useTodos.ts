@@ -6,10 +6,14 @@ import {
 } from '@tanstack/react-query'
 import * as api from '../api'
 import { INBOX } from '../views'
+import { isOverdue } from '../lib/dates'
 import type { List, Todo, TodoFilter, View } from '../types'
 
 export const TODOS_KEY = ['todos'] as const
 export const TODO_KEY = ['todo'] as const
+
+const STALE_TIME = 30_000
+const GC_TIME = 5 * 60_000
 
 const todosKey = (filter: TodoFilter) => [...TODOS_KEY, filter] as const
 const todoKey = (id: string) => [...TODO_KEY, id] as const
@@ -18,12 +22,18 @@ export function useTodos(filter: TodoFilter) {
   return useQuery({
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
-    gcTime: 0,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 
 export function useTodo(id: string) {
-  return useQuery({ queryKey: todoKey(id), queryFn: () => api.fetchTodo(id) })
+  return useQuery({
+    queryKey: todoKey(id),
+    queryFn: () => api.fetchTodo(id),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
 }
 
 export function useActiveTodos(filter: TodoFilter) {
@@ -31,7 +41,8 @@ export function useActiveTodos(filter: TodoFilter) {
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
     select: (todos) => todos.filter((t) => !t.completed),
-    gcTime: 0,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 
@@ -40,7 +51,19 @@ export function useCompletedTodos(filter: TodoFilter) {
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
     select: (todos) => todos.filter((t) => t.completed),
-    gcTime: 0,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  })
+}
+
+export function useOverdueTodos(filter: TodoFilter) {
+  return useQuery({
+    queryKey: [...todosKey(filter), 'overdue'] as const,
+    queryFn: () => api.fetchTodos(filter),
+    select: (todos) =>
+      todos.filter((t) => !t.completed && t.dueDate && isOverdue(t.dueDate)),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 

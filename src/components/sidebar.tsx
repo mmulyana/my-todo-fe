@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { Icon, type IconName } from "./icons";
 import { SidebarTree } from "./sidebar-tree";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         <div className="px-1 mt-4 flex flex-col gap-0.5">
           <NavLink
-            to="/settings"
+            to="/mcp"
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg",
@@ -90,9 +90,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             }
           >
             <span className="shrink-0 [&_svg]:w-4.5 [&_svg]:h-4.5">
-              <Settings className="w-4.5 h-4.5" />
+              <Share2 className="w-4.5 h-4.5" />
             </span>
-            <span className="flex-1 truncate">Settings</span>
+            <span className="flex-1 truncate">MCP</span>
           </NavLink>
 
           <button
