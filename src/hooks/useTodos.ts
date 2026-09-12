@@ -56,7 +56,7 @@ export function useCompletedTodos(filter: TodoFilter) {
   })
 }
 
-const MY_DAY_FILTER: TodoFilter = { view: 'TODAY', completed: false }
+const MY_DAY_FILTER: TodoFilter = { view: 'TODAY' }
 
 export function useMyDayTodos(options?: { enabled?: boolean }) {
   return useQuery({
