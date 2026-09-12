@@ -106,11 +106,11 @@ export function TodoRow({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div className="group/row flex items-center group">
-            <span className="grid place-items-center w-5 h-5 shrink-0">
+            <span className="flex justify-center w-5 h-5 shrink-0">
               {steps > 0 && (
                 <button
                   type="button"
-                  className="hidden group-hover:flex items-center w-5 h-5 text-muted hover:text-fg transition-colors"
+                  className="hidden group-hover:flex items-center p-0! text-muted hover:text-fg transition-colors"
                   onClick={() => setExpanded((v) => !v)}
                   aria-expanded={expanded}
                   aria-label={expanded ? "Hide steps" : "Show steps"}

@@ -53,7 +53,7 @@ function SectionHeader({
       <div className="w-5 h-5 flex justify-center items-center">
         <button
           type="button"
-          className="hidden group-hover:flex items-center w-4 h-4 text-muted hover:text-fg transition-colors"
+          className="hidden group-hover:flex items-center text-muted hover:text-fg transition-colors"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? `Show ${name}` : `Hide ${name}`}
