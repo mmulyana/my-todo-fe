@@ -36,7 +36,7 @@ export default function TodayPage() {
   return (
     <PageShell
       title={query ? `Searching "${query}"` : "Today"}
-      icon={<Sun size={20} className="text-amber-400" />}
+      icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}
       footer={query ? null : <AddTodoBar view={view} lists={lists} />}
     >

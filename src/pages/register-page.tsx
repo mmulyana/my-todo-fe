@@ -53,7 +53,7 @@ export default function RegisterPage() {
 
         <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3.5">
           {error && (
-            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+            <p className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-3 py-2">
               {error}
             </p>
           )}
@@ -75,7 +75,7 @@ export default function RegisterPage() {
               />
             </div>
             {errors.email && (
-              <span className="text-xs text-red-400">Email is required</span>
+              <span className="text-xs text-danger">Email is required</span>
             )}
           </div>
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
               />
             </div>
             {errors.username && (
-              <span className="text-xs text-red-400">Username is required</span>
+              <span className="text-xs text-danger">Username is required</span>
             )}
           </div>
 
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               </button>
             </div>
             {errors.password && (
-              <span className="text-xs text-red-400">
+              <span className="text-xs text-danger">
                 Password must be at least 6 characters
               </span>
             )}

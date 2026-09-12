@@ -107,7 +107,7 @@ export function NewTokenModal({ open, onOpenChange, onCreated }: NewTokenModalPr
             </div>
 
             {createToken.isError && (
-              <p className="text-xs text-red-400">
+              <p className="text-xs text-danger">
                 {createToken.error instanceof Error
                   ? createToken.error.message
                   : "Failed to create token"}

@@ -52,7 +52,7 @@ export function ListCombobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "justify-between font-normal text-left h-7 text-xs px-2.5 bg-white/5 border-line hover:bg-white/10 hover:text-fg text-muted cursor-pointer rounded-lg",
+            "justify-between font-normal text-left h-7 text-xs px-2.5 bg-tint/5 border-line hover:bg-tint/10 hover:text-fg text-muted cursor-pointer rounded-lg",
             className
           )}
         >

@@ -38,7 +38,7 @@ export default function SettingsPage() {
     >
       <div className="flex flex-col gap-6 px-3.5">
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-white">MCP Access</h2>
+          <h2 className="text-sm font-medium text-fg">MCP Access</h2>
           <p className="text-sm text-muted leading-relaxed max-w-3xl">
             Personal access tokens let external MCP clients - Claude Desktop, Claude Code -
             read and manage your todos on your behalf. Each token acts as you; revoke one the
@@ -50,7 +50,7 @@ export default function SettingsPage() {
           <section className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-accent/5 p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-fg">
                   "{revealedToken.name}" created
                 </p>
                 <p className="text-xs text-muted">

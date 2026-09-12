@@ -24,7 +24,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-line p-4">
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-medium text-white">How to connect</h3>
+        <h3 className="text-sm font-medium text-fg">How to connect</h3>
         <p className="text-sm text-muted leading-relaxed max-w-3xl">
           Pick the client you use. You'll need a token from above - the steps
           below use{" "}
@@ -41,7 +41,7 @@ export function McpSetupGuide({ mcpUrl, token }: McpSetupGuideProps) {
             className={cn(
               "px-3 py-1.5 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer",
               tab === t.id
-                ? "border-accent text-white"
+                ? "border-accent text-fg"
                 : "border-transparent text-muted hover:text-fg",
             )}
           >

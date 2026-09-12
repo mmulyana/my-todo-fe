@@ -73,7 +73,7 @@ export default function ProjectPage() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="p-1 rounded-md text-muted hover:text-fg hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
             aria-label="Project actions"
           >
             <MoreHorizontal size={16} />
@@ -90,7 +90,7 @@ export default function ProjectPage() {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleDelete}
-            className="gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-500 cursor-pointer"
+            className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Delete</span>
@@ -139,10 +139,10 @@ export default function ProjectPage() {
                   >
                     <Link
                       to={`/projects/${sub.id}`}
-                      className="group flex flex-col gap-2 h-full p-3.5 rounded-xl bg-white/5"
+                      className="group flex flex-col gap-2 h-full p-3.5 rounded-xl bg-tint/5"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="grid place-items-center w-7 h-7 shrink-0 rounded-lg bg-white/5 text-muted">
+                        <span className="grid place-items-center w-7 h-7 shrink-0 rounded-lg bg-tint/5 text-muted">
                           <Box className="w-4 h-4" />
                         </span>
                         <span className="flex-1 min-w-0 truncate font-medium">

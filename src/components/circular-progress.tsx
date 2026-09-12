@@ -33,7 +33,7 @@ export function CircularProgress({
         r={radius}
         fill="none"
         strokeWidth={strokeWidth}
-        className="stroke-white/10"
+        className="stroke-tint/10"
       />
       <circle
         cx={size / 2}
@@ -46,7 +46,7 @@ export function CircularProgress({
         strokeLinecap="round"
         className={cn(
           "transition-[stroke-dashoffset] duration-200",
-          ratio >= 1 ? "stroke-green-600" : "stroke-green-600/70",
+          ratio >= 1 ? "stroke-success" : "stroke-success/70",
         )}
       />
     </svg>

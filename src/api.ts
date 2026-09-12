@@ -616,6 +616,23 @@ export async function register(email: string, username: string, password: string
   return data.register
 }
 
+const MeDocument = graphql(`
+  query Me {
+    me {
+      id
+      email
+      username
+      createdAt
+      updatedAt
+    }
+  }
+`)
+
+export async function fetchMe(): Promise<import('./types').User> {
+  const data = await gql(MeDocument, {})
+  return data.me
+}
+
 export function logout() {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')

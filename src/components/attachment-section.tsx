@@ -100,7 +100,7 @@ function AttachmentRow({ attachment, onDelete }: AttachmentRowProps) {
       <button
         type="button"
         onClick={onDelete}
-        className="opacity-0 group-hover/att:opacity-100 p-1 rounded hover:bg-white/10 text-muted hover:text-red-400 transition-opacity cursor-pointer"
+        className="opacity-0 group-hover/att:opacity-100 p-1 rounded hover:bg-tint/10 text-muted hover:text-danger transition-opacity cursor-pointer"
         aria-label="Remove attachment"
       >
         <Trash2 className="w-3.5 h-3.5" />

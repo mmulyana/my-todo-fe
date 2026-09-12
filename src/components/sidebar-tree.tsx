@@ -54,8 +54,8 @@ function ProjectNode({
         className={cn(
           "group/row flex items-center gap-2 px-2.5 h-8 rounded-lg relative text-sm transition-colors cursor-pointer",
           active
-            ? "bg-white/10 text-fg font-medium"
-            : "text-muted hover:text-fg hover:bg-white/5",
+            ? "bg-tint/10 text-fg font-medium"
+            : "text-muted hover:text-fg hover:bg-tint/5",
         )}
       >
         <span className="w-5 h-5 shrink-0 flex items-center justify-center text-muted">
@@ -69,7 +69,7 @@ function ProjectNode({
         {depth < 3 && (
           <button
             type="button"
-            className="hidden group-hover/row:inline-flex items-center justify-center w-5 h-5 rounded-md text-muted hover:bg-white/10 hover:text-fg cursor-pointer"
+            className="hidden group-hover/row:inline-flex items-center justify-center w-5 h-5 rounded-md text-muted hover:bg-tint/10 hover:text-fg cursor-pointer"
             aria-label={`Add sub-project to ${project.name}`}
             title="Add sub-project"
             onClick={(e) => {
@@ -86,7 +86,7 @@ function ProjectNode({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="hidden group-hover/row:inline-flex items-center justify-center w-5 h-5 rounded-md text-muted hover:bg-white/10 hover:text-fg data-[state=open]:inline-flex data-[state=open]:bg-white/10 cursor-pointer"
+              className="hidden group-hover/row:inline-flex items-center justify-center w-5 h-5 rounded-md text-muted hover:bg-tint/10 hover:text-fg data-[state=open]:inline-flex data-[state=open]:bg-tint/10 cursor-pointer"
               aria-label={`Actions for ${project.name}`}
               onClick={(e) => e.stopPropagation()}
             >
@@ -110,7 +110,7 @@ function ProjectNode({
                 e.stopPropagation();
                 tree.deleteProject(project.id);
               }}
-              className="gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-500 cursor-pointer"
+              className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>Delete</span>
@@ -215,7 +215,7 @@ export function SidebarTree() {
           <button
             type="button"
             onClick={() => setCreateRootOpen(true)}
-            className="p-1 rounded text-muted hover:text-fg hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1 rounded text-muted hover:text-fg hover:bg-tint/10 transition-colors cursor-pointer"
             aria-label="Create new project"
             title="Create"
           >
@@ -225,7 +225,7 @@ export function SidebarTree() {
           <button
             type="button"
             onClick={() => setSectionOpen((v) => !v)}
-            className="p-1 rounded text-muted hover:text-fg hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1 rounded text-muted hover:text-fg hover:bg-tint/10 transition-colors cursor-pointer"
             aria-label={sectionOpen ? "Collapse projects" : "Expand projects"}
           >
             {sectionOpen ? (

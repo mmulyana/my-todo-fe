@@ -1,7 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { Share2 } from "lucide-react";
+import { ChevronsUpDown, LogOut, Moon, Share2, Sun } from "lucide-react";
 import { Icon, type IconName } from "./icons";
 import { SidebarTree } from "./sidebar-tree";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/hooks/useTheme";
+import { useMe } from "@/hooks/useMe";
 import { cn } from "@/lib/utils";
 import type { SmartListId } from "@/types";
 
@@ -23,6 +32,9 @@ type SidebarProps = {
 };
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const { theme, toggleTheme } = useTheme();
+  const { data: me } = useMe();
+
   return (
     <>
       <div
@@ -45,7 +57,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="p-1.5 rounded-full text-muted hover:text-fg bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-muted hover:text-fg bg-tint/5 transition-colors cursor-pointer"
           >
             <Icon name="close" />
           </button>
@@ -61,8 +73,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   cn(
                     "flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg",
                     isActive
-                      ? "bg-surface font-medium text-white"
-                      : "text-fg/50 hover:bg-surface/50",
+                      ? "bg-tint/5 font-medium text-fg"
+                      : "text-fg/50 hover:bg-tint/5",
                   )
                 }
               >
@@ -77,35 +89,61 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <SidebarTree />
         </nav>
 
-        <div className="px-1 mt-4 flex flex-col gap-0.5">
-          <NavLink
-            to="/mcp"
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg",
-                isActive
-                  ? "bg-surface font-medium text-white"
-                  : "text-fg/50 hover:bg-surface/50",
-              )
-            }
-          >
-            <span className="shrink-0 [&_svg]:w-4.5 [&_svg]:h-4.5">
-              <Share2 className="w-4.5 h-4.5" />
-            </span>
-            <span className="flex-1 truncate">MCP</span>
-          </NavLink>
-
-          <button
-            onClick={() => {
-              import("../api").then(({ logout }) => logout());
-            }}
-            className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-lg text-fg/50 hover:bg-surface/50 transition-colors cursor-pointer"
-          >
-            <span className="shrink-0 [&_svg]:w-4.5 [&_svg]:h-4.5">
-              <Icon name="sun" />{" "}
-            </span>
-            <span className="flex-1 truncate text-left">Logout</span>
-          </button>
+        <div className="px-1 mt-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-lg text-left hover:bg-surface/50 data-[state=open]:bg-surface/50 transition-colors cursor-pointer"
+              >
+                <span className="shrink-0 flex items-center justify-center w-6.5 h-6.5 rounded-full bg-accent text-white text-xs font-medium uppercase">
+                  {(me?.username ?? me?.email ?? "?").slice(0, 1)}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block truncate text-sm font-medium text-fg">
+                    {me?.username ?? "..."}
+                  </span>
+                  <span className="block truncate text-xs text-muted">
+                    {me?.email ?? ""}
+                  </span>
+                </span>
+                <ChevronsUpDown className="shrink-0 w-4 h-4 text-muted" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              side="top"
+              className="w-(--radix-dropdown-menu-trigger-width)"
+            >
+              <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                <NavLink to="/mcp">
+                  <Share2 className="w-4 h-4" />
+                  MCP
+                </NavLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={toggleTheme}
+                className="gap-2 cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  import("../api").then(({ logout }) => logout());
+                }}
+                className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
     </>

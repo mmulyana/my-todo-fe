@@ -25,14 +25,14 @@ export function PageShell({
   const { openSidebar } = useSidebarContext();
 
   return (
-    <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 bg-surface rounded-2xl border border-line overflow-hidden shadow-sm relative">
+    <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 bg-surface rounded-2xl border border-line overflow-hidden relative">
       <header className="shrink-0 px-3.75 border-b border-line flex items-center justify-between gap-4 w-full h-12">
         <div className="flex items-center min-w-0">
           <button
             type="button"
             onClick={openSidebar}
             aria-label="Open menu"
-            className="lg:hidden -ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-white/5 transition-colors cursor-pointer"
+            className="lg:hidden -ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -45,7 +45,7 @@ export function PageShell({
                 <span key={project.id} className="flex items-center gap-1.5">
                   <Link
                     to={`/projects/${project.id}`}
-                    className="truncate hover:text-white"
+                    className="truncate hover:text-fg"
                   >
                     {project.name}
                   </Link>
@@ -57,7 +57,7 @@ export function PageShell({
           {icon && (
             <span className="ml-1.5 shrink-0 text-muted [&_svg]:w-4 [&_svg]:h-4">{icon}</span>
           )}
-          <h1 className="ml-1.5 h-fit m-0 text-sm tracking-[-0.02em] truncate font-medium text-white">
+          <h1 className="ml-1.5 h-fit m-0 text-sm tracking-[-0.02em] truncate font-medium text-fg">
             {title}
           </h1>
         </div>

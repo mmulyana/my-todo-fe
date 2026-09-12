@@ -58,7 +58,7 @@ export function SidebarComposer({ projects }: SidebarComposerProps) {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-3 w-full py-1.5 px-2.5 rounded text-left text-accent hover:bg-white/5 transition-colors cursor-pointer"
+          className="flex items-center gap-3 w-full py-1.5 px-2.5 rounded text-left text-accent hover:bg-tint/5 transition-colors cursor-pointer"
         >
           <span className="flex-1 truncate font-medium">+ New project</span>
         </button>

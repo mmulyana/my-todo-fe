@@ -34,12 +34,12 @@ type TodoRowProps = {
 
 function duePill(todo: Todo) {
   if (!todo.completed && isOverdue(todo.dueDate!)) {
-    return "bg-[#3d2321] text-[#f87171] font-semibold";
+    return "bg-danger/15 text-danger font-semibold";
   }
   if (!todo.completed && todo.dueDate === todayISO()) {
     return "bg-accent/20 text-accent font-semibold";
   }
-  return "bg-white/5 text-fg/70";
+  return "bg-tint/5 text-fg/70";
 }
 
 export function TodoRow({
@@ -168,8 +168,8 @@ export function TodoRow({
                   className={cn(
                     "shrink-0 transition-opacity",
                     todo.important
-                      ? "text-amber-400 opacity-100"
-                      : "text-muted opacity-0 group-hover/row:opacity-100 hover:text-amber-400",
+                      ? "text-warn opacity-100"
+                      : "text-muted opacity-0 group-hover/row:opacity-100 hover:text-warn",
                   )}
                   onClick={onToggleImportant}
                   aria-label={
@@ -181,32 +181,32 @@ export function TodoRow({
                 >
                   <Star
                     size={16}
-                    className={todo.important ? "fill-amber-400" : ""}
+                    className={todo.important ? "fill-warn" : ""}
                   />
                 </button>
                 {todo.subtodoCount > 0 && (
-                  <div className="flex items-center gap-1 text-xs rounded-lg bg-white/5 text-white/50 px-2 py-1">
+                  <div className="flex items-center gap-1 text-xs rounded-lg bg-tint/5 text-tint/50 px-2 py-1">
                     <CircularProgress
                       value={todo.completedTodos}
                       total={todo.subtodoCount}
                     />
-                    <p><span className="text-white">{todo.completedTodos}</span>/{todo.subtodoCount}</p>
+                    <p><span className="text-fg">{todo.completedTodos}</span>/{todo.subtodoCount}</p>
                   </div>
                 )}
                 {showProject && todo.project?.name && (
-                  <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
+                  <span className="text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1">
                     <Box size={15} />
                     {todo.project?.name}
                   </span>
                 )}
                 {showList && todo.list?.name && (
-                  <span className="text-xs flex gap-1 rounded-lg bg-white/5 text-white/50 px-2 py-1">
+                  <span className="text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1">
                     {todo.list.name}
                   </span>
                 )}
                 {todo.dueDate && (
                   <span
-                    className={`flex gap-1 text-xs rounded-lg bg-white/5 text-white/50 px-2 py-1 ${duePill(todo)}`}
+                    className={`flex gap-1 text-xs rounded-lg bg-tint/5 text-tint/50 px-2 py-1 ${duePill(todo)}`}
                   >
                     <Calendar size={15} />
                     {formatDue(todo.dueDate)}
@@ -220,7 +220,7 @@ export function TodoRow({
         <ContextMenuContent className="w-40">
           <ContextMenuItem
             onSelect={onDelete}
-            className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+            className="text-danger focus:bg-danger/10 focus:text-danger"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Delete To-Do</span>

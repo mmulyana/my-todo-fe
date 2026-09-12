@@ -21,7 +21,7 @@ export default function ImportantPage() {
   return (
     <PageShell
       title={query ? `Searching "${query}"` : 'Important'}
-      icon={<Star size={20} className="text-amber-400 fill-amber-400" />}
+      icon={<Star size={20} className="text-warn fill-warn" />}
       footer={query ? null : <AddTodoBar view={view} lists={lists} />}
     >
       {todos.map((todo) => (

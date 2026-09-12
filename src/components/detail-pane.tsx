@@ -93,7 +93,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
       <div className="shrink-0 h-12 px-4 py-3.5 border-b border-line flex items-center justify-end w-full">
         <button
           onClick={onClose}
-          className="flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-white/5 transition-colors cursor-pointer"
+          className="flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
           title="Close details"
         >
           <X size={18} strokeWidth={2} />
@@ -140,7 +140,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             value={todo.projectId ?? ""}
             onChange={(val) => update({ projectId: val || null })}
             placeholder="No Project"
-            className="h-fit py-1 px-2 w-fit rounded-lg bg-transparent border-none hover:bg-white/5 text-sm"
+            className="h-fit py-1 px-2 w-fit rounded-lg bg-transparent border-none hover:bg-tint/5 text-sm"
           />
         </MetaRow>
 
@@ -149,14 +149,14 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             className={cn(
               "inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs cursor-pointer transition-colors",
               todo.important
-                ? "bg-amber-400/15 text-amber-400 font-medium"
-                : "bg-white/5 text-muted hover:text-fg hover:bg-white/10",
+                ? "bg-warn/15 text-warn font-medium"
+                : "bg-tint/5 text-muted hover:text-fg hover:bg-tint/10",
             )}
             onClick={() => update({ important: !todo.important })}
             aria-pressed={todo.important}
           >
             <Star
-              className={cn("w-3.5 h-3.5", todo.important && "fill-amber-400")}
+              className={cn("w-3.5 h-3.5", todo.important && "fill-warn")}
             />
             {todo.important ? "Important" : "Not important"}
           </button>
@@ -168,7 +168,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
               "inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs cursor-pointer transition-colors",
               todo.myDay
                 ? "bg-accent/15 text-accent font-medium"
-                : "bg-white/5 text-muted hover:text-fg hover:bg-white/10",
+                : "bg-tint/5 text-muted hover:text-fg hover:bg-tint/10",
             )}
             onClick={() => update({ myDay: !todo.myDay })}
             aria-pressed={todo.myDay}
@@ -183,7 +183,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  className="grid place-items-center p-1.5 rounded-lg text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  className="grid place-items-center p-1.5 rounded-lg text-muted hover:text-fg hover:bg-tint/10 bg-tint/5 cursor-pointer"
                   aria-label="Pick a date"
                   title="Pick a date"
                 >
@@ -209,7 +209,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
                   className={cn(
                     "text-sm",
                     isOverdue(todo.dueDate) && !todo.completed
-                      ? "text-red-400 font-medium"
+                      ? "text-danger font-medium"
                       : "text-fg",
                   )}
                 >
@@ -225,19 +225,19 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             ) : (
               <>
                 <button
-                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-tint/10 bg-tint/5 cursor-pointer"
                   onClick={() => update({ dueDate: todayISO() })}
                 >
                   Today
                 </button>
                 <button
-                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-tint/10 bg-tint/5 cursor-pointer"
                   onClick={() => update({ dueDate: tomorrowISO() })}
                 >
                   Tomorrow
                 </button>
                 <button
-                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-white/10 bg-white/5 cursor-pointer"
+                  className="py-1 px-2.5 rounded-lg text-xs text-muted hover:text-fg hover:bg-tint/10 bg-tint/5 cursor-pointer"
                   onClick={() => update({ dueDate: nextWeekISO() })}
                 >
                   Next Week
@@ -324,7 +324,7 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
             deleteTodo.mutate(todo.id);
             onClose();
           }}
-          className="w-full justify-center rounded-lg flex items-center gap-1.5 px-2 py-2 text-red-500 hover:bg-red-500/5 transition-colors cursor-pointer font-medium"
+          className="w-full justify-center rounded-lg flex items-center gap-1.5 px-2 py-2 text-danger hover:bg-danger/5 transition-colors cursor-pointer font-medium"
         >
           <span>Delete</span>
         </button>
@@ -386,7 +386,7 @@ function SubtodoRow({ step, onToggle, onTitleChange, onDelete }: SubtodoRowProps
       />
 
       <button
-        className="opacity-0 group-hover/sub:opacity-100 p-1 rounded hover:bg-white/10 text-muted hover:text-red-400 transition-opacity cursor-pointer"
+        className="opacity-0 group-hover/sub:opacity-100 p-1 rounded hover:bg-tint/10 text-muted hover:text-danger transition-opacity cursor-pointer"
         onClick={onDelete}
         title="Delete sub-task"
       >
