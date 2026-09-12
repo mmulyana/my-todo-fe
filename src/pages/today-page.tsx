@@ -2,10 +2,10 @@ import { useSearchParams } from "react-router-dom";
 import { Sun } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
+import { CollapsibleSection } from "../components/collapsible-section";
 import { AddTodoBar } from "../components/add-todo-bar";
-import { useOverdueTodos, useTodos } from "../hooks/useTodos";
+import { useCarriedOverTodos, useMyDayTodos, useTodos } from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
-import { isOverdue } from "../lib/dates";
 import type { View } from "../types";
 
 const view: View = { kind: "smart", id: "today" };
@@ -14,18 +14,18 @@ export default function TodayPage() {
   const [params] = useSearchParams();
   const query = (params.get("q") ?? "").trim();
 
-  const { data: todos = [] } = useTodos(
-    query ? { q: query } : { view: "TODAY" },
+  const { data: searchResults = [] } = useTodos(
+    { q: query },
+    { enabled: !!query },
   );
-  const { data: overdueData = [] } = useOverdueTodos({ view: "ALL" });
+  const { data: myDayTodos = [] } = useMyDayTodos({ enabled: !query });
+  const { data: leftoverTodos = [] } = useCarriedOverTodos({
+    enabled: !query,
+  });
   const { data: lists = [] } = useLists();
 
-  const visible = query
-    ? todos
-    : todos.filter(
-        (t) => t.myDay && !(t.dueDate && isOverdue(t.dueDate)),
-      );
-  const overdue = query ? [] : overdueData;
+  const visible = query ? searchResults : myDayTodos;
+  const leftOvers = query ? [] : leftoverTodos;
 
   const todayLabel = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -44,16 +44,12 @@ export default function TodayPage() {
         <TodoRow key={todo.id} todo={todo} showProject />
       ))}
 
-      {overdue.length > 0 && (
-        <div className="flex flex-col mt-4">
-          <div className="flex items-center">
-            <span className="w-5 h-5 shrink-0" />
-            <h2 className="py-1.5 text-[15px] font-medium">Overdue</h2>
-          </div>
-          {overdue.map((todo) => (
+      {!query && (
+        <CollapsibleSection label="Unfinished" count={leftOvers.length}>
+          {leftOvers.map((todo) => (
             <TodoRow key={todo.id} todo={todo} showProject />
           ))}
-        </div>
+        </CollapsibleSection>
       )}
     </PageShell>
   );

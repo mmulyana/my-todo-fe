@@ -218,7 +218,7 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
   const [addingList, setAddingList] = useState(false);
 
   return (
-    <section className="space-y-5">
+    <section>
       {lists.map((list) => (
         <ListSection
           key={list.id}

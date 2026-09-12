@@ -6,7 +6,6 @@ import {
 } from '@tanstack/react-query'
 import * as api from '../api'
 import { INBOX } from '../views'
-import { isOverdue } from '../lib/dates'
 import type { List, Todo, TodoFilter, View } from '../types'
 
 export const TODOS_KEY = ['todos'] as const
@@ -18,12 +17,13 @@ const GC_TIME = 5 * 60_000
 const todosKey = (filter: TodoFilter) => [...TODOS_KEY, filter] as const
 const todoKey = (id: string) => [...TODO_KEY, id] as const
 
-export function useTodos(filter: TodoFilter) {
+export function useTodos(filter: TodoFilter, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    enabled: options?.enabled,
   })
 }
 
@@ -56,16 +56,30 @@ export function useCompletedTodos(filter: TodoFilter) {
   })
 }
 
-export function useOverdueTodos(filter: TodoFilter) {
+const MY_DAY_FILTER: TodoFilter = { view: 'TODAY', completed: false }
+
+export function useMyDayTodos(options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: [...todosKey(filter), 'overdue'] as const,
-    queryFn: () => api.fetchTodos(filter),
-    select: (todos) =>
-      todos.filter((t) => !t.completed && t.dueDate && isOverdue(t.dueDate)),
+    queryKey: todosKey(MY_DAY_FILTER),
+    queryFn: () => api.fetchTodos(MY_DAY_FILTER),
+    select: (todos) => todos.filter((t) => t.myDay),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    enabled: options?.enabled,
   })
 }
+
+export function useCarriedOverTodos(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: todosKey(MY_DAY_FILTER),
+    queryFn: () => api.fetchTodos(MY_DAY_FILTER),
+    select: (todos) => todos.filter((t) => !t.myDay),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+    enabled: options?.enabled,
+  })
+}
+
 
 function writeTodo(
   qc: QueryClient,

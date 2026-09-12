@@ -3,7 +3,7 @@ import { CheckSquare } from 'lucide-react'
 import { PageShell } from '../components/page-shell'
 import { TodoRow } from '../components/todo-row'
 import { AddTodoBar } from '../components/add-todo-bar'
-import { CompletedSection } from '../components/completed-section'
+import { CollapsibleSection } from '../components/collapsible-section'
 import { useActiveTodos, useCompletedTodos } from '../hooks/useTodos'
 import { useLists } from '../hooks/useLists'
 import type { View } from '../types'
@@ -29,11 +29,11 @@ export default function AllPage() {
         <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
       ))}
 
-      <CompletedSection count={completedTodos.length}>
+      <CollapsibleSection label="Completed" count={completedTodos.length}>
         {completedTodos.map((todo) => (
           <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
         ))}
-      </CompletedSection>
+      </CollapsibleSection>
     </PageShell>
   )
 }

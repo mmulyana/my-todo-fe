@@ -68,6 +68,7 @@ export type TodoFilter = {
   listId?: string
   projectId?: string
   q?: string
+  completed?: boolean
 }
 
 export type User = {
