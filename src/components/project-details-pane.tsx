@@ -101,7 +101,7 @@ function ProjectDetailsContent({
       </div>
 
       <div className="flex flex-col gap-2.5 mt-2">
-        <div className="rounded-xl bg-tint/8 px-3.5 py-3">
+        <div className="rounded-xl bg-tint/8 px-3.5 py-3 flex flex-col">
           <label htmlFor="project-name" className="text-xs text-muted">
             Name
           </label>
@@ -147,7 +147,7 @@ function ProjectDetailsContent({
       </div>
 
       <Tabs defaultValue="projects" className="mt-2">
-        <TabsList>
+        <TabsList className="w-fit">
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
