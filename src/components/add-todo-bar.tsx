@@ -13,7 +13,7 @@ export function AddTodoBar({ view, lists }: AddTodoBarProps) {
 
   return (
     <>
-      <div className="hidden lg:block shrink-0 p-4 bg-surface border-t border-line/60">
+      <div className="hidden lg:block shrink-0 p-4 bg-surface">
         <TodoInput view={view} lists={lists} />
       </div>
 

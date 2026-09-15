@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
   color-scheme: dark;
@@ -13,6 +14,10 @@
   --active-sidebar: #222026;
 
   --tint: #ffffff;
+
+  --tab-track: #2a2830;
+  --tab-active: #18161b;
+  --tab-active-fg: #f0eff4;
 
   --danger: #f87171;
   --warn: #fbbf24;
@@ -33,6 +38,10 @@
 
   --tint: #000000;
 
+  --tab-track: #e4e2e8;
+  --tab-active: #ffffff;
+  --tab-active-fg: #1c1a1f;
+
   --danger: #dc2626;
   --warn: #fbbf24;
   --success: #16a34a;
@@ -51,6 +60,9 @@
   --color-warn: var(--warn);
   --color-success: var(--success);
   --color-active-sidebar: var(--active-sidebar);
+  --color-tab-track: var(--tab-track);
+  --color-tab-active: var(--tab-active);
+  --color-tab-active-fg: var(--tab-active-fg);
 }
 
 @layer base {
@@ -101,4 +113,78 @@
     outline: 2px solid var(--muted);
     outline-offset: 1px;
   }
+}
+
+.prose-editor :where(h1) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.2em 0 0.4em;
+}
+
+.prose-editor :where(h2) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.1em 0 0.4em;
+}
+
+.prose-editor :where(h3) {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 1em 0 0.3em;
+}
+
+.prose-editor :where(p) {
+  margin: 0.55em 0;
+}
+
+.prose-editor :where(ul, ol) {
+  margin: 0.55em 0;
+  padding-left: 1.4em;
+}
+
+.prose-editor :where(ul) {
+  list-style: disc;
+}
+
+.prose-editor :where(ol) {
+  list-style: decimal;
+}
+
+.prose-editor :where(blockquote) {
+  border-left: 2px solid var(--line);
+  padding-left: 0.9em;
+  color: var(--muted);
+  margin: 0.7em 0;
+}
+
+.prose-editor :where(code) {
+  background: var(--raised);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.prose-editor :where(pre) {
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  margin: 0.7em 0;
+}
+
+.prose-editor :where(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.prose-editor :where(a) {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.prose-editor :where(hr) {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 1.2em 0;
 }

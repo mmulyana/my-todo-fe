@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSetAtom } from "jotai";
+import { projectDetailsAtom } from "../atoms/panes";
 import { Icon } from "./icons";
 import { CircularProgress } from "./circular-progress";
 import { formatDue, isOverdue, todayISO } from "../lib/dates";
@@ -16,12 +18,14 @@ import {
   ChevronDown,
   ChevronRight,
   Star,
+  Sun,
   Trash2,
 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -51,6 +55,7 @@ export function TodoRow({
   const [expanded, setExpanded] = useState(false);
   const [, setParams] = useSearchParams();
   const navigate = useNavigate();
+  const closeProjectDetails = useSetAtom(projectDetailsAtom);
 
   const updateTodo = useUpdateTodo();
   const updateSubtodo = useUpdateSubtodo();
@@ -63,6 +68,8 @@ export function TodoRow({
 
   const onToggleImportant = () => patchTodo({ important: !todo.important });
 
+  const onToggleMyDay = () => patchTodo({ myDay: !todo.myDay });
+
   const onToggleSubtodo = (subtodoId: string, completed: boolean) =>
     updateSubtodo.mutate({
       todoId: todo.id,
@@ -72,6 +79,7 @@ export function TodoRow({
     });
 
   const onSelect = () => {
+    closeProjectDetails(null);
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
     if (!isDesktop) {
       navigate(`/todo/${todo.id}`);
@@ -190,7 +198,10 @@ export function TodoRow({
                       value={todo.completedTodos}
                       total={todo.subtodoCount}
                     />
-                    <p><span className="text-fg">{todo.completedTodos}</span>/{todo.subtodoCount}</p>
+                    <p>
+                      <span className="text-fg">{todo.completedTodos}</span>/
+                      {todo.subtodoCount}
+                    </p>
                   </div>
                 )}
                 {showProject && todo.project?.name && (
@@ -217,7 +228,31 @@ export function TodoRow({
           </div>
         </ContextMenuTrigger>
 
-        <ContextMenuContent className="w-40">
+        <ContextMenuContent className="w-44">
+          <ContextMenuItem onSelect={onToggleImportant}>
+            <Star
+              className={cn(
+                "w-3.5 h-3.5",
+                todo.important && "fill-warn text-warn",
+              )}
+            />
+            <span>
+              {todo.important ? "Remove importance" : "Mark as important"}
+            </span>
+          </ContextMenuItem>
+
+          <ContextMenuItem onSelect={onToggleMyDay}>
+            <Sun
+              className={cn(
+                "w-3.5 h-3.5",
+                todo.myDay && "fill-accent text-accent",
+              )}
+            />
+            <span>{todo.myDay ? "Remove from Today" : "Add to Today"}</span>
+          </ContextMenuItem>
+
+          <ContextMenuSeparator />
+
           <ContextMenuItem
             onSelect={onDelete}
             className="text-danger focus:bg-danger/10 focus:text-danger"

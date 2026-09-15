@@ -15,6 +15,11 @@ export type Attachment = {
   type: AttachmentType
   todoId: string | null
   projectId: string | null
+  title: string | null
+  description: string | null
+  image: string | null
+  favicon: string | null
+  siteName: string | null
 }
 
 export type Todo = {
@@ -48,6 +53,19 @@ export type Project = {
   description: string | null
   parentId: string | null
   code?: string | null
+}
+
+export type DocumentContent = Record<string, unknown> | null
+
+export type ProjectDocument = {
+  id: string
+  title: string
+  projectId: string | null
+  updatedAt: string
+}
+
+export type ProjectDocumentDetail = ProjectDocument & {
+  content: DocumentContent
 }
 
 export type TodoProject = {

@@ -49,7 +49,7 @@ type DetailPaneProps = {
 
 export function DetailPane({ todoId, onClose }: DetailPaneProps) {
   return (
-    <aside className="detail relative hidden lg:flex flex-col gap-4 min-h-0 overflow-y-auto bg-surface border border-line rounded-2xl w-[440px] shrink-0 shadow-sm">
+    <aside className="detail relative hidden lg:flex flex-col gap-4 min-h-0 overflow-y-auto bg-surface border border-line rounded-2xl w-110 shrink-0 shadow-sm animate-in fade-in-0 slide-in-from-right-4 duration-200 ease-out">
       <DetailPaneContent todoId={todoId} onClose={onClose} />
     </aside>
   );

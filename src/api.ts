@@ -2,7 +2,7 @@ import { print } from 'graphql'
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { graphql, readFragment, type ResultOf } from './graphql'
 import { todayISO } from './lib/dates'
-import type { ApiToken, Attachment, AttachmentType, List, NewApiToken, Project, Subtodo, Todo, TodoFilter } from './types'
+import type { ApiToken, Attachment, AttachmentType, DocumentContent, List, NewApiToken, Project, ProjectDocument, ProjectDocumentDetail, Subtodo, Todo, TodoFilter } from './types'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
 export const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin
@@ -131,6 +131,11 @@ const todoFieldsFragment = graphql(`
       type
       todoId
       projectId
+      title
+      description
+      image
+      favicon
+      siteName
     }
     subtodoCount
     completedTodos
@@ -315,6 +320,11 @@ const CreateAttachmentDocument = graphql(`
       type
       todoId
       projectId
+      title
+      description
+      image
+      favicon
+      siteName
     }
   }
 `)
@@ -637,4 +647,105 @@ export function logout() {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
   window.location.href = '/login'
+}
+
+// ---------------------------------------------------------------------------
+// Documents
+// ---------------------------------------------------------------------------
+
+const documentFieldsFragment = graphql(`
+  fragment DocumentFields on Document {
+    id
+    title
+    projectId
+    updatedAt
+  }
+`)
+
+const DocumentsDocument = graphql(
+  `
+    query Documents($projectId: ID) {
+      documents(projectId: $projectId) {
+        ...DocumentFields
+      }
+    }
+  `,
+  [documentFieldsFragment],
+)
+
+export async function fetchDocuments(projectId?: string): Promise<ProjectDocument[]> {
+  const data = await gql(DocumentsDocument, { projectId: projectId ?? null })
+  return data.documents.map((d) => readFragment(documentFieldsFragment, d))
+}
+
+const DocumentDocument = graphql(
+  `
+    query Document($id: ID!) {
+      document(id: $id) {
+        ...DocumentFields
+        content
+      }
+    }
+  `,
+  [documentFieldsFragment],
+)
+
+export async function fetchDocument(id: string): Promise<ProjectDocumentDetail | null> {
+  const data = await gql(DocumentDocument, { id })
+  if (!data.document) return null
+  const { content, ...rest } = data.document
+  return {
+    ...readFragment(documentFieldsFragment, rest),
+    content: (content ?? null) as DocumentContent,
+  }
+}
+
+const CreateDocumentDocument = graphql(
+  `
+    mutation CreateDocument($input: CreateDocumentInput!) {
+      createDocument(input: $input) {
+        ...DocumentFields
+      }
+    }
+  `,
+  [documentFieldsFragment],
+)
+
+export async function createDocument(
+  title: string,
+  projectId?: string | null,
+): Promise<ProjectDocument> {
+  const data = await gql(CreateDocumentDocument, {
+    input: { title, projectId: projectId ?? null } as any,
+  })
+  return readFragment(documentFieldsFragment, data.createDocument)
+}
+
+const UpdateDocumentDocument = graphql(`
+  mutation UpdateDocument($input: UpdateDocumentInput!) {
+    updateDocument(input: $input) {
+      id
+      updatedAt
+    }
+  }
+`)
+
+export async function updateDocument(
+  id: string,
+  patch: { title?: string; content?: DocumentContent },
+  signal?: AbortSignal,
+): Promise<void> {
+  await gql(UpdateDocumentDocument, { input: { id, ...patch } as any }, signal)
+}
+
+const RemoveDocumentDocument = graphql(`
+  mutation RemoveDocument($id: ID!) {
+    removeDocument(id: $id) {
+      id
+    }
+  }
+`)
+
+export async function removeDocument(id: string): Promise<void> {
+  await gql(RemoveDocumentDocument, { id })
 }

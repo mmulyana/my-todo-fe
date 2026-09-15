@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditProjectModal } from "./edit-project-modal";
+import { DeleteProjectDialog } from "./delete-project-dialog";
 import { CreateProjectModal } from "./create-project-modal";
 import { cn } from "@/lib/utils";
 
@@ -105,16 +106,19 @@ function ProjectNode({
               <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                tree.deleteProject(project.id);
-              }}
-              className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
+            <DeleteProjectDialog
+              projectName={project.name}
+              onConfirm={() => tree.deleteProject(project.id)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-              <span>Delete</span>
-            </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+                onClick={(e) => e.stopPropagation()}
+                className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DeleteProjectDialog>
           </DropdownMenuContent>
         </DropdownMenu>
 

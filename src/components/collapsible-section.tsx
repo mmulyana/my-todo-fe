@@ -19,22 +19,30 @@ export function CollapsibleSection({
   if (count === 0) return null;
 
   return (
-    <div className="flex flex-col mt-4">
-      <button
-        type="button"
-        className="flex items-center py-1.5 text-sm font-medium text-muted hover:text-fg tracking-wide cursor-pointer gap-1"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        <span className="grid place-items-center w-5 h-5 shrink-0">
-          {open ? (
-            <ChevronDown size={14} strokeWidth={2} />
-          ) : (
-            <ChevronRight size={14} strokeWidth={2} />
-          )}
-        </span>
-        {label} <span className="text-fg">{count}</span>
-      </button>
+    <div>
+      <div className="group/sec flex items-center group">
+        <div className="w-5 h-5 flex justify-center items-center">
+          <button
+            type="button"
+            className="hidden group-hover:flex items-center text-muted hover:text-fg transition-colors"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+          >
+            <span className="grid place-items-center w-5 h-5 shrink-0">
+              {open ? (
+                <ChevronDown size={14} strokeWidth={2} />
+              ) : (
+                <ChevronRight size={14} strokeWidth={2} />
+              )}
+            </span>
+          </button>
+        </div>
+        <div className="flex-1 min-w-0 flex items-center gap-1">
+          <span className="truncate text-[15px] font-medium cursor-pointer">
+            {label}
+          </span>
+        </div>
+      </div>
       {open && children}
     </div>
   );

@@ -40,7 +40,7 @@ export default function TodayPage() {
       subtitle={query ? null : todayLabel}
       footer={query ? null : <AddTodoBar view={view} lists={lists} />}
     >
-      {visible.map((todo) => (
+      {visible?.map((todo) => (
         <TodoRow key={todo.id} todo={todo} showProject />
       ))}
 

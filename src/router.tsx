@@ -8,6 +8,7 @@ import TodayPage from "./pages/today-page";
 import LoginPage from "./pages/login-page";
 import AllPage from "./pages/all-page";
 import TodoDetailPage from "./pages/todo-detail-page";
+import DocumentPage from "./pages/document-page";
 import SettingsPage from "./pages/settings-page";
 
 export const router = createBrowserRouter([
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
           { path: "important", element: <ImportantPage /> },
           { path: "all", element: <AllPage /> },
           { path: "projects/:projectId", element: <ProjectPage /> },
+          {
+            path: "projects/:projectId/documents/:documentId",
+            element: <DocumentPage />,
+          },
           { path: "todo/:todoId", element: <TodoDetailPage /> },
           { path: "mcp", element: <SettingsPage /> },
           { path: "*", element: <Navigate to="/today" replace /> },
