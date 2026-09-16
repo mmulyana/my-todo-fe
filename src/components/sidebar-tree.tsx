@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useMatch } from "react-router-dom";
-import { useProjects, useDeleteProject } from "../hooks/useProjects";
+import {
+  useProjects,
+  useDeleteProject,
+} from "../hooks/useProjects";
 import { activeProjects, childProjects } from "../projects";
 import type { Project } from "../types";
 import {
@@ -21,8 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditProjectModal } from "./edit-project-modal";
 import { DeleteProjectDialog } from "./delete-project-dialog";
-import { CreateProjectModal } from "./create-project-modal";
 import { cn } from "@/lib/utils";
+import { InlineProjectInput } from "./inline-project-input";
 
 type TreeState = {
   isOpen: (id: string) => boolean;
@@ -47,7 +50,7 @@ function ProjectNode({
   const active = Boolean(useMatch(to));
   const children = tree.childrenOf(project.id);
   const hasChildren = children.length > 0;
-  const expanded = hasChildren && tree.isOpen(project.id);
+  const expanded = tree.isOpen(project.id);
 
   return (
     <div className="flex flex-col">
@@ -76,6 +79,7 @@ function ProjectNode({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (!expanded) tree.toggle(project.id);
               setCreateOpen(true);
             }}
           >
@@ -149,20 +153,9 @@ function ProjectNode({
           onOpenChange={setEditOpen}
         />
 
-        <CreateProjectModal
-          defaultParentId={project.id}
-          allProjects={tree.projects}
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-          onSuccess={() => {
-            if (!expanded && hasChildren) {
-              tree.toggle(project.id);
-            }
-          }}
-        />
       </div>
 
-      {expanded && (
+      {(expanded && hasChildren) || createOpen ? (
         <div
           className={cn(
             "ml-4 pl-2 border-l border-line/60 flex flex-col gap-0.5 my-0.5",
@@ -177,8 +170,15 @@ function ProjectNode({
               tree={tree}
             />
           ))}
+          {createOpen && (
+            <InlineProjectInput
+              parentId={project.id}
+              onClose={() => setCreateOpen(false)}
+              className="px-2.5"
+            />
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -219,7 +219,10 @@ export function SidebarTree() {
         <div className="flex items-center gap-0.5">
           <button
             type="button"
-            onClick={() => setCreateRootOpen(true)}
+            onClick={() => {
+              setSectionOpen(true);
+              setCreateRootOpen(true);
+            }}
             className="p-1 rounded text-muted hover:text-fg hover:bg-tint/10 transition-colors cursor-pointer"
             aria-label="Create new project"
             title="Create"
@@ -242,15 +245,14 @@ export function SidebarTree() {
         </div>
       </div>
 
-      <CreateProjectModal
-        allProjects={projects}
-        open={createRootOpen}
-        onOpenChange={setCreateRootOpen}
-        onSuccess={() => setSectionOpen(true)}
-      />
-
       {sectionOpen && (
         <div className="flex flex-col gap-0.5">
+          {createRootOpen && (
+            <InlineProjectInput
+              onClose={() => setCreateRootOpen(false)}
+              className="px-2.5"
+            />
+          )}
           {childProjects(projects, null).map((project) => (
             <ProjectNode
               key={project.id}

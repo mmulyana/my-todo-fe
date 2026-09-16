@@ -19,6 +19,7 @@ import { DeleteProjectDialog } from "./delete-project-dialog";
 import { useProjects, useUpdateProject } from "../hooks/useProjects";
 import { childProjects, isArchived } from "../projects";
 import type { Project } from "../types";
+import { InlineProjectInput } from "./inline-project-input";
 
 type ProjectDetailsPaneProps = {
   project: Project;
@@ -174,8 +175,7 @@ function ProjectDetailsContent({
         </TabsList>
 
         <TabsContent value="projects" className="flex flex-col">
-          {subProjects.length > 0 ? (
-            subProjects.map((sub) => (
+          {subProjects.map((sub) => (
               <Link
                 key={sub.id}
                 to={`/projects/${sub.id}`}
@@ -193,12 +193,19 @@ function ProjectDetailsContent({
                 )}
                 <ChevronRight className="w-4 h-4 shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
-            ))
-          ) : (
-            <p className="text-[13px] text-muted py-6 text-center">
-              No sub projects yet.
-            </p>
-          )}
+            ))}
+
+          <InlineProjectInput
+            parentId={project.id}
+            onClose={() => undefined}
+            autoFocus={false}
+            className="flex items-center gap-2 py-2 text-muted"
+            leading={
+              <div className="shrink-0 w-4 flex justify-center">
+                <Plus className="shrink-0" size={15} />
+              </div>
+            }
+          />
         </TabsContent>
 
         <TabsContent value="documents" className="flex flex-col">
