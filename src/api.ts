@@ -503,13 +503,14 @@ const projectFieldsFragment = graphql(`
     description
     parentId
     code
+    archivedAt
   }
 `)
 
 const ProjectsDocument = graphql(
   `
     query Projects {
-      projects {
+      projects(includeArchived: true) {
         ...ProjectFields
       }
     }
@@ -566,6 +567,30 @@ export async function updateProject(
   },
 ): Promise<void> {
   await gql(UpdateProjectDocument, { input: { id, ...patch } as any })
+}
+
+const ArchiveProjectDocument = graphql(`
+  mutation ArchiveProject($id: ID!) {
+    archiveProject(id: $id) {
+      id
+    }
+  }
+`)
+
+export async function archiveProject(id: string): Promise<void> {
+  await gql(ArchiveProjectDocument, { id })
+}
+
+const UnarchiveProjectDocument = graphql(`
+  mutation UnarchiveProject($id: ID!) {
+    unarchiveProject(id: $id) {
+      id
+    }
+  }
+`)
+
+export async function unarchiveProject(id: string): Promise<void> {
+  await gql(UnarchiveProjectDocument, { id })
 }
 
 const RemoveProjectDocument = graphql(`

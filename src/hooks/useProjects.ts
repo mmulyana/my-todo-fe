@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, type QueryClient } from '@tanstack/react-query'
 import * as api from '../api'
 import { patch, tempId, useOptimistic } from './optimistic'
 import { LISTS_KEY } from './useLists'
 import { TODOS_KEY } from './useTodos'
+import { subtreeIds } from '../projects'
 import type { List, Project, Todo } from '../types'
 
 export const PROJECTS_KEY = ['projects'] as const
@@ -51,6 +52,33 @@ export function useDeleteProject() {
         todos.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
       )
     },
+  )
+}
+
+function setArchivedAt(
+  qc: QueryClient,
+  id: string,
+  archivedAt: string | null,
+) {
+  patch<Project>(qc, PROJECTS_KEY, (projects) => {
+    const ids = subtreeIds(projects, id)
+    return projects.map((p) => (ids.has(p.id) ? { ...p, archivedAt } : p))
+  })
+}
+
+export function useArchiveProject() {
+  return useOptimistic<string>(
+    [PROJECTS_KEY, TODOS_KEY],
+    (id) => api.archiveProject(id),
+    (qc, id) => setArchivedAt(qc, id, new Date().toISOString()),
+  )
+}
+
+export function useUnarchiveProject() {
+  return useOptimistic<string>(
+    [PROJECTS_KEY, TODOS_KEY],
+    (id) => api.unarchiveProject(id),
+    (qc, id) => setArchivedAt(qc, id, null),
   )
 }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon } from "./icons";
 import { AttachmentSection } from "./attachment-section";
 import {
@@ -19,6 +19,7 @@ import {
   useUpdateTodo,
 } from "../hooks/useTodos";
 import { useProjects } from "../hooks/useProjects";
+import { activeProjects, isArchived } from "../projects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
 import type { Subtodo, Todo } from "../types";
 import {
@@ -59,13 +60,19 @@ export function DetailPaneContent({ todoId, onClose }: DetailPaneProps) {
   const [stepDraft, setStepDraft] = useState("");
 
   const { data: todo } = useTodo(todoId);
-  const { data: projects = [] } = useProjects();
+  const { data: allProjects = [] } = useProjects();
 
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
   const createSubtodo = useCreateSubtodo();
   const updateSubtodo = useUpdateSubtodo();
   const deleteSubtodo = useDeleteSubtodo();
+
+  const projects = useMemo(() => {
+    const active = activeProjects(allProjects);
+    const current = allProjects.find((p) => p.id === todo?.projectId);
+    return current && isArchived(current) ? [...active, current] : active;
+  }, [allProjects, todo?.projectId]);
 
   const update = (patch: Partial<Todo>, signal?: AbortSignal) =>
     updateTodo.mutate({ id: todo!.id, patch, signal });

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCreateTodo } from "../hooks/useTodos";
 import { useProjects } from "../hooks/useProjects";
+import { activeProjects, isArchived } from "../projects";
 import { useLists } from "../hooks/useLists";
 import { ProjectCombobox } from "./project-combobox";
 import { ListCombobox } from "./list-combobox";
@@ -33,7 +34,7 @@ export function TodoInput({
   placeholder = "Add a task",
 }: TodoInputProps) {
   const [draft, setDraft] = useState("");
-  const { data: projects = [] } = useProjects();
+  const { data: allProjects = [] } = useProjects();
   const { data: allLists = propLists } = useLists();
 
   const initProjectId =
@@ -52,6 +53,12 @@ export function TodoInput({
 
   const [selectedProjectId, setSelectedProjectId] = useState(initProjectId);
   const [selectedListId, setSelectedListId] = useState(initListId);
+
+  const projects = useMemo(() => {
+    const active = activeProjects(allProjects);
+    const selected = allProjects.find((p) => p.id === selectedProjectId);
+    return selected && isArchived(selected) ? [...active, selected] : active;
+  }, [allProjects, selectedProjectId]);
 
   useEffect(() => {
     if (defaultProjectId !== undefined) {

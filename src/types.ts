@@ -53,6 +53,7 @@ export type Project = {
   description: string | null
   parentId: string | null
   code?: string | null
+  archivedAt?: string | null
 }
 
 export type DocumentContent = Record<string, unknown> | null

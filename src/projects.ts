@@ -1,5 +1,26 @@
 import type { Project } from './types'
 
+export const isArchived = (project: Project) => Boolean(project.archivedAt)
+
+export function activeProjects(projects: Project[]): Project[] {
+  return projects.filter((p) => !isArchived(p))
+}
+
+export function subtreeIds(projects: Project[], id: string): Set<string> {
+  const ids = new Set([id])
+  let frontier = [id]
+
+  while (frontier.length > 0) {
+    const next = projects
+      .filter((p) => p.parentId && frontier.includes(p.parentId) && !ids.has(p.id))
+      .map((p) => p.id)
+    next.forEach((childId) => ids.add(childId))
+    frontier = next
+  }
+
+  return ids
+}
+
 export function childProjects(
   projects: Project[],
   parentId: string | null,

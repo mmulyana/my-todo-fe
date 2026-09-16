@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { X, Box, ChevronRight, FileText, Plus, Trash2 } from "lucide-react";
+import {
+  X,
+  Archive,
+  ArchiveRestore,
+  Box,
+  ChevronRight,
+  FileText,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { DocumentSheet } from "./document-sheet";
 import { useCreateDocument, useDocuments } from "../hooks/useDocuments";
 import { useIsDesktop } from "../hooks/useMediaQuery";
@@ -8,22 +17,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { DeleteProjectDialog } from "./delete-project-dialog";
 import { useProjects, useUpdateProject } from "../hooks/useProjects";
-import { childProjects } from "../projects";
+import { childProjects, isArchived } from "../projects";
 import type { Project } from "../types";
 
 type ProjectDetailsPaneProps = {
   project: Project;
   onClose: () => void;
   onDelete: () => void;
+  onArchive: () => void;
+  onUnarchive: () => void;
 };
 
 function ProjectDetailsContent({
   project,
   onClose,
   onDelete,
+  onArchive,
+  onUnarchive,
 }: ProjectDetailsPaneProps) {
   const updateProject = useUpdateProject();
   const { data: projects = [] } = useProjects();
+  const archived = isArchived(project);
   const subProjects = childProjects(projects, project.id);
 
   const navigate = useNavigate();
@@ -98,6 +112,13 @@ function ProjectDetailsContent({
         <span className="grid place-items-center w-14 h-14 rounded-2xl bg-tint/8 text-muted mb-1">
           <Box className="w-7 h-7" />
         </span>
+
+        {archived && (
+          <span className="inline-flex items-center gap-1 rounded-md bg-tint/10 px-2 py-0.5 text-[11px] font-medium text-muted">
+            <Archive className="w-3 h-3" />
+            <span>Archived</span>
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-2.5 mt-2">
@@ -164,6 +185,12 @@ function ProjectDetailsContent({
                 <span className="flex-1 min-w-0 truncate text-sm">
                   {sub.name}
                 </span>
+                {isArchived(sub) && (
+                  <span className="shrink-0 inline-flex items-center gap-1 rounded-md bg-tint/10 px-1.5 py-0.5 text-[10px] font-medium text-muted">
+                    <Archive className="w-2.5 h-2.5" />
+                    <span>Archived</span>
+                  </span>
+                )}
                 <ChevronRight className="w-4 h-4 shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             ))
@@ -214,6 +241,19 @@ function ProjectDetailsContent({
       />
 
       <div className="pb-4 mt-auto flex flex-col gap-1 text-xs">
+        <button
+          type="button"
+          onClick={archived ? onUnarchive : onArchive}
+          className="w-full justify-center rounded-lg flex items-center gap-1.5 px-2 py-2 text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer font-medium"
+        >
+          {archived ? (
+            <ArchiveRestore className="w-3.5 h-3.5" />
+          ) : (
+            <Archive className="w-3.5 h-3.5" />
+          )}
+          <span>{archived ? "Unarchive" : "Archive"}</span>
+        </button>
+
         <DeleteProjectDialog projectName={project.name} onConfirm={onDelete}>
           <button
             type="button"

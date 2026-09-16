@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useMatch } from "react-router-dom";
-import { useDeleteProject, useProjects } from "../hooks/useProjects";
-import { childProjects } from "../projects";
+import { useProjects, useDeleteProject } from "../hooks/useProjects";
+import { activeProjects, childProjects } from "../projects";
 import type { Project } from "../types";
 import {
   Box,
@@ -184,7 +184,8 @@ function ProjectNode({
 }
 
 export function SidebarTree() {
-  const { data: projects = [] } = useProjects();
+  const { data: allProjects = [] } = useProjects();
+  const projects = activeProjects(allProjects);
   const deleteProject = useDeleteProject();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [sectionOpen, setSectionOpen] = useState(true);
