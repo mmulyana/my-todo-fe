@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, BoxIcon, Check, ChevronsUpDown, Folder } from "lucide-react";
+import { Box, BoxIcon, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "../types";
 import { Button } from "@/components/ui/button";
