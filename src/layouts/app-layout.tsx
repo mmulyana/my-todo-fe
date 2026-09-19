@@ -52,7 +52,7 @@ export function AppLayout() {
         <div className="flex-1 min-w-0 h-full p-2 lg:p-3 lg:pl-2 flex gap-1 overflow-hidden">
           <Outlet />
           {openTodoId && (
-            <DetailPane key={openTodoId} todoId={openTodoId} onClose={closeTodo} />
+            <DetailPane todoId={openTodoId} onClose={closeTodo} />
           )}
         </div>
       </div>

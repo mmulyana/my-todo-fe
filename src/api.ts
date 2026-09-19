@@ -1,18 +1,33 @@
-import { print } from 'graphql'
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { graphql, readFragment, type ResultOf } from './graphql'
-import { todayISO } from './lib/dates'
-import type { ApiToken, Attachment, AttachmentType, DocumentContent, List, NewApiToken, Project, ProjectDocument, ProjectDocumentDetail, Subtodo, Todo, TodoFilter } from './types'
+import { print } from "graphql";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import { graphql, readFragment, type ResultOf } from "./graphql";
+import { todayISO } from "./lib/dates";
+import type {
+  ApiToken,
+  Attachment,
+  AttachmentType,
+  DocumentContent,
+  List,
+  NewApiToken,
+  Project,
+  ProjectDocument,
+  ProjectDocumentDetail,
+  Subtodo,
+  Todo,
+  TodoAncestor,
+  TodoFilter,
+} from "./types";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://mytodo.mmulyana.com/api/graphql'
-export const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin
-const REST_BASE_URL = `${API_ORIGIN}/api`
+const BASE_URL =
+  import.meta.env.VITE_API_URL || "https://mytodo.mmulyana.com/api/graphql";
+export const API_ORIGIN = new URL(BASE_URL, window.location.origin).origin;
+const REST_BASE_URL = `${API_ORIGIN}/api`;
 
 export function resolveAttachmentUrl(url: string): string {
-  return url.startsWith('/') ? `${API_ORIGIN}${url}` : url
+  return url.startsWith("/") ? `${API_ORIGIN}${url}` : url;
 }
 
-let refreshPromise: Promise<string> | null = null
+let refreshPromise: Promise<string> | null = null;
 
 const RefreshTokenDocument = graphql(`
   mutation RefreshToken($token: String!) {
@@ -21,78 +36,87 @@ const RefreshTokenDocument = graphql(`
       refreshToken
     }
   }
-`)
+`);
 
 async function refreshAccessToken(): Promise<string> {
-  const refreshToken = localStorage.getItem('refreshToken')
-  if (!refreshToken) throw new Error('No refresh token')
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) throw new Error("No refresh token");
 
   const res = await fetch(BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query: print(RefreshTokenDocument),
       variables: { token: refreshToken },
     }),
-  })
-  const json = await res.json()
+  });
+  const json = await res.json();
   if (json.errors?.length || !json.data?.refreshToken) {
-    throw new Error(json.errors?.[0]?.message || 'Failed to refresh token')
+    throw new Error(json.errors?.[0]?.message || "Failed to refresh token");
   }
 
-  const { accessToken, refreshToken: newRefreshToken } = json.data.refreshToken
-  localStorage.setItem('accessToken', accessToken)
-  localStorage.setItem('refreshToken', newRefreshToken)
-  return accessToken
+  const { accessToken, refreshToken: newRefreshToken } = json.data.refreshToken;
+  localStorage.setItem("accessToken", accessToken);
+  localStorage.setItem("refreshToken", newRefreshToken);
+  return accessToken;
 }
 
 function isUnauthenticated(json: any): boolean {
   return json.errors?.some(
-    (e: any) => e.extensions?.code === 'UNAUTHENTICATED' || e.extensions?.originalError?.statusCode === 401,
-  )
+    (e: any) =>
+      e.extensions?.code === "UNAUTHENTICATED" ||
+      e.extensions?.originalError?.statusCode === 401,
+  );
 }
 
-async function gql<TResult, TVariables extends Record<string, unknown> | undefined>(
+async function gql<
+  TResult,
+  TVariables extends Record<string, unknown> | undefined,
+>(
   document: TypedDocumentNode<TResult, TVariables>,
   variables?: TVariables,
   signal?: AbortSignal,
   isRetry = false,
 ): Promise<TResult> {
-  const token = localStorage.getItem('accessToken')
+  const token = localStorage.getItem("accessToken");
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  };
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const res = await fetch(BASE_URL, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify({ query: print(document), variables }),
     signal,
-  })
-  const json = await res.json()
+  });
+  const json = await res.json();
 
   if (json.errors?.length) {
-    if (!isRetry && isUnauthenticated(json) && localStorage.getItem('refreshToken')) {
+    if (
+      !isRetry &&
+      isUnauthenticated(json) &&
+      localStorage.getItem("refreshToken")
+    ) {
       try {
         if (!refreshPromise) {
           refreshPromise = refreshAccessToken().finally(() => {
-            refreshPromise = null
-          })
+            refreshPromise = null;
+          });
         }
-        await refreshPromise
-        return gql<TResult, TVariables>(document, variables, signal, true)
+        await refreshPromise;
+        return gql<TResult, TVariables>(document, variables, signal, true);
       } catch {
-        logout()
-        throw new Error('Session expired, please sign in again')
+        logout();
+        throw new Error("Session expired, please sign in again");
       }
     }
-    throw new Error(json.errors[0].message)
+    throw new Error(json.errors[0].message);
   }
 
-  return json.data as TResult
+  return json.data as TResult;
 }
 
 const todoFieldsFragment = graphql(`
@@ -100,10 +124,15 @@ const todoFieldsFragment = graphql(`
     id
     listId
     projectId
+    parentId
     title
     note
     completed
     important
+    priority
+    kanbanColumnId
+    position
+    listPosition
     today
     dueDate
     createdAt
@@ -111,6 +140,7 @@ const todoFieldsFragment = graphql(`
       id
       name
       code
+      color
     }
     list {
       id
@@ -121,6 +151,8 @@ const todoFieldsFragment = graphql(`
       id
       title
       completed
+      subtodoCount
+      completedTodos
     }
     attachments {
       id
@@ -140,18 +172,27 @@ const todoFieldsFragment = graphql(`
     subtodoCount
     completedTodos
   }
-`)
+`);
 
-type TodoFieldsResult = ResultOf<typeof todoFieldsFragment>
+type TodoFieldsResult = ResultOf<typeof todoFieldsFragment>;
 
-const toTodo = (r: TodoFieldsResult): Todo => ({
+const toTodo = (
+  r: TodoFieldsResult,
+  ancestors: TodoAncestor[] = [],
+): Todo => ({
   id: r.id,
   listId: r.listId,
   projectId: r.projectId,
+  parentId: r.parentId ?? null,
+  ancestors,
   title: r.title,
-  note: r.note ?? '',
+  note: r.note ?? "",
   completed: r.completed,
   important: r.important,
+  priority: r.priority as Todo["priority"],
+  kanbanColumnId: r.kanbanColumnId,
+  position: r.position,
+  listPosition: r.listPosition,
   myDay: r.today === todayISO(),
   dueDate: r.dueDate,
   createdAt: r.createdAt,
@@ -161,7 +202,7 @@ const toTodo = (r: TodoFieldsResult): Todo => ({
   attachments: r.attachments ?? [],
   subtodoCount: r.subtodoCount ?? 0,
   completedTodos: r.completedTodos ?? 0,
-})
+});
 
 const ListsDocument = graphql(`
   query Lists {
@@ -171,11 +212,11 @@ const ListsDocument = graphql(`
       projectId
     }
   }
-`)
+`);
 
 export async function fetchLists(): Promise<List[]> {
-  const data = await gql(ListsDocument, {})
-  return data.lists
+  const data = await gql(ListsDocument, {});
+  return data.lists;
 }
 
 const TodosDocument = graphql(
@@ -187,11 +228,11 @@ const TodosDocument = graphql(
     }
   `,
   [todoFieldsFragment],
-)
+);
 
 export async function fetchTodos(filter: TodoFilter = {}): Promise<Todo[]> {
-  const data = await gql(TodosDocument, { filter })
-  return data.todos.map((t) => toTodo(readFragment(todoFieldsFragment, t)))
+  const data = await gql(TodosDocument, { filter });
+  return data.todos.map((t) => toTodo(readFragment(todoFieldsFragment, t)));
 }
 
 const TodoDocument = graphql(
@@ -199,25 +240,51 @@ const TodoDocument = graphql(
     query Todo($id: ID!) {
       todo(id: $id) {
         ...TodoFields
+        parent {
+          id
+          title
+          parent {
+            id
+            title
+            parent {
+              id
+              title
+              parent {
+                id
+                title
+                parent {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        }
       }
     }
   `,
   [todoFieldsFragment],
-)
+);
 
 export async function fetchTodo(id: string): Promise<Todo | null> {
-  const data = await gql(TodoDocument, { id })
-  return data.todo ? toTodo(readFragment(todoFieldsFragment, data.todo)) : null
+  const data = await gql(TodoDocument, { id });
+  if (!data.todo) return null;
+
+  const ancestors: TodoAncestor[] = [];
+  for (let node = data.todo.parent; node; node = node.parent) {
+    ancestors.unshift({ id: node.id, title: node.title });
+  }
+  return toTodo(readFragment(todoFieldsFragment, data.todo), ancestors);
 }
 
 type NewTodoFields = {
-  title: string
-  listId?: string | null
-  projectId?: string | null
-  important?: boolean
-  myDay?: boolean
-  dueDate?: string | null
-}
+  title: string;
+  listId?: string | null;
+  projectId?: string | null;
+  important?: boolean;
+  myDay?: boolean;
+  dueDate?: string | null;
+};
 
 const CreateTodoDocument = graphql(
   `
@@ -228,18 +295,18 @@ const CreateTodoDocument = graphql(
     }
   `,
   [todoFieldsFragment],
-)
+);
 
 export async function createTodo(fields: NewTodoFields): Promise<Todo> {
-  const input: Record<string, unknown> = { title: fields.title }
-  if (fields.listId != null) input.listId = fields.listId
-  if (fields.projectId != null) input.projectId = fields.projectId
-  if (fields.important) input.important = true
-  if (fields.dueDate) input.dueDate = fields.dueDate
-  if (fields.myDay) input.today = todayISO()
+  const input: Record<string, unknown> = { title: fields.title };
+  if (fields.listId != null) input.listId = fields.listId;
+  if (fields.projectId != null) input.projectId = fields.projectId;
+  if (fields.important) input.important = true;
+  if (fields.dueDate) input.dueDate = fields.dueDate;
+  if (fields.myDay) input.today = todayISO();
 
-  const data = await gql(CreateTodoDocument, { input: input as any })
-  return toTodo(readFragment(todoFieldsFragment, data.createTodo))
+  const data = await gql(CreateTodoDocument, { input: input as any });
+  return toTodo(readFragment(todoFieldsFragment, data.createTodo));
 }
 
 const UpdateTodoDocument = graphql(`
@@ -248,24 +315,126 @@ const UpdateTodoDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function updateTodo(
   id: string,
   patch: Partial<Todo>,
   signal?: AbortSignal,
 ): Promise<void> {
-  const input: Record<string, unknown> = { id }
-  if (patch.title !== undefined) input.title = patch.title
-  if (patch.note !== undefined) input.note = patch.note
-  if (patch.completed !== undefined) input.completed = patch.completed
-  if (patch.important !== undefined) input.important = patch.important
-  if (patch.dueDate !== undefined) input.dueDate = patch.dueDate
-  if (patch.listId !== undefined) input.listId = patch.listId
-  if (patch.projectId !== undefined) input.projectId = patch.projectId
-  if (patch.myDay !== undefined) input.today = patch.myDay ? todayISO() : null
+  const input: Record<string, unknown> = { id };
+  if (patch.title !== undefined) input.title = patch.title;
+  if (patch.note !== undefined) input.note = patch.note;
+  if (patch.completed !== undefined) input.completed = patch.completed;
+  if (patch.important !== undefined) input.important = patch.important;
+  if (patch.priority !== undefined) input.priority = patch.priority;
+  if (patch.dueDate !== undefined) input.dueDate = patch.dueDate;
+  if (patch.listId !== undefined) input.listId = patch.listId;
+  if (patch.projectId !== undefined) input.projectId = patch.projectId;
+  if (patch.myDay !== undefined) input.today = patch.myDay ? todayISO() : null;
 
-  await gql(UpdateTodoDocument, { input: input as any }, signal)
+  await gql(UpdateTodoDocument, { input: input as any }, signal);
+}
+
+const MoveTodoDocument = graphql(`
+  mutation MoveTodo($input: MoveTodoInput!) {
+    moveTodo(input: $input) {
+      id
+      kanbanColumnId
+      position
+    }
+  }
+`);
+
+export async function moveTodo(
+  id: string,
+  kanbanColumnId: string,
+  position: number,
+): Promise<void> {
+  await gql(MoveTodoDocument, { input: { id, kanbanColumnId, position } });
+}
+
+export async function moveTodoToKanbanColumn(
+  id: string,
+  kanbanColumnId: string,
+  position: number,
+): Promise<void> {
+  await moveTodo(id, kanbanColumnId, position);
+}
+
+const KanbanColumnsDocument = graphql(`
+  query KanbanColumns($projectId: ID!) {
+    kanbanColumns(projectId: $projectId) {
+      id
+      name
+      position
+      projectId
+    }
+  }
+`);
+export async function fetchKanbanColumns(
+  projectId: string,
+): Promise<import("./types").KanbanColumn[]> {
+  return (await gql(KanbanColumnsDocument, { projectId })).kanbanColumns;
+}
+const CreateKanbanColumnDocument = graphql(`
+  mutation CreateKanbanColumn($input: CreateKanbanColumnInput!) {
+    createKanbanColumn(input: $input) {
+      id
+      name
+      position
+      projectId
+    }
+  }
+`);
+export async function createKanbanColumn(
+  projectId: string,
+  name: string,
+): Promise<import("./types").KanbanColumn> {
+  return (await gql(CreateKanbanColumnDocument, { input: { projectId, name } }))
+    .createKanbanColumn;
+}
+const UpdateKanbanColumnDocument = graphql(`
+  mutation UpdateKanbanColumn($input: UpdateKanbanColumnInput!) {
+    updateKanbanColumn(input: $input) {
+      id
+      name
+      position
+      projectId
+    }
+  }
+`);
+export async function updateKanbanColumn(
+  id: string,
+  patch: { name?: string; position?: number },
+): Promise<void> {
+  await gql(UpdateKanbanColumnDocument, { input: { id, ...patch } });
+}
+const RemoveKanbanColumnDocument = graphql(`
+  mutation RemoveKanbanColumn($id: ID!) {
+    removeKanbanColumn(id: $id) {
+      id
+    }
+  }
+`);
+export async function removeKanbanColumn(id: string): Promise<void> {
+  await gql(RemoveKanbanColumnDocument, { id });
+}
+
+const MoveTodoToListDocument = graphql(`
+  mutation MoveTodoToList($input: MoveTodoToListInput!) {
+    moveTodoToList(input: $input) {
+      id
+    }
+  }
+`);
+
+export async function moveTodoToList(
+  id: string,
+  listId: string | null,
+  position: number,
+): Promise<void> {
+  await gql(MoveTodoToListDocument, { input: { id, listId, position } });
 }
 
 const RemoveTodoDocument = graphql(`
@@ -274,10 +443,10 @@ const RemoveTodoDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function removeTodo(id: string): Promise<void> {
-  await gql(RemoveTodoDocument, { id })
+  await gql(RemoveTodoDocument, { id });
 }
 
 const CreateSubtodoDocument = graphql(`
@@ -288,15 +457,17 @@ const CreateSubtodoDocument = graphql(`
       completed
     }
   }
-`)
+`);
 
 export async function createSubtodo(
   parentId: string,
   title: string,
 ): Promise<Subtodo> {
-  const data = await gql(CreateSubtodoDocument, { input: { title, parentId } as any })
-  const { id, title: t, completed } = data.createTodo
-  return { id, title: t, completed }
+  const data = await gql(CreateSubtodoDocument, {
+    input: { title, parentId } as any,
+  });
+  const { id, title: t, completed } = data.createTodo;
+  return { id, title: t, completed, subtodoCount: 0, completedTodos: 0 };
 }
 
 export async function updateSubtodo(
@@ -304,10 +475,10 @@ export async function updateSubtodo(
   patch: { title?: string; completed?: boolean },
   signal?: AbortSignal,
 ): Promise<void> {
-  await gql(UpdateTodoDocument, { input: { id, ...patch } as any }, signal)
+  await gql(UpdateTodoDocument, { input: { id, ...patch } as any }, signal);
 }
 
-export const removeSubtodo = removeTodo
+export const removeSubtodo = removeTodo;
 
 const CreateAttachmentDocument = graphql(`
   mutation CreateAttachment($input: CreateAttachmentInput!) {
@@ -327,16 +498,17 @@ const CreateAttachmentDocument = graphql(`
       siteName
     }
   }
-`)
+`);
 
 export async function createAttachment(input: {
-  todoId: string
-  url: string
-  filename: string
-  type: AttachmentType
+  todoId?: string;
+  projectId?: string;
+  url: string;
+  filename: string;
+  type: AttachmentType;
 }): Promise<Attachment> {
-  const data = await gql(CreateAttachmentDocument, { input: input as any })
-  return data.createAttachment
+  const data = await gql(CreateAttachmentDocument, { input: input as any });
+  return data.createAttachment;
 }
 
 const RemoveAttachmentDocument = graphql(`
@@ -345,50 +517,51 @@ const RemoveAttachmentDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function removeAttachment(id: string): Promise<void> {
-  await gql(RemoveAttachmentDocument, { id })
+  await gql(RemoveAttachmentDocument, { id });
 }
 
 export async function uploadAttachment(
   file: File,
-  todoId: string,
+  target: { todoId: string } | { projectId: string },
   isRetry = false,
 ): Promise<Attachment> {
-  const token = localStorage.getItem('accessToken')
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('todoId', todoId)
-  formData.append('type', 'IMAGE')
+  const token = localStorage.getItem("accessToken");
+  const formData = new FormData();
+  formData.append("file", file);
+  if ("todoId" in target) formData.append("todoId", target.todoId);
+  else formData.append("projectId", target.projectId);
+  formData.append("type", file.type.startsWith("image/") ? "IMAGE" : "FILE");
 
   const res = await fetch(`${REST_BASE_URL}/attachments/upload`, {
-    method: 'POST',
+    method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     body: formData,
-  })
+  });
 
-  if (res.status === 401 && !isRetry && localStorage.getItem('refreshToken')) {
+  if (res.status === 401 && !isRetry && localStorage.getItem("refreshToken")) {
     try {
       if (!refreshPromise) {
         refreshPromise = refreshAccessToken().finally(() => {
-          refreshPromise = null
-        })
+          refreshPromise = null;
+        });
       }
-      await refreshPromise
-      return uploadAttachment(file, todoId, true)
+      await refreshPromise;
+      return uploadAttachment(file, target, true);
     } catch {
-      logout()
-      throw new Error('Session expired, please sign in again')
+      logout();
+      throw new Error("Session expired, please sign in again");
     }
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message || 'Failed to upload attachment')
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message || "Failed to upload attachment");
   }
 
-  return res.json()
+  return res.json();
 }
 
 // note: helper buat rest json umum dengan retry setelah refresh jika mendapat 401 endpoint token memakai rest bkn graph
@@ -397,55 +570,55 @@ async function restFetch<T>(
   options: RequestInit = {},
   isRetry = false,
 ): Promise<T> {
-  const token = localStorage.getItem('accessToken')
+  const token = localStorage.getItem("accessToken");
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
-  }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${REST_BASE_URL}${path}`, { ...options, headers })
+  const res = await fetch(`${REST_BASE_URL}${path}`, { ...options, headers });
 
-  if (res.status === 401 && !isRetry && localStorage.getItem('refreshToken')) {
+  if (res.status === 401 && !isRetry && localStorage.getItem("refreshToken")) {
     try {
       if (!refreshPromise) {
         refreshPromise = refreshAccessToken().finally(() => {
-          refreshPromise = null
-        })
+          refreshPromise = null;
+        });
       }
-      await refreshPromise
-      return restFetch<T>(path, options, true)
+      await refreshPromise;
+      return restFetch<T>(path, options, true);
     } catch {
-      logout()
-      throw new Error('Session expired, please sign in again')
+      logout();
+      throw new Error("Session expired, please sign in again");
     }
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message || `Request failed (${res.status})`)
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message || `Request failed (${res.status})`);
   }
 
-  if (res.status === 204) return undefined as T
-  return res.json()
+  if (res.status === 204) return undefined as T;
+  return res.json();
 }
 
 export async function fetchApiTokens(): Promise<ApiToken[]> {
-  return restFetch<ApiToken[]>('/tokens')
+  return restFetch<ApiToken[]>("/tokens");
 }
 
 export async function createApiToken(
   name: string,
   expiresInDays?: number | null,
 ): Promise<NewApiToken> {
-  return restFetch<NewApiToken>('/tokens', {
-    method: 'POST',
+  return restFetch<NewApiToken>("/tokens", {
+    method: "POST",
     body: JSON.stringify({ name, expiresInDays }),
-  })
+  });
 }
 
 export async function revokeApiToken(id: string): Promise<void> {
-  await restFetch<void>(`/tokens/${id}`, { method: 'DELETE' })
+  await restFetch<void>(`/tokens/${id}`, { method: "DELETE" });
 }
 
 const CreateListDocument = graphql(`
@@ -456,17 +629,17 @@ const CreateListDocument = graphql(`
       projectId
     }
   }
-`)
+`);
 
 export async function createList(
   name: string,
   projectId?: string | null,
 ): Promise<List> {
-  const input: Record<string, unknown> = { name }
-  if (projectId != null) input.projectId = projectId
+  const input: Record<string, unknown> = { name };
+  if (projectId != null) input.projectId = projectId;
 
-  const data = await gql(CreateListDocument, { input: input as any })
-  return data.createList
+  const data = await gql(CreateListDocument, { input: input as any });
+  return data.createList;
 }
 
 const UpdateListDocument = graphql(`
@@ -475,13 +648,13 @@ const UpdateListDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function updateList(
   id: string,
   patch: { name?: string; projectId?: string | null },
 ): Promise<void> {
-  await gql(UpdateListDocument, { input: { id, ...patch } as any })
+  await gql(UpdateListDocument, { input: { id, ...patch } as any });
 }
 
 const RemoveListDocument = graphql(`
@@ -490,22 +663,45 @@ const RemoveListDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function removeList(id: string): Promise<void> {
-  await gql(RemoveListDocument, { id })
+  await gql(RemoveListDocument, { id });
 }
 
 const projectFieldsFragment = graphql(`
   fragment ProjectFields on Project {
     id
     name
+    color
     description
     parentId
     code
     archivedAt
+    attachments {
+      id
+      filename
+      url
+      mimeType
+      size
+      type
+      todoId
+      projectId
+      title
+      description
+      image
+      favicon
+      siteName
+    }
   }
-`)
+`);
+
+type ProjectFieldsResult = ResultOf<typeof projectFieldsFragment>;
+
+const toProject = (project: ProjectFieldsResult): Project => ({
+  ...project,
+  attachments: project.attachments ?? [],
+});
 
 const ProjectsDocument = graphql(
   `
@@ -516,11 +712,13 @@ const ProjectsDocument = graphql(
     }
   `,
   [projectFieldsFragment],
-)
+);
 
 export async function fetchProjects(): Promise<Project[]> {
-  const data = await gql(ProjectsDocument, {})
-  return data.projects.map((p) => readFragment(projectFieldsFragment, p))
+  const data = await gql(ProjectsDocument, {});
+  return data.projects.map((project) =>
+    toProject(readFragment(projectFieldsFragment, project)),
+  );
 }
 
 const CreateProjectDocument = graphql(
@@ -532,21 +730,23 @@ const CreateProjectDocument = graphql(
     }
   `,
   [projectFieldsFragment],
-)
+);
 
 export async function createProject(
   name: string,
   description?: string | null,
   parentId?: string | null,
-  code?: string | null
+  code?: string | null,
+  color?: string | null,
 ): Promise<Project> {
-  const input: Record<string, unknown> = { name }
-  if (description) input.description = description
-  if (parentId != null) input.parentId = parentId
-  if (code) input.code = code
+  const input: Record<string, unknown> = { name };
+  if (description) input.description = description;
+  if (parentId != null) input.parentId = parentId;
+  if (code) input.code = code;
+  if (color !== undefined) input.color = color;
 
-  const data = await gql(CreateProjectDocument, { input: input as any })
-  return readFragment(projectFieldsFragment, data.createProject)
+  const data = await gql(CreateProjectDocument, { input: input as any });
+  return toProject(readFragment(projectFieldsFragment, data.createProject));
 }
 
 const UpdateProjectDocument = graphql(`
@@ -555,18 +755,19 @@ const UpdateProjectDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function updateProject(
   id: string,
   patch: {
-    name?: string
-    description?: string | null
-    parentId?: string | null
-    code?: string | null
+    name?: string;
+    description?: string | null;
+    parentId?: string | null;
+    code?: string | null;
+    color?: string | null;
   },
 ): Promise<void> {
-  await gql(UpdateProjectDocument, { input: { id, ...patch } as any })
+  await gql(UpdateProjectDocument, { input: { id, ...patch } as any });
 }
 
 const ArchiveProjectDocument = graphql(`
@@ -575,10 +776,10 @@ const ArchiveProjectDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function archiveProject(id: string): Promise<void> {
-  await gql(ArchiveProjectDocument, { id })
+  await gql(ArchiveProjectDocument, { id });
 }
 
 const UnarchiveProjectDocument = graphql(`
@@ -587,10 +788,10 @@ const UnarchiveProjectDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function unarchiveProject(id: string): Promise<void> {
-  await gql(UnarchiveProjectDocument, { id })
+  await gql(UnarchiveProjectDocument, { id });
 }
 
 const RemoveProjectDocument = graphql(`
@@ -599,10 +800,10 @@ const RemoveProjectDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function removeProject(id: string): Promise<void> {
-  await gql(RemoveProjectDocument, { id })
+  await gql(RemoveProjectDocument, { id });
 }
 
 const LoginDocument = graphql(`
@@ -619,13 +820,16 @@ const LoginDocument = graphql(`
       }
     }
   }
-`)
+`);
 
-export async function login(email: string, password: string): Promise<import('./types').AuthPayload> {
-  const data = await gql(LoginDocument, { input: { email, password } })
-  localStorage.setItem('accessToken', data.login.accessToken)
-  localStorage.setItem('refreshToken', data.login.refreshToken)
-  return data.login
+export async function login(
+  email: string,
+  password: string,
+): Promise<import("./types").AuthPayload> {
+  const data = await gql(LoginDocument, { input: { email, password } });
+  localStorage.setItem("accessToken", data.login.accessToken);
+  localStorage.setItem("refreshToken", data.login.refreshToken);
+  return data.login;
 }
 
 const RegisterDocument = graphql(`
@@ -642,13 +846,19 @@ const RegisterDocument = graphql(`
       }
     }
   }
-`)
+`);
 
-export async function register(email: string, username: string, password: string): Promise<import('./types').AuthPayload> {
-  const data = await gql(RegisterDocument, { input: { email, username, password } })
-  localStorage.setItem('accessToken', data.register.accessToken)
-  localStorage.setItem('refreshToken', data.register.refreshToken)
-  return data.register
+export async function register(
+  email: string,
+  username: string,
+  password: string,
+): Promise<import("./types").AuthPayload> {
+  const data = await gql(RegisterDocument, {
+    input: { email, username, password },
+  });
+  localStorage.setItem("accessToken", data.register.accessToken);
+  localStorage.setItem("refreshToken", data.register.refreshToken);
+  return data.register;
 }
 
 const MeDocument = graphql(`
@@ -661,17 +871,17 @@ const MeDocument = graphql(`
       updatedAt
     }
   }
-`)
+`);
 
-export async function fetchMe(): Promise<import('./types').User> {
-  const data = await gql(MeDocument, {})
-  return data.me
+export async function fetchMe(): Promise<import("./types").User> {
+  const data = await gql(MeDocument, {});
+  return data.me;
 }
 
 export function logout() {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  window.location.href = '/login'
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  window.location.href = "/login";
 }
 
 // ---------------------------------------------------------------------------
@@ -685,7 +895,7 @@ const documentFieldsFragment = graphql(`
     projectId
     updatedAt
   }
-`)
+`);
 
 const DocumentsDocument = graphql(
   `
@@ -696,11 +906,13 @@ const DocumentsDocument = graphql(
     }
   `,
   [documentFieldsFragment],
-)
+);
 
-export async function fetchDocuments(projectId?: string): Promise<ProjectDocument[]> {
-  const data = await gql(DocumentsDocument, { projectId: projectId ?? null })
-  return data.documents.map((d) => readFragment(documentFieldsFragment, d))
+export async function fetchDocuments(
+  projectId?: string,
+): Promise<ProjectDocument[]> {
+  const data = await gql(DocumentsDocument, { projectId: projectId ?? null });
+  return data.documents.map((d) => readFragment(documentFieldsFragment, d));
 }
 
 const DocumentDocument = graphql(
@@ -713,16 +925,18 @@ const DocumentDocument = graphql(
     }
   `,
   [documentFieldsFragment],
-)
+);
 
-export async function fetchDocument(id: string): Promise<ProjectDocumentDetail | null> {
-  const data = await gql(DocumentDocument, { id })
-  if (!data.document) return null
-  const { content, ...rest } = data.document
+export async function fetchDocument(
+  id: string,
+): Promise<ProjectDocumentDetail | null> {
+  const data = await gql(DocumentDocument, { id });
+  if (!data.document) return null;
+  const { content, ...rest } = data.document;
   return {
     ...readFragment(documentFieldsFragment, rest),
     content: (content ?? null) as DocumentContent,
-  }
+  };
 }
 
 const CreateDocumentDocument = graphql(
@@ -734,7 +948,7 @@ const CreateDocumentDocument = graphql(
     }
   `,
   [documentFieldsFragment],
-)
+);
 
 export async function createDocument(
   title: string,
@@ -742,8 +956,8 @@ export async function createDocument(
 ): Promise<ProjectDocument> {
   const data = await gql(CreateDocumentDocument, {
     input: { title, projectId: projectId ?? null } as any,
-  })
-  return readFragment(documentFieldsFragment, data.createDocument)
+  });
+  return readFragment(documentFieldsFragment, data.createDocument);
 }
 
 const UpdateDocumentDocument = graphql(`
@@ -753,14 +967,14 @@ const UpdateDocumentDocument = graphql(`
       updatedAt
     }
   }
-`)
+`);
 
 export async function updateDocument(
   id: string,
   patch: { title?: string; content?: DocumentContent },
   signal?: AbortSignal,
 ): Promise<void> {
-  await gql(UpdateDocumentDocument, { input: { id, ...patch } as any }, signal)
+  await gql(UpdateDocumentDocument, { input: { id, ...patch } as any }, signal);
 }
 
 const RemoveDocumentDocument = graphql(`
@@ -769,8 +983,8 @@ const RemoveDocumentDocument = graphql(`
       id
     }
   }
-`)
+`);
 
 export async function removeDocument(id: string): Promise<void> {
-  await gql(RemoveDocumentDocument, { id })
+  await gql(RemoveDocumentDocument, { id });
 }

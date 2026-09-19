@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Sun } from "lucide-react";
+import { Lightbulb, Sun } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
-import { CollapsibleSection } from "../components/collapsible-section";
 import { AddTodoBar } from "../components/add-todo-bar";
-import { useCarriedOverTodos, useMyDayTodos, useTodos } from "../hooks/useTodos";
+import { TodaySuggestionsSheet } from "../components/today-suggestions-sheet";
+import {
+  useCarriedOverTodos,
+  useMyDayTodos,
+  useTodos,
+} from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
 import type { View } from "../types";
 
@@ -12,6 +17,7 @@ const view: View = { kind: "smart", id: "today" };
 
 export default function TodayPage() {
   const [params] = useSearchParams();
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const query = (params.get("q") ?? "").trim();
 
   const { data: searchResults = [] } = useTodos(
@@ -39,18 +45,27 @@ export default function TodayPage() {
       icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}
       footer={query ? null : <AddTodoBar view={view} lists={lists} />}
+      actions={
+        !query && leftOvers.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => setSuggestionsOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted hover:text-fg"
+          >
+            <Lightbulb className="h-4 w-4 text-warn" />
+            Suggestions
+          </button>
+        ) : null
+      }
     >
       {visible?.map((todo) => (
         <TodoRow key={todo.id} todo={todo} showProject />
       ))}
-
-      {!query && (
-        <CollapsibleSection label="Unfinished" count={leftOvers.length}>
-          {leftOvers.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} showProject />
-          ))}
-        </CollapsibleSection>
-      )}
+      <TodaySuggestionsSheet
+        todos={leftOvers}
+        open={suggestionsOpen}
+        onOpenChange={setSuggestionsOpen}
+      />
     </PageShell>
   );
 }

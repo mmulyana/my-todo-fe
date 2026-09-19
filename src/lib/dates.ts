@@ -48,6 +48,23 @@ export function formatDue(iso: string): string {
   })
 }
 
+export function formatDueRelative(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number)
+  const now = new Date()
+  const dueDay = Date.UTC(year, month - 1, day)
+  const currentDay = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  const difference = Math.round((dueDay - currentDay) / 86_400_000)
+
+  if (difference === 0) return 'Today'
+  if (difference === 1) return 'Tomorrow'
+  if (difference === -1) return 'Yesterday'
+
+  return new Intl.RelativeTimeFormat(undefined, { numeric: 'always' }).format(
+    difference,
+    'day',
+  )
+}
+
 export function formatCreated(timestamp: string | number): string {
   const date = new Date(timestamp)
   const iso = toISODate(date)

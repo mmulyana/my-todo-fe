@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
+import { cn } from "@/lib/utils";
 
 type PageShellProps = {
   title: string;
@@ -12,6 +13,7 @@ type PageShellProps = {
   trail?: Project[];
   children: ReactNode;
   footer?: ReactNode;
+  classNameChildren?: string;
 };
 
 export function PageShell({
@@ -21,6 +23,7 @@ export function PageShell({
   trail = [],
   children,
   footer = null,
+  classNameChildren,
 }: PageShellProps) {
   const { openSidebar } = useSidebarContext();
 
@@ -55,7 +58,9 @@ export function PageShell({
             </nav>
           )}
           {icon && (
-            <span className="ml-1.5 shrink-0 text-muted [&_svg]:w-4 [&_svg]:h-4">{icon}</span>
+            <span className="ml-1.5 shrink-0 text-muted [&_svg]:w-4 [&_svg]:h-4">
+              {icon}
+            </span>
           )}
           <h1 className="ml-1.5 h-fit m-0 text-sm tracking-[-0.02em] truncate font-medium text-fg">
             {title}
@@ -64,7 +69,12 @@ export function PageShell({
         {actions}
       </header>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4">
+      <div
+        className={cn(
+          "flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4",
+          classNameChildren,
+        )}
+      >
         <div className="flex flex-col">{children}</div>
       </div>
 

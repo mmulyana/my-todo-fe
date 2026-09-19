@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DragDropProvider, DragOverlay, useDroppable } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
+import { move } from "@dnd-kit/helpers";
+import { CollisionPriority } from "@dnd-kit/abstract";
 import { TodoRow } from "./todo-row";
 import { TodoInput } from "./todo-input";
 import { useCreateList, useDeleteList, useUpdateList } from "../hooks/useLists";
+import { useMoveTodoToList } from "../hooks/useTodos";
+import { cn } from "@/lib/utils";
 import type { List, Todo } from "../types";
 import {
   ChevronDown,
@@ -16,6 +22,93 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const NO_LIST = "__no_list__";
+
+type Groups = Record<string, string[]>;
+
+function toGroups(lists: List[], todos: Todo[]): Groups {
+  const groups: Groups = { [NO_LIST]: [] };
+  for (const list of lists) groups[list.id] = [];
+
+  const ordered = [...todos].sort(
+    (a, b) =>
+      a.listPosition - b.listPosition || a.createdAt.localeCompare(b.createdAt),
+  );
+  for (const todo of ordered) {
+    const key = todo.listId && groups[todo.listId] ? todo.listId : NO_LIST;
+    groups[key].push(todo.id);
+  }
+  return groups;
+}
+
+function cloneGroups(groups: Groups): Groups {
+  return Object.fromEntries(
+    Object.entries(groups).map(([key, ids]) => [key, [...ids]]),
+  );
+}
+
+function SortableTodoRow({
+  todo,
+  index,
+  group,
+  showList,
+}: {
+  todo: Todo;
+  index: number;
+  group: string;
+  showList?: boolean;
+}) {
+  const { ref, handleRef, isDragging } = useSortable({
+    id: todo.id,
+    index,
+    group,
+    type: "todo",
+    accept: "todo",
+  });
+
+  return (
+    <div ref={ref} className="flex flex-col">
+      <TodoRow
+        todo={todo}
+        showList={showList}
+        skipInvalidate
+        dragHandleRef={handleRef}
+        dragging={isDragging}
+      />
+    </div>
+  );
+}
+
+function DropZone({
+  id,
+  className,
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { ref, isDropTarget } = useDroppable({
+    id,
+    type: "list",
+    accept: "todo",
+    collisionPriority: CollisionPriority.Low,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col rounded-lg transition-colors",
+        isDropTarget && "bg-tint/5",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 const fieldClass =
   "w-full my-1 py-2 px-3 rounded-lg bg-bg text-[15px] outline-none focus:border-accent";
@@ -145,7 +238,15 @@ function SectionHeader({
   );
 }
 
-function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
+function ListSection({
+  list,
+  todos,
+  dragging,
+}: {
+  list: List;
+  todos: Todo[];
+  dragging: boolean;
+}) {
   const updateList = useUpdateList();
   const deleteList = useDeleteList();
 
@@ -154,7 +255,9 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
   );
   const [adding, setAdding] = useState(false);
 
-  const collapsed = collapsedOverride ?? todos.length === 0;
+  const collapsed = dragging
+    ? false
+    : (collapsedOverride ?? todos.length === 0);
 
   const openTodoField = () => {
     setCollapsedOverride(false);
@@ -175,9 +278,15 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
       />
 
       {!collapsed && (
-        <div className="flex flex-col">
-          {todos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} showList={false} skipInvalidate />
+        <DropZone id={list.id} className={dragging ? "min-h-10" : undefined}>
+          {todos.map((todo, index) => (
+            <SortableTodoRow
+              key={todo.id}
+              todo={todo}
+              index={index}
+              group={list.id}
+              showList={false}
+            />
           ))}
 
           {adding && (
@@ -196,10 +305,10 @@ function ListSection({ list, todos }: { list: List; todos: Todo[] }) {
 
           {todos.length === 0 && !adding && (
             <p className="py-2.5 text-muted pl-9.5 text-center">
-              No todos in this list yet.
+              {dragging ? "Drop a todo here" : "No todos in this list yet."}
             </p>
           )}
-        </div>
+        </DropZone>
       )}
     </div>
   );
@@ -213,64 +322,161 @@ type ProjectListsProps = {
 
 export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
   const createList = useCreateList();
+  const moveTodoToList = useMoveTodoToList();
 
   const [listDraft, setListDraft] = useState("");
   const [addingList, setAddingList] = useState(false);
 
-  return (
-    <section>
-      {lists.map((list) => (
-        <ListSection
-          key={list.id}
-          list={list}
-          todos={todos.filter((t) => t.listId === list.id)}
-        />
-      ))}
+  const [groups, setGroups] = useState<Groups>(() => toGroups(lists, todos));
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const beforeDrag = useRef<Groups | null>(null);
 
-      {addingList ? (
-        <div className="flex items-center mt-6">
-          <span className="w-5 h-5 shrink-0" />
-          <form
-            className="flex-1 min-w-0"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const name = listDraft.trim();
-              if (!name) {
-                setAddingList(false);
-                return;
-              }
-              createList.mutate({ name, projectId });
-              setListDraft("");
-            }}
-          >
-            <input
-              autoFocus
-              value={listDraft}
-              onChange={(e) => setListDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setAddingList(false)}
-              onBlur={() => !listDraft.trim() && setAddingList(false)}
-              placeholder="List name"
-              aria-label="New list name"
-              className={fieldClass}
+  const listIds = lists.map((list) => list.id).join(",");
+  useEffect(() => {
+    setGroups(toGroups(lists, todos));
+    // lists is rebuilt by the caller on every render, so key off its ids
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listIds, todos]);
+
+  const items = useMemo(
+    () => new Map(todos.map((todo) => [todo.id, todo])),
+    [todos],
+  );
+  const activeTodo = activeId ? items.get(activeId) : null;
+
+  const todosOf = (group: string) =>
+    (groups[group] ?? [])
+      .map((id) => items.get(id))
+      .filter((todo): todo is Todo => Boolean(todo));
+
+  const restore = () => {
+    if (beforeDrag.current) setGroups(beforeDrag.current);
+  };
+
+  return (
+    <DragDropProvider
+      onDragStart={(event) => {
+        beforeDrag.current = cloneGroups(groups);
+        setActiveId(event.operation.source?.id as string);
+      }}
+      onDragOver={(event) =>
+        setGroups((current) => move(current, event) as Groups)
+      }
+      onDragEnd={(event) => {
+        const id = activeId;
+        setActiveId(null);
+        if (!id) return;
+
+        if (event.canceled) {
+          restore();
+          beforeDrag.current = null;
+          return;
+        }
+
+        const previous = beforeDrag.current;
+        beforeDrag.current = null;
+
+        const group = Object.keys(groups).find((key) =>
+          groups[key].includes(id),
+        );
+        if (!group) return;
+
+        const position = groups[group].indexOf(id);
+        const listId = group === NO_LIST ? null : group;
+        const todo = items.get(id);
+        const unchanged =
+          todo &&
+          (todo.listId ?? null) === listId &&
+          previous?.[group]?.indexOf(id) === position;
+        if (unchanged) return;
+
+        moveTodoToList.mutate(
+          { id, listId, position },
+          { onError: () => previous && setGroups(previous) },
+        );
+      }}
+    >
+      <section>
+        <DropZone id={NO_LIST} className={cn("mb-1", activeId && "min-h-10")}>
+          {todosOf(NO_LIST).map((todo, index) => (
+            <SortableTodoRow
+              key={todo.id}
+              todo={todo}
+              index={index}
+              group={NO_LIST}
             />
-          </form>
-        </div>
-      ) : (
-        <div className="flex items-center my-2">
-          <span className="w-5 h-5 shrink-0" />
-          <div className="flex-1 min-w-0 flex items-center gap-4 group h-5">
-            <div className="flex-1 h-px bg-line hidden group-hover:flex" />
-            <button
-              type="button"
-              className="text-xs font-medium text-muted hover:text-accent transition-colors py-1 cursor-pointer shrink-0 hidden group-hover:flex"
-              onClick={() => setAddingList(true)}
+          ))}
+          {activeId && groups[NO_LIST]?.length === 0 && (
+            <p className="py-2.5 text-muted pl-9.5 text-center">
+              Drop a todo here
+            </p>
+          )}
+        </DropZone>
+
+        {lists.map((list) => (
+          <ListSection
+            key={list.id}
+            list={list}
+            todos={todosOf(list.id)}
+            dragging={Boolean(activeId)}
+          />
+        ))}
+
+        {addingList ? (
+          <div className="flex items-center mt-6">
+            <span className="w-5 h-5 shrink-0" />
+            <form
+              className="flex-1 min-w-0"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const name = listDraft.trim();
+                if (!name) {
+                  setAddingList(false);
+                  return;
+                }
+                createList.mutate({ name, projectId });
+                setListDraft("");
+              }}
             >
-              + New List
-            </button>
-            <div className="flex-1 h-px bg-line hidden group-hover:flex" />
+              <input
+                autoFocus
+                value={listDraft}
+                onChange={(e) => setListDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setAddingList(false)}
+                onBlur={() => !listDraft.trim() && setAddingList(false)}
+                placeholder="List name"
+                aria-label="New list name"
+                className={fieldClass}
+              />
+            </form>
           </div>
-        </div>
-      )}
-    </section>
+        ) : (
+          <div className="flex items-center my-2">
+            <span className="w-5 h-5 shrink-0" />
+            <div className="flex-1 min-w-0 flex items-center gap-4 group h-5">
+              <div className="flex-1 h-px bg-line hidden group-hover:flex" />
+              <button
+                type="button"
+                className="text-xs font-medium text-muted hover:text-accent transition-colors py-1 cursor-pointer shrink-0 hidden group-hover:flex"
+                onClick={() => setAddingList(true)}
+              >
+                + New List
+              </button>
+              <div className="flex-1 h-px bg-line hidden group-hover:flex" />
+            </div>
+          </div>
+        )}
+      </section>
+
+      <DragOverlay>
+        {activeTodo ? (
+          <div className="rounded-xl border border-line bg-raised px-3 py-2 shadow-lg">
+            <p className="truncate text-sm font-medium text-fg">
+              {activeTodo.title}
+            </p>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DragDropProvider>
   );
 }

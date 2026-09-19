@@ -1,13 +1,32 @@
-import { useState } from "react";
-import { Link as LinkIcon, Loader2, Plus, Trash2 } from "lucide-react";
-import { useCreateAttachment, useDeleteAttachment } from "../hooks/useTodos";
+import { useRef, useState } from "react";
+import {
+  File,
+  File as FileIcon,
+  Link as LinkIcon,
+  Loader2,
+  Paperclip,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
+  useCreateAttachment,
+  useDeleteAttachment,
+  useUploadAttachment,
+} from "../hooks/useTodos";
 import { resolveAttachmentUrl } from "../api";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Attachment } from "../types";
 
-type AttachmentSectionProps = {
-  todoId: string;
+type AttachmentSectionProps = ({ todoId: string } | { projectId: string }) & {
   attachments: Attachment[];
+  tabbed?: boolean;
+  view?: "links" | "files";
 };
+
+function extensionOf(filename: string): string {
+  const dot = filename.lastIndexOf(".");
+  return dot > 0 ? filename.slice(dot + 1, dot + 5) : "";
+}
 
 function filenameFromUrl(url: string): string {
   try {
@@ -28,20 +47,24 @@ function hostOf(url: string): string {
 }
 
 export function AttachmentSection({
-  todoId,
   attachments,
+  tabbed = false,
+  view,
+  ...target
 }: AttachmentSectionProps) {
   const [url, setUrl] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const createAttachment = useCreateAttachment();
   const deleteAttachment = useDeleteAttachment();
+  const uploadAttachment = useUploadAttachment();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = url.trim();
     if (!trimmed) return;
     createAttachment.mutate({
-      todoId,
+      ...target,
       url: trimmed,
       filename: filenameFromUrl(trimmed),
       type: "LINK",
@@ -49,9 +72,120 @@ export function AttachmentSection({
     setUrl("");
   };
 
+  const upload = (file: File | undefined) => {
+    if (file) uploadAttachment.mutate({ file, ...target });
+  };
+
+  const fileInputEl = (
+    <input
+      ref={fileInput}
+      type="file"
+      className="sr-only"
+      onChange={(event) => {
+        upload(event.target.files?.[0]);
+        event.target.value = "";
+      }}
+    />
+  );
+
+  const linkForm = (
+    <form className="flex items-center gap-2 text-muted" onSubmit={submit}>
+      <div className="shrink-0 w-5.5 flex justify-center">
+        <Plus className="shrink-0" size={16} />
+      </div>
+      <input
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="Add attachment link"
+        className="flex-1 min-w-0 border-none bg-transparent text-sm text-fg outline-none placeholder:text-muted"
+      />
+    </form>
+  );
+
+  if (tabbed || view) {
+    const links = attachments.filter((a) => a.type === "LINK");
+    const files = attachments.filter((a) => a.type !== "LINK");
+
+    const linksContent = (
+      <div className="flex flex-col gap-2">
+        {links.map((attachment) => (
+          <LinkCard
+            key={attachment.id}
+            attachment={attachment}
+            onDelete={() => deleteAttachment.mutate(attachment.id)}
+          />
+        ))}
+
+        {createAttachment.isPending && (
+          <div className="flex items-center gap-2.5 text-sm text-muted">
+            <div className="shrink-0 w-5.5 flex justify-center">
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </div>
+            <span>Fetching preview...</span>
+          </div>
+        )}
+
+        {linkForm}
+      </div>
+    );
+
+    const filesContent = (
+      <>
+        <div className="grid grid-cols-3 gap-2">
+          {files.map((attachment) => (
+            <FileTile
+              key={attachment.id}
+              attachment={attachment}
+              onDelete={() => deleteAttachment.mutate(attachment.id)}
+            />
+          ))}
+
+          {uploadAttachment.isPending && (
+            <div className="grid aspect-square place-items-center rounded-xl border border-line bg-raised/60 text-muted">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            disabled={uploadAttachment.isPending}
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line text-muted hover:border-muted hover:text-fg disabled:cursor-wait disabled:opacity-60 transition-colors cursor-pointer"
+          >
+            <Plus size={18} />
+            <span className="text-xs">Add file</span>
+          </button>
+        </div>
+        {fileInputEl}
+      </>
+    );
+
+    if (view === "links") return linksContent;
+    if (view === "files") return filesContent;
+
+    return (
+      <Tabs defaultValue="links">
+        <TabsList className="w-fit bg-tint/5 rounded-lg">
+          <TabsTrigger value="links" className="gap-1">
+            <LinkIcon size={12} />
+            Links
+          </TabsTrigger>
+          <TabsTrigger value="files" className="gap-1">
+            <File size={12} />
+            Files
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="links">{linksContent}</TabsContent>
+        <TabsContent value="files">{filesContent}</TabsContent>
+      </Tabs>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      {!!attachments.length && <p className="text-sm text-fg/50">Attachments</p>}
+      {!!attachments.length && (
+        <p className="text-sm text-fg/70 font-medium">Attachments</p>
+      )}
 
       {attachments.map((attachment) =>
         attachment.type === "LINK" ? (
@@ -69,26 +203,33 @@ export function AttachmentSection({
         ),
       )}
 
-      {createAttachment.isPending && (
+      {(createAttachment.isPending || uploadAttachment.isPending) && (
         <div className="flex items-center gap-2.5 text-sm text-muted">
           <div className="shrink-0 w-5.5 flex justify-center">
             <Loader2 className="w-4 h-4 animate-spin" />
           </div>
-          <span>Fetching preview...</span>
+          <span>
+            {uploadAttachment.isPending
+              ? "Uploading attachment..."
+              : "Fetching preview..."}
+          </span>
         </div>
       )}
 
-      <form className="flex items-center gap-2 text-muted" onSubmit={submit}>
-        <div className="shrink-0 w-5.5 flex justify-center">
-          <Plus className="shrink-0" size={16} />
-        </div>
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Add attachment link"
-          className="flex-1 min-w-0 border-none bg-transparent text-sm text-fg outline-none placeholder:text-muted"
-        />
-      </form>
+      {linkForm}
+
+      {fileInputEl}
+      <button
+        type="button"
+        onClick={() => fileInput.current?.click()}
+        disabled={uploadAttachment.isPending}
+        className="flex items-center gap-2 py-1 text-sm text-muted hover:text-fg disabled:cursor-wait disabled:opacity-60 transition-colors cursor-pointer"
+      >
+        <span className="shrink-0 w-5.5 flex justify-center">
+          <Paperclip size={16} />
+        </span>
+        <span>Add file</span>
+      </button>
     </div>
   );
 }
@@ -150,6 +291,51 @@ function LinkCard({ attachment, onDelete }: AttachmentRowProps) {
         type="button"
         onClick={onDelete}
         className="absolute right-1.5 top-1.5 opacity-0 group-hover/att:opacity-100 p-1 rounded bg-surface/80 text-muted hover:text-danger transition-opacity cursor-pointer"
+        aria-label="Remove attachment"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/** Square tile for uploaded files: image preview, or an icon with the extension. */
+function FileTile({ attachment, onDelete }: AttachmentRowProps) {
+  const href = resolveAttachmentUrl(attachment.url);
+  const ext = extensionOf(attachment.filename);
+
+  return (
+    <div className="group/att relative flex min-w-0 flex-col gap-1">
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="block aspect-square overflow-hidden rounded-xl border border-line bg-raised/60 hover:bg-raised transition-colors"
+      >
+        {attachment.type === "IMAGE" ? (
+          <img
+            src={href}
+            alt={attachment.filename}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="flex h-full flex-col items-center justify-center gap-1 text-muted">
+            <FileIcon className="w-6 h-6" />
+            {ext && (
+              <span className="text-[10px] font-medium uppercase">{ext}</span>
+            )}
+          </span>
+        )}
+      </a>
+      <p className="truncate text-xs text-fg/80" title={attachment.filename}>
+        {attachment.filename}
+      </p>
+
+      <button
+        type="button"
+        onClick={onDelete}
+        className="absolute right-1 top-1 opacity-0 group-hover/att:opacity-100 p-1 rounded bg-surface/80 text-muted hover:text-danger transition-opacity cursor-pointer"
         aria-label="Remove attachment"
       >
         <Trash2 className="w-3.5 h-3.5" />

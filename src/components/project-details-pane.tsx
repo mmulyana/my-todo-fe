@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   X,
   Archive,
@@ -17,9 +17,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { DeleteProjectDialog } from "./delete-project-dialog";
 import { useProjects, useUpdateProject } from "../hooks/useProjects";
-import { childProjects, isArchived } from "../projects";
+import { childProjects, isArchived, projectTrail } from "../projects";
 import type { Project } from "../types";
 import { InlineProjectInput } from "./inline-project-input";
+import { AttachmentSection } from "./attachment-section";
+import { ProjectColorPicker } from "./project-color-picker";
 
 type ProjectDetailsPaneProps = {
   project: Project;
@@ -27,6 +29,7 @@ type ProjectDetailsPaneProps = {
   onDelete: () => void;
   onArchive: () => void;
   onUnarchive: () => void;
+  onOpenProject?: (projectId: string) => void;
 };
 
 function ProjectDetailsContent({
@@ -35,17 +38,27 @@ function ProjectDetailsContent({
   onDelete,
   onArchive,
   onUnarchive,
+  onOpenProject,
 }: ProjectDetailsPaneProps) {
   const updateProject = useUpdateProject();
   const { data: projects = [] } = useProjects();
   const archived = isArchived(project);
   const subProjects = childProjects(projects, project.id);
+  const trail = projectTrail(projects, project.id);
 
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { data: documents = [] } = useDocuments(project.id);
   const createDocument = useCreateDocument();
   const [openDocumentId, setOpenDocumentId] = useState<string | null>(null);
+
+  const openProject = (projectId: string) => {
+    if (onOpenProject) {
+      onOpenProject(projectId);
+      return;
+    }
+    navigate(`/projects/${projectId}`);
+  };
 
   const openDocument = (documentId: string) => {
     if (isDesktop) {
@@ -97,22 +110,55 @@ function ProjectDetailsContent({
   };
 
   return (
-    <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto px-4 pt-2">
-      <div className="shrink-0 flex items-center justify-end h-8">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 h-[46px] px-4 border-b border-line flex items-center justify-between gap-2 w-full">
+        {trail.length > 0 && (
+          <nav
+            aria-label="Parent projects"
+            className="flex min-w-0 items-center gap-1 text-sm text-muted"
+          >
+            {trail.map((ancestor) => (
+              <span
+                key={ancestor.id}
+                className="flex min-w-0 shrink items-center gap-1"
+              >
+                <button
+                  type="button"
+                  onClick={() => openProject(ancestor.id)}
+                  title={ancestor.name}
+                  className="max-w-28 truncate rounded px-1 hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
+                >
+                  {ancestor.name}
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 shrink-0" aria-hidden />
+              </span>
+            ))}
+            <span
+              className="min-w-0 truncate px-1 text-fg"
+              aria-current="page"
+              title={project.name}
+            >
+              {project.name}
+            </span>
+          </nav>
+        )}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close project details"
-          className="p-1 rounded-md text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
+          className="ml-auto bg-tint/5 flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
+          title="Close details"
         >
-          <X size={16} />
+          <X size={14} strokeWidth={3} />
         </button>
       </div>
 
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
       <div className="flex flex-col items-center text-center gap-1">
-        <span className="grid place-items-center w-14 h-14 rounded-2xl bg-tint/8 text-muted mb-1">
-          <Box className="w-7 h-7" />
-        </span>
+        <ProjectColorPicker
+          color={project.color}
+          onChange={(color) => updateProject.mutate({ id: project.id, color })}
+        />
 
         {archived && (
           <span className="inline-flex items-center gap-1 rounded-md bg-tint/10 px-2 py-0.5 text-[11px] font-medium text-muted">
@@ -122,7 +168,7 @@ function ProjectDetailsContent({
         )}
       </div>
 
-      <div className="flex flex-col gap-2.5 mt-2">
+      <div className="flex flex-col gap-2.5 mt-4">
         <div className="rounded-xl bg-tint/8 px-3.5 py-3 flex flex-col">
           <label htmlFor="project-name" className="text-xs text-muted">
             Name
@@ -168,32 +214,35 @@ function ProjectDetailsContent({
         </div>
       </div>
 
-      <Tabs defaultValue="projects" className="mt-2">
+      <Tabs defaultValue="projects" className="mt-4">
         <TabsList className="w-fit">
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="attachments">Attachments</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
         </TabsList>
 
         <TabsContent value="projects" className="flex flex-col">
           {subProjects.map((sub) => (
-              <Link
-                key={sub.id}
-                to={`/projects/${sub.id}`}
-                className="group flex items-center gap-2.5 py-2 rounded-lg hover:text-fg transition-colors"
-              >
-                <Box className="w-4 h-4 shrink-0 text-muted" />
-                <span className="flex-1 min-w-0 truncate text-sm">
-                  {sub.name}
+            <button
+              key={sub.id}
+              type="button"
+              onClick={() => openProject(sub.id)}
+              className="group flex items-center gap-2.5 py-2 rounded-lg hover:text-fg transition-colors"
+            >
+              <Box className="w-4 h-4 shrink-0 text-muted" />
+              <span className="flex-1 min-w-0 truncate text-sm">
+                {sub.name}
+              </span>
+              {isArchived(sub) && (
+                <span className="shrink-0 inline-flex items-center gap-1 rounded-md bg-tint/10 px-1.5 py-0.5 text-[10px] font-medium text-muted">
+                  <Archive className="w-2.5 h-2.5" />
+                  <span>Archived</span>
                 </span>
-                {isArchived(sub) && (
-                  <span className="shrink-0 inline-flex items-center gap-1 rounded-md bg-tint/10 px-1.5 py-0.5 text-[10px] font-medium text-muted">
-                    <Archive className="w-2.5 h-2.5" />
-                    <span>Archived</span>
-                  </span>
-                )}
-                <ChevronRight className="w-4 h-4 shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            ))}
+              )}
+              <ChevronRight className="w-4 h-4 shrink-0 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ))}
 
           <InlineProjectInput
             parentId={project.id}
@@ -239,6 +288,22 @@ function ProjectDetailsContent({
             </p>
           )}
         </TabsContent>
+
+        <TabsContent value="attachments" className="pt-2">
+          <AttachmentSection
+            projectId={project.id}
+            attachments={project.attachments}
+            view="links"
+          />
+        </TabsContent>
+
+        <TabsContent value="files" className="pt-2">
+          <AttachmentSection
+            projectId={project.id}
+            attachments={project.attachments}
+            view="files"
+          />
+        </TabsContent>
       </Tabs>
 
       <DocumentSheet
@@ -271,6 +336,7 @@ function ProjectDetailsContent({
           </button>
         </DeleteProjectDialog>
       </div>
+      </div>
     </div>
   );
 }
@@ -278,24 +344,40 @@ function ProjectDetailsContent({
 export function ProjectDetailsPane(props: ProjectDetailsPaneProps) {
   return (
     <aside className="hidden lg:flex flex-col min-h-0 w-110 shrink-0 animate-in fade-in-0 slide-in-from-right-4 duration-200 ease-out">
-      <ProjectDetailsContent {...props} />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ProjectDetailsContent {...props} />
+      </div>
     </aside>
   );
 }
 
 export function ProjectDetailsSheet({
   open,
+  project,
   ...props
 }: ProjectDetailsPaneProps & { open: boolean }) {
+  const [currentId, setCurrentId] = useState(project.id);
+  const { data: projects = [] } = useProjects();
+  const currentProject = projects.find((candidate) => candidate.id === currentId);
+
+  if (!currentProject) return null;
+
   return (
     <Sheet open={open} onOpenChange={(next) => !next && props.onClose()}>
       <SheetContent
         hideClose
         aria-describedby={undefined}
-        className="sm:max-w-[420px] lg:max-w-[420px] pt-2 pb-4"
+        className="overflow-hidden border-0 bg-transparent p-3 shadow-none sm:max-w-[440px] lg:max-w-[480px]"
       >
         <SheetTitle className="sr-only">Project details</SheetTitle>
-        <ProjectDetailsContent {...props} />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface p-0 shadow-lg">
+          <ProjectDetailsContent
+            key={currentId}
+            {...props}
+            project={currentProject}
+            onOpenProject={setCurrentId}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );

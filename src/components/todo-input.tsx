@@ -144,7 +144,7 @@ export function TodoInput({
                 }
               }}
               placeholder="No Project"
-              className="h-7 text-xs px-2.5 bg-tint/5 border-line rounded-lg w-auto min-w-27.5 max-w-40"
+              className="h-7 text-xs px-2.5 shadow-none border-line rounded-lg w-auto min-w-27.5 max-w-40"
             />
 
             <ListCombobox
@@ -152,7 +152,7 @@ export function TodoInput({
               value={selectedListId}
               onChange={setSelectedListId}
               placeholder="No List"
-              className="h-7 text-xs px-2.5 bg-tint/5 border-line rounded-lg w-auto min-w-23.75 max-w-35"
+              className="h-7 text-xs px-2.5 shadow-none bg-transparent border-line rounded-lg w-auto min-w-23.75 max-w-35"
             />
           </>
         )}

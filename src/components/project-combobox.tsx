@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Check, ChevronsUpDown, Folder } from "lucide-react";
+import { Box, BoxIcon, Check, ChevronsUpDown, Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "../types";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ type ProjectComboboxProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string
+  hideIcon?: boolean
 };
 
 export function ProjectCombobox({
@@ -30,7 +31,8 @@ export function ProjectCombobox({
   value,
   onChange,
   placeholder = "No Project",
-  className
+  className,
+  hideIcon
 }: ProjectComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -54,7 +56,7 @@ export function ProjectCombobox({
           className={cn("w-full justify-between font-normal text-left h-9 px-3 bg-raised border-line cursor-pointer", className)}
         >
           <span className="truncate flex items-center gap-2">
-            <Box className="h-4 w-4 shrink-0" />
+            {!hideIcon && <Box className="h-4 w-4 shrink-0" />}
             <span className={cn("truncate", !value && "text-muted")}>
               {triggerText}
             </span>
@@ -106,7 +108,7 @@ export function ProjectCombobox({
                         isSelected ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <Folder className="h-3.5 w-3.5 text-muted shrink-0" />
+                    <BoxIcon className="h-3.5 w-3.5 text-muted shrink-0" />
                     <span className="truncate text-fg font-normal">
                       {project.name}
                     </span>

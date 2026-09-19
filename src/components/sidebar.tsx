@@ -1,6 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { ChevronsUpDown, LogOut, Moon, Share2, Sun } from "lucide-react";
-import { Icon, type IconName } from "./icons";
+import {
+  ChevronsUpDown,
+  Infinity as InfinityIcon,
+  LogOut,
+  Moon,
+  Share2,
+  Star,
+  Sun,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { SidebarTree } from "./sidebar-tree";
 import {
   DropdownMenu,
@@ -17,13 +26,13 @@ import type { SmartListId } from "@/types";
 type navlinks = {
   id: SmartListId;
   name: string;
-  icon: IconName;
+  icon: LucideIcon;
 };
 
 export const NAVLIST: navlinks[] = [
-  { id: "today", name: "Today", icon: "sun" },
-  { id: "important", name: "Important", icon: "star" },
-  { id: "all", name: "All", icon: "infinity" },
+  { id: "today", name: "Today", icon: Sun },
+  { id: "important", name: "Important", icon: Star },
+  { id: "all", name: "All", icon: InfinityIcon },
 ];
 
 type SidebarProps = {
@@ -59,12 +68,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             aria-label="Close menu"
             className="p-1.5 rounded-full text-muted hover:text-fg bg-tint/5 transition-colors cursor-pointer"
           >
-            <Icon name="close" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         <nav className="flex-1 min-h-0 overflow-y-auto px-1 flex flex-col gap-0.5">
-          {NAVLIST.map((link) => {
+          {NAVLIST.map(({ icon: LinkIcon, ...link }) => {
             return (
               <NavLink
                 key={link.id}
@@ -78,9 +87,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   )
                 }
               >
-                <span className="shrink-0 [&_svg]:w-4.5 [&_svg]:h-4.5">
-                  <Icon name={link.icon} />
-                </span>
+                <LinkIcon className="shrink-0 w-4.5 h-4.5" />
                 <span className="flex-1 truncate">{link.name}</span>
               </NavLink>
             );

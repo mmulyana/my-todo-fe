@@ -29,7 +29,7 @@ export default function AllPage() {
         <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
       ))}
 
-      <CollapsibleSection label="Completed" count={completedTodos.length}>
+      <CollapsibleSection className="mt-4" label="Completed" count={completedTodos.length}>
         {completedTodos.map((todo) => (
           <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
         ))}
