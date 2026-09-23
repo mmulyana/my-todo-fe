@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { useCreateTodo } from "../hooks/useTodos";
 import { useProjects } from "../hooks/useProjects";
 import { activeProjects, isArchived } from "../projects";
@@ -19,6 +20,7 @@ type TodoInputProps = {
   className?: string;
   hideComboboxes?: boolean;
   placeholder?: string;
+  staticCheckbox?: boolean;
 };
 
 export function TodoInput({
@@ -31,9 +33,12 @@ export function TodoInput({
   onSuccess,
   className,
   hideComboboxes = false,
-  placeholder = "Add a task",
+  placeholder = "New task",
+  staticCheckbox = false,
 }: TodoInputProps) {
   const [draft, setDraft] = useState("");
+  const [focused, setFocused] = useState(Boolean(autoFocus));
+  const showCheckbox = staticCheckbox || focused;
   const { data: allProjects = [] } = useProjects();
   const { data: allLists = propLists } = useLists();
 
@@ -105,13 +110,24 @@ export function TodoInput({
   return (
     <form
       className={cn(
-        "flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 py-2 px-3.5 rounded-xl bg-raised border border-line focus-within:border-accent transition-colors shadow-xs",
+        "flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 px-5 focus-within:border-accent transition-colors",
         className,
       )}
       onSubmit={handleSubmit}
     >
       <div className="flex-1 flex items-center gap-2.5 min-w-0">
-        <span className="grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] border-line hover:border-muted" />
+        <span
+          className={cn(
+            "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors",
+            showCheckbox
+              ? "border-line hover:border-muted bg-raised"
+              : "border-transparent",
+          )}
+        >
+          {!showCheckbox && (
+            <Plus className="w-4 h-4 text-muted" strokeWidth={2} />
+          )}
+        </span>
         <input
           autoFocus={autoFocus}
           value={draft}
@@ -119,7 +135,9 @@ export function TodoInput({
           onKeyDown={(e) => {
             if (e.key === "Escape") onCancel?.();
           }}
+          onFocus={() => setFocused(true)}
           onBlur={() => {
+            setFocused(false);
             if (!draft.trim()) onCancel?.();
           }}
           placeholder={placeholder}

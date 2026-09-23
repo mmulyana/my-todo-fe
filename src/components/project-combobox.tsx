@@ -7,7 +7,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -66,7 +65,6 @@ export function ProjectCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search project..." />
           <CommandList>
             <CommandEmpty>No project found.</CommandEmpty>
             <CommandGroup heading="Projects">

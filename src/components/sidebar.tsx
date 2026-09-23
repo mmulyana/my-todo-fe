@@ -50,18 +50,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         onClick={onClose}
         aria-hidden="true"
         className={cn(
-          "fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 lg:hidden",
+          "fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 md:hidden",
           open ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       />
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72.5 max-w-[85vw] flex flex-col min-h-0 pt-4 pb-2 px-2 bg-bg transition-transform duration-200 ease-out lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:transition-none",
+          "fixed inset-y-0 left-0 z-50 w-72.5 max-w-[85vw] flex flex-col min-h-0 pt-4 pb-2 px-2 bg-bg transition-transform duration-200 ease-out md:static md:z-auto md:w-auto md:max-w-none md:translate-x-0 md:transition-none",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex justify-end shrink-0 px-1 mb-1 lg:hidden">
+        <div className="flex justify-end shrink-0 px-1 mb-1 md:hidden">
           <button
             type="button"
             onClick={onClose}
@@ -80,7 +80,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 to={`/${link.id}`}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg",
+                    "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md",
                     isActive
                       ? "bg-tint/5 font-medium text-fg"
                       : "text-fg/50 hover:bg-tint/5",
@@ -101,7 +101,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-lg text-left hover:bg-surface/50 data-[state=open]:bg-surface/50 transition-colors cursor-pointer"
+                className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-md text-left hover:bg-surface/50 data-[state=open]:bg-surface/50 transition-colors cursor-pointer"
               >
                 <span className="shrink-0 flex items-center justify-center w-6.5 h-6.5 rounded-full bg-accent text-white text-xs font-medium uppercase">
                   {(me?.username ?? me?.email ?? "?").slice(0, 1)}

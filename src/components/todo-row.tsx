@@ -106,18 +106,23 @@ export function TodoRow({
             )}
           >
             {!nested && !hideGrab && (
-              <TodoDragHandle title={todo.title} dragHandleRef={dragHandleRef} />
+              <TodoDragHandle
+                title={todo.title}
+                dragHandleRef={dragHandleRef}
+              />
             )}
 
-            <div className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl">
-              <TodoCheckbox
-                completed={todo.completed}
-                onToggle={onToggleComplete}
-              />
-
+            <div className="flex-1 min-w-0 flex items-start sm:items-center gap-2.5 rounded-xl">
               <div className="flex-1 min-w-0 flex items-center gap-2 py-1 text-left">
+                <TodoCheckbox
+                  completed={todo.completed}
+                  onToggle={onToggleComplete}
+                />
+                {todo.priority != null && (
+                  <TodoPriorityBadge priority={todo.priority} />
+                )}
                 <button
-                  className={`truncate ${todo.completed ? "text-muted line-through" : ""}`}
+                  className={`truncate text-[16px] sm:text-[15px] ${todo.completed ? "text-muted line-through" : ""}`}
                   onClick={onSelect}
                 >
                   {todo.title}
@@ -130,28 +135,27 @@ export function TodoRow({
                     onToggle={() => setExpanded((value) => !value)}
                   />
                 )}
-                {todo.priority != null && (
-                  <TodoPriorityBadge priority={todo.priority} />
-                )}
                 <TodoImportantButton
                   important={todo.important}
                   onToggle={onToggleImportant}
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-1 shrink-0 text-[12px] text-muted">
+              <div className="flex items-center flex-wrap sm:justify-end gap-1 shrink-0 text-[14px] sm:text-[12px] text-muted">
                 {!hideDueDate && todo.dueDate && (
                   <TodoDueDate
                     dueDate={todo.dueDate}
                     completed={todo.completed}
                   />
                 )}
-                {showList && todo.list?.name && (
-                  <TodoListBadge list={todo.list} />
-                )}
-                {showProject && todo.project?.name && (
-                  <TodoProjectBadge project={todo.project} />
-                )}
+                <div className="hidden sm:flex items-center gap-1">
+                  {showList && todo.list?.name && (
+                    <TodoListBadge list={todo.list} />
+                  )}
+                  {showProject && todo.project?.name && (
+                    <TodoProjectBadge project={todo.project} />
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -194,7 +198,7 @@ export function TodoRow({
 
       {open && (
         // note: indent so the child checkbox lines up under this row title.
-        <div className={cn("flex flex-col pb-1", nested ? "pl-8" : "pl-13")}>
+        <div className={cn("flex flex-col pb-1", nested ? "pl-8" : "pl-12")}>
           {todo.subtodos.map((step) => (
             <SubtodoItem key={step.id} step={step} hideDueDate={hideDueDate} />
           ))}

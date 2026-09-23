@@ -1,23 +1,38 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { TodoInput } from './todo-input'
+import { cn } from '@/lib/utils'
 import type { List, View } from '../types'
 
 type AddTodoBarProps = {
   view: View
   lists: List[]
+  defaultProjectId?: string | null
+  showMobileFab?: boolean
+  inline?: boolean
 }
 
-export function AddTodoBar({ view, lists }: AddTodoBarProps) {
+export function AddTodoBar({
+  view,
+  lists,
+  defaultProjectId,
+  showMobileFab = true,
+  inline = false,
+}: AddTodoBarProps) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <div className="hidden lg:block shrink-0 p-4 bg-surface">
-        <TodoInput view={view} lists={lists} />
+      <div
+        className={cn(
+          'shrink-0',
+          inline ? 'block' : 'hidden lg:block p-4 bg-surface',
+        )}
+      >
+        <TodoInput view={view} lists={lists} defaultProjectId={defaultProjectId} hideComboboxes />
       </div>
 
-      {!open && (
+      {showMobileFab && !open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -28,12 +43,14 @@ export function AddTodoBar({ view, lists }: AddTodoBarProps) {
         </button>
       )}
 
-      {open && (
+      {showMobileFab && open && (
         <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-surface border-t border-line/60">
           <TodoInput
             view={view}
             lists={lists}
+            defaultProjectId={defaultProjectId}
             autoFocus
+            staticCheckbox
             onSuccess={() => setOpen(false)}
             onCancel={() => setOpen(false)}
             className="focus-within:border-line outline-none [&_input]:outline-none [&_input]:focus:outline-none [&_input]:focus-visible:outline-none"

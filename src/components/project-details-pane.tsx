@@ -15,13 +15,13 @@ import { useCreateDocument, useDocuments } from "../hooks/useDocuments";
 import { useIsDesktop } from "../hooks/useMediaQuery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { DeleteProjectDialog } from "./delete-project-dialog";
-import { useProjects, useUpdateProject } from "../hooks/useProjects";
 import { childProjects, isArchived, projectTrail } from "../projects";
+import { useProjects, useUpdateProject } from "../hooks/useProjects";
+import { DeleteProjectDialog } from "./delete-project-dialog";
 import type { Project } from "../types";
 import { InlineProjectInput } from "./inline-project-input";
-import { AttachmentSection } from "./attachment-section";
 import { ProjectColorPicker } from "./project-color-picker";
+import { AttachmentSection } from "./attachment-section";
 
 type ProjectDetailsPaneProps = {
   project: Project;
@@ -231,7 +231,7 @@ function ProjectDetailsContent({
               className="group flex items-center gap-2.5 py-2 rounded-lg hover:text-fg transition-colors"
             >
               <Box className="w-4 h-4 shrink-0 text-muted" />
-              <span className="flex-1 min-w-0 truncate text-sm">
+              <span className="flex-1 text-left min-w-0 truncate text-sm">
                 {sub.name}
               </span>
               {isArchived(sub) && (
@@ -367,7 +367,7 @@ export function ProjectDetailsSheet({
       <SheetContent
         hideClose
         aria-describedby={undefined}
-        className="overflow-hidden border-0 bg-transparent p-3 shadow-none sm:max-w-[440px] lg:max-w-[480px]"
+        className="overflow-hidden border-0 bg-transparent p-2 shadow-none sm:max-w-[440px] lg:max-w-[480px]"
       >
         <SheetTitle className="sr-only">Project details</SheetTitle>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface p-0 shadow-lg">

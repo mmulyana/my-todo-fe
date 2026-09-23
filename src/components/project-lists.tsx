@@ -4,18 +4,12 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { move } from "@dnd-kit/helpers";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { TodoRow } from "./todo-row";
-import { TodoInput } from "./todo-input";
+import { AddTodoBar } from "./add-todo-bar";
 import { useCreateList, useDeleteList, useUpdateList } from "../hooks/useLists";
 import { useMoveTodoToList } from "../hooks/useTodos";
 import { cn } from "@/lib/utils";
 import type { List, Todo } from "../types";
-import {
-  ChevronDown,
-  ChevronRight,
-  MoreHorizontal,
-  Trash2,
-  Plus,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,14 +113,12 @@ function SectionHeader({
   onToggleCollapsed,
   onUpdateName,
   onDelete,
-  onAddTodo,
 }: {
   name: string;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onUpdateName: (newName: string) => void;
   onDelete: () => void;
-  onAddTodo: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(name);
@@ -202,16 +194,6 @@ function SectionHeader({
         )}
 
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-100 sm:opacity-0 sm:group-hover/sec:opacity-100 sm:focus-visible:opacity-100 hover:bg-tint/10 hover:text-fg cursor-pointer"
-            onClick={onAddTodo}
-            aria-label={`Add a todo in ${name}`}
-            title={`Add a todo in ${name}`}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -242,10 +224,12 @@ function ListSection({
   list,
   todos,
   dragging,
+  allLists,
 }: {
   list: List;
   todos: Todo[];
   dragging: boolean;
+  allLists: List[];
 }) {
   const updateList = useUpdateList();
   const deleteList = useDeleteList();
@@ -253,16 +237,10 @@ function ListSection({
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(
     null,
   );
-  const [adding, setAdding] = useState(false);
 
   const collapsed = dragging
     ? false
     : (collapsedOverride ?? todos.length === 0);
-
-  const openTodoField = () => {
-    setCollapsedOverride(false);
-    setAdding(true);
-  };
 
   return (
     <div className="flex flex-col mt-2">
@@ -274,41 +252,39 @@ function ListSection({
           updateList.mutate({ id: list.id, name: newName })
         }
         onDelete={() => deleteList.mutate(list.id)}
-        onAddTodo={openTodoField}
       />
 
       {!collapsed && (
-        <DropZone id={list.id} className={dragging ? "min-h-10" : undefined}>
-          {todos.map((todo, index) => (
-            <SortableTodoRow
-              key={todo.id}
-              todo={todo}
-              index={index}
-              group={list.id}
-              showList={false}
-            />
-          ))}
-
-          {adding && (
-            <div className="py-1 pl-5">
-              <TodoInput
-                defaultProjectId={list.projectId}
-                defaultListId={list.id}
-                autoFocus
-                hideComboboxes
-                onCancel={() => setAdding(false)}
-                placeholder={`Add a task to ${list.name}`}
-                className="p-0 focus-within:border-none bg-transparent border-none shadow-none"
+        <>
+          <DropZone
+            id={list.id}
+            className={cn("mb-1", dragging && "min-h-10")}
+          >
+            {todos.map((todo, index) => (
+              <SortableTodoRow
+                key={todo.id}
+                todo={todo}
+                index={index}
+                group={list.id}
+                showList={false}
               />
-            </div>
-          )}
+            ))}
 
-          {todos.length === 0 && !adding && (
-            <p className="py-2.5 text-muted pl-9.5 text-center">
-              {dragging ? "Drop a todo here" : "No todos in this list yet."}
-            </p>
-          )}
-        </DropZone>
+            {todos.length === 0 && dragging && (
+              <p className="py-2.5 text-muted pl-9.5 text-center">
+                Drop a todo here
+              </p>
+            )}
+          </DropZone>
+
+          <AddTodoBar
+            view={{ kind: "list", id: list.id }}
+            defaultProjectId={list.projectId}
+            lists={allLists}
+            showMobileFab={false}
+            inline
+          />
+        </>
       )}
     </div>
   );
@@ -413,12 +389,20 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
           )}
         </DropZone>
 
+        <AddTodoBar
+          view={{ kind: "project", id: projectId }}
+          lists={lists}
+          showMobileFab={false}
+          inline
+        />
+
         {lists.map((list) => (
           <ListSection
             key={list.id}
             list={list}
             todos={todosOf(list.id)}
             dragging={Boolean(activeId)}
+            allLists={lists}
           />
         ))}
 
@@ -451,18 +435,18 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
             </form>
           </div>
         ) : (
-          <div className="flex items-center my-2">
+          <div className="flex items-center my-2 max-lg:mt-4">
             <span className="w-5 h-5 shrink-0" />
             <div className="flex-1 min-w-0 flex items-center gap-4 group h-5">
-              <div className="flex-1 h-px bg-line hidden group-hover:flex" />
+              <div className="flex-1 h-px bg-line flex md:hidden group-hover:flex" />
               <button
                 type="button"
-                className="text-xs font-medium text-muted hover:text-accent transition-colors py-1 cursor-pointer shrink-0 hidden group-hover:flex"
+                className="text-xs font-medium text-muted hover:text-white transition-colors py-1 cursor-pointer shrink-0 md:hidden group-hover:flex"
                 onClick={() => setAddingList(true)}
               >
                 + New List
               </button>
-              <div className="flex-1 h-px bg-line hidden group-hover:flex" />
+              <div className="flex-1 h-px bg-line hover lg:hidden group-hover:flex" />
             </div>
           </div>
         )}

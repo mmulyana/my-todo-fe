@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Lightbulb, Sun } from "lucide-react";
+import { TodaySuggestionsSheet } from "../components/today-suggestions-sheet";
+import { AddTodoBar } from "../components/add-todo-bar";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
-import { AddTodoBar } from "../components/add-todo-bar";
-import { TodaySuggestionsSheet } from "../components/today-suggestions-sheet";
 import {
   useCarriedOverTodos,
   useMyDayTodos,
@@ -44,7 +44,7 @@ export default function TodayPage() {
       title={query ? `Searching "${query}"` : "Today"}
       icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}
-      footer={query ? null : <AddTodoBar view={view} lists={lists} />}
+      footer={null}
       actions={
         !query && leftOvers.length > 0 ? (
           <button
@@ -58,9 +58,16 @@ export default function TodayPage() {
         ) : null
       }
     >
-      {visible?.map((todo) => (
-        <TodoRow key={todo.id} todo={todo} showProject />
-      ))}
+      <div className="space-y-1.5">
+        <div className="space-y-1">
+          {visible?.map((todo) => (
+            <TodoRow key={todo.id} todo={todo} showProject />
+          ))}
+        </div>
+        {!query && (
+          <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />
+        )}
+      </div>
       <TodaySuggestionsSheet
         todos={leftOvers}
         open={suggestionsOpen}

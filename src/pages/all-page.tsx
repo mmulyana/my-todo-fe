@@ -23,8 +23,10 @@ export default function AllPage() {
     <PageShell
       title={query ? `Searching "${query}"` : 'All'}
       icon={<CheckSquare size={20} className="text-accent" />}
-      footer={query ? null : <AddTodoBar view={view} lists={lists} />}
+      footer={null}
     >
+      {!query && <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />}
+
       {activeTodos.map((todo) => (
         <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
       ))}

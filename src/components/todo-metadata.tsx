@@ -24,7 +24,7 @@ export function TodoDueDate({ dueDate, completed }: TodoDueDateProps) {
   return (
     <span
       className={cn(
-        "flex gap-1 text-xs items-center rounded-lg text-tint/50 px-2 py-1",
+        "flex gap-1 text-[14px] sm:text-xs items-center rounded-lg text-tint/50 px-2 py-1",
         duePill({ dueDate, completed }),
       )}
       title={formatDue(dueDate)}
@@ -72,7 +72,7 @@ export function TodoPriorityBadge({ priority }: { priority: TodoPriority }) {
 
 export function TodoListBadge({ list }: { list: List }) {
   return (
-    <span className="text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
       {list.name}
     </span>
   );
@@ -80,7 +80,7 @@ export function TodoListBadge({ list }: { list: List }) {
 
 export function TodoProjectBadge({ project }: { project: TodoProject }) {
   return (
-    <span className="text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
       <Box size={12} style={{ color: project.color ?? undefined }} />
       {project.name}
     </span>
@@ -103,7 +103,7 @@ export function TodoCheckbox({
         "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px]",
         completed
           ? "bg-accent border-accent text-white"
-          : "border-line hover:border-muted bg-raised",
+          : "border-line hover:border-muted",
       )}
       onClick={onToggle}
       aria-label={completed ? "Mark as not completed" : "Mark as completed"}
@@ -138,14 +138,14 @@ export function TodoSubtodoProgress({
 }: TodoSubtodoProgressProps) {
   return (
     <button
-      className="flex gap-1 items-center hover:bg-tint/5 rounded-lg p-0.5"
+      className="flex gap-1 items-center opacity-80 hover:opacity-100 rounded-lg"
       title={`${completed} of ${total} subtodos completed`}
       onClick={onToggle}
       aria-expanded={expanded}
       aria-label={expanded ? "Hide steps" : "Show steps"}
     >
-      <CircularProgress value={completed} total={total} size={15} />
-      <p className="text-xs text-fg font-medium mr-1">
+      <CircularProgress value={completed} total={total} size={16} />
+      <p className="text-[14px] sm:text-xs text-fg font-medium mr-1">
         <span>{completed}</span>/<span className="opacity-40">{total}</span>
       </p>
     </button>

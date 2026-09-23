@@ -12,13 +12,13 @@ export function CircularProgress({
   value,
   total,
   size = 18,
-  strokeWidth = 2,
+  strokeWidth = 1.6,
   className,
 }: CircularProgressProps) {
   const ratio = total > 0 ? Math.min(Math.max(value / total, 0), 1) : 0;
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
-  const fillRadius = Math.max(radius - strokeWidth * 1.3, 0);
+  const fillRadius = Math.max(radius - strokeWidth * 1.6, 0);
   const endAngle = -Math.PI / 2 + ratio * Math.PI * 2;
   const endX = center + fillRadius * Math.cos(endAngle);
   const endY = center + fillRadius * Math.sin(endAngle);
