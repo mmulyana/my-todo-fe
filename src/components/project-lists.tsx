@@ -216,7 +216,7 @@ function SectionHeader({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-0 group-hover/sec:opacity-100 data-[state=open]:opacity-100 hover:bg-tint/10 hover:text-fg cursor-pointer"
+                className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-100 sm:opacity-0 sm:group-hover/sec:opacity-100 sm:data-[state=open]:opacity-100 hover:bg-tint/10 hover:text-fg cursor-pointer"
                 aria-label={`Actions for list ${name}`}
               >
                 <MoreHorizontal className="w-4 h-4" />
