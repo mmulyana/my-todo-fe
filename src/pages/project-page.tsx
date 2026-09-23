@@ -131,11 +131,7 @@ export default function ProjectPage() {
         subtitle={query ? null : (project?.description ?? null)}
         actions={!query ? projectActions : null}
         trail={query ? [] : projectTrail(projects, id)}
-        footer={
-          query || activeView === "kanban" ? null : (
-            <AddTodoBar key={id} view={view} lists={lists} />
-          )
-        }
+        footer={null}
         classNameChildren={cn(activeView === "kanban" && "pb-0 pr-0")}
       >
         {activeView === "kanban" && !query ? (
@@ -145,12 +141,15 @@ export default function ProjectPage() {
             <TodoRow key={todo.id} todo={todo} skipInvalidate />
           ))
         ) : (
-          <ProjectLists
-            key={id}
-            projectId={id}
-            lists={listsOfProject}
-            todos={todos}
-          />
+          <>
+            <ProjectLists
+              key={id}
+              projectId={id}
+              lists={listsOfProject}
+              todos={todos}
+            />
+            <AddTodoBar key={`add-todo-${id}`} view={view} lists={lists} />
+          </>
         )}
       </PageShell>
 
