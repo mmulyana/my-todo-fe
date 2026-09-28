@@ -152,6 +152,7 @@ const todoFieldsFragment = graphql(`
     milestone {
       id
       name
+      description
       dueDate
       projectId
     }
