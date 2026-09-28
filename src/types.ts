@@ -30,10 +30,19 @@ export type Attachment = {
   siteName: string | null;
 };
 
+export type Milestone = {
+  id: string;
+  name: string;
+  description: string | null;
+  dueDate: string | null;
+  projectId: string | null;
+};
+
 export type Todo = {
   id: string;
   listId: string | null;
   projectId: string | null;
+  milestoneId: string | null;
   title: string;
   note: string;
   parentId: string | null;
@@ -51,6 +60,7 @@ export type Todo = {
   createdAt: string;
   project: TodoProject | null;
   list: List | null;
+  milestone: Milestone | null;
   attachments: Attachment[];
   subtodoCount: number;
   completedTodos: number;

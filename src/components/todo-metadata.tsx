@@ -1,8 +1,8 @@
-import { Box, Calendar, Check, GripVertical, Star } from "lucide-react";
+import { Box, Calendar, Check, Flag, GripVertical, Star } from "lucide-react";
 import { CircularProgress } from "./circular-progress";
 import { PRIORITY_CONFIG, PriorityIcon } from "./priority-icon";
 import { formatDue, formatDueRelative, isOverdue, todayISO } from "../lib/dates";
-import type { List, TodoPriority, TodoProject } from "../types";
+import type { List, Milestone, TodoPriority, TodoProject } from "../types";
 import { cn } from "@/lib/utils";
 
 type TodoDueDateProps = {
@@ -74,6 +74,15 @@ export function TodoListBadge({ list }: { list: List }) {
   return (
     <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
       {list.name}
+    </span>
+  );
+}
+
+export function TodoMilestoneBadge({ milestone }: { milestone: Milestone }) {
+  return (
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+      <Flag size={12} />
+      {milestone.name}
     </span>
   );
 }

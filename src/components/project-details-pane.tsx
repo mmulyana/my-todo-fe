@@ -6,11 +6,13 @@ import {
   ArchiveRestore,
   Box,
   ChevronRight,
+  Expand,
   FileText,
   Plus,
   Trash2,
 } from "lucide-react";
 import { DocumentSheet } from "./document-sheet";
+import { MilestonesSection } from "./milestones-section";
 import { useCreateDocument, useDocuments } from "../hooks/useDocuments";
 import { useIsDesktop } from "../hooks/useMediaQuery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,15 +32,17 @@ type ProjectDetailsPaneProps = {
   onArchive: () => void;
   onUnarchive: () => void;
   onOpenProject?: (projectId: string) => void;
+  onOpenFullPage?: () => void;
 };
 
-function ProjectDetailsContent({
+export function ProjectDetailsContent({
   project,
   onClose,
   onDelete,
   onArchive,
   onUnarchive,
   onOpenProject,
+  onOpenFullPage,
 }: ProjectDetailsPaneProps) {
   const updateProject = useUpdateProject();
   const { data: projects = [] } = useProjects();
@@ -142,15 +146,28 @@ function ProjectDetailsContent({
             </span>
           </nav>
         )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close project details"
-          className="ml-auto bg-tint/5 flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
-          title="Close details"
-        >
-          <X size={14} strokeWidth={3} />
-        </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          {onOpenFullPage && (
+            <button
+              type="button"
+              onClick={onOpenFullPage}
+              aria-label="Open full project page"
+              className="bg-tint/5 flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
+              title="Open full page"
+            >
+              <Expand size={14} strokeWidth={2.5} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close project details"
+            className="bg-tint/5 flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
+            title="Close details"
+          >
+            <X size={14} strokeWidth={3} />
+          </button>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
@@ -214,13 +231,18 @@ function ProjectDetailsContent({
         </div>
       </div>
 
-      <Tabs defaultValue="projects" className="mt-4">
+      <Tabs defaultValue="milestones" className="mt-4">
         <TabsList className="w-fit">
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="attachments">Attachments</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="milestones" className="flex flex-col">
+          <MilestonesSection projectId={project.id} />
+        </TabsContent>
 
         <TabsContent value="projects" className="flex flex-col">
           {subProjects.map((sub) => (
@@ -359,6 +381,7 @@ export function ProjectDetailsSheet({
   const [currentId, setCurrentId] = useState(project.id);
   const { data: projects = [] } = useProjects();
   const currentProject = projects.find((candidate) => candidate.id === currentId);
+  const navigate = useNavigate();
 
   if (!currentProject) return null;
 
@@ -376,6 +399,7 @@ export function ProjectDetailsSheet({
             {...props}
             project={currentProject}
             onOpenProject={setCurrentId}
+            onOpenFullPage={() => navigate(`/projects/${currentProject.id}/details`)}
           />
         </div>
       </SheetContent>

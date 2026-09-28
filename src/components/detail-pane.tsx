@@ -12,6 +12,7 @@ import {
   useUpdateTodo,
 } from "../hooks/useTodos";
 import { useProjects } from "../hooks/useProjects";
+import { useMilestones } from "../hooks/useMilestones";
 import { activeProjects, isArchived } from "../projects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
 import type { Todo } from "../types";
@@ -24,6 +25,7 @@ import {
   Box,
   Calendar,
   Columns3,
+  Flag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -99,6 +101,7 @@ export function DetailPaneContent({
     { enabled: Boolean(todo?.projectId) },
   );
   const { data: kanbanColumns = [] } = useKanbanColumns(todo?.projectId ?? "");
+  const { data: milestones = [] } = useMilestones(todo?.projectId ?? undefined);
   const { data: allProjects = [] } = useProjects();
 
   const updateTodo = useUpdateTodo();
@@ -272,6 +275,31 @@ export function DetailPaneContent({
                   {kanbanColumns.map((column) => (
                     <SelectItem key={column.id} value={column.id}>
                       {column.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MetaRow>
+          )}
+          {todo.projectId && (
+            <MetaRow icon={<Flag className="w-4 h-4" />} label="Milestone">
+              <Select
+                value={todo.milestoneId ?? "none"}
+                onValueChange={(value) =>
+                  update({ milestoneId: value === "none" ? null : value })
+                }
+              >
+                <SelectTrigger
+                  className="h-8 rounded-lg text-fg hover:bg-tint/5 focus:border-accent border-none text-sm"
+                  aria-label="Milestone"
+                >
+                  <SelectValue placeholder="No milestone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No milestone</SelectItem>
+                  {milestones.map((milestone) => (
+                    <SelectItem key={milestone.id} value={milestone.id}>
+                      {milestone.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -188,3 +188,11 @@
   border-top: 1px solid var(--line);
   margin: 1.2em 0;
 }
+
+.prose-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted);
+}

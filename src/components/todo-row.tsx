@@ -8,6 +8,7 @@ import {
   TodoDueDate,
   TodoImportantButton,
   TodoListBadge,
+  TodoMilestoneBadge,
   TodoPriorityBadge,
   TodoProjectBadge,
   TodoSubtodoProgress,
@@ -151,6 +152,9 @@ export function TodoRow({
                 <div className="hidden sm:flex items-center gap-1">
                   {showList && todo.list?.name && (
                     <TodoListBadge list={todo.list} />
+                  )}
+                  {todo.milestone && (
+                    <TodoMilestoneBadge milestone={todo.milestone} />
                   )}
                   {showProject && todo.project?.name && (
                     <TodoProjectBadge project={todo.project} />

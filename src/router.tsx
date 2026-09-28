@@ -4,6 +4,7 @@ import { AppLayout } from "./layouts/app-layout";
 import ImportantPage from "./pages/important-page";
 import RegisterPage from "./pages/register-page";
 import ProjectPage from "./pages/project-page";
+import ProjectDetailPage from "./pages/project-detail-page";
 import TodayPage from "./pages/today-page";
 import LoginPage from "./pages/login-page";
 import AllPage from "./pages/all-page";
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
           { path: "important", element: <ImportantPage /> },
           { path: "all", element: <AllPage /> },
           { path: "projects/:projectId", element: <ProjectPage /> },
+          {
+            path: "projects/:projectId/details",
+            element: <ProjectDetailPage />,
+          },
           {
             path: "projects/:projectId/documents/:documentId",
             element: <DocumentPage />,

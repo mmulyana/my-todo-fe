@@ -8,6 +8,7 @@ import type {
   AttachmentType,
   DocumentContent,
   List,
+  Milestone,
   NewApiToken,
   Project,
   ProjectDocument,
@@ -147,6 +148,13 @@ const todoFieldsFragment = graphql(`
       name
       projectId
     }
+    milestoneId
+    milestone {
+      id
+      name
+      dueDate
+      projectId
+    }
     subtodos {
       id
       title
@@ -183,6 +191,7 @@ const toTodo = (
   id: r.id,
   listId: r.listId,
   projectId: r.projectId,
+  milestoneId: r.milestoneId,
   parentId: r.parentId ?? null,
   ancestors,
   title: r.title,
@@ -199,6 +208,7 @@ const toTodo = (
   subtodos: [...(r.subtodos ?? [])],
   project: r.project ?? null,
   list: r.list ?? null,
+  milestone: r.milestone ?? null,
   attachments: r.attachments ?? [],
   subtodoCount: r.subtodoCount ?? 0,
   completedTodos: r.completedTodos ?? 0,
@@ -281,6 +291,7 @@ type NewTodoFields = {
   title: string;
   listId?: string | null;
   projectId?: string | null;
+  milestoneId?: string | null;
   important?: boolean;
   myDay?: boolean;
   dueDate?: string | null;
@@ -301,6 +312,7 @@ export async function createTodo(fields: NewTodoFields): Promise<Todo> {
   const input: Record<string, unknown> = { title: fields.title };
   if (fields.listId != null) input.listId = fields.listId;
   if (fields.projectId != null) input.projectId = fields.projectId;
+  if (fields.milestoneId != null) input.milestoneId = fields.milestoneId;
   if (fields.important) input.important = true;
   if (fields.dueDate) input.dueDate = fields.dueDate;
   if (fields.myDay) input.today = todayISO();
@@ -331,6 +343,7 @@ export async function updateTodo(
   if (patch.dueDate !== undefined) input.dueDate = patch.dueDate;
   if (patch.listId !== undefined) input.listId = patch.listId;
   if (patch.projectId !== undefined) input.projectId = patch.projectId;
+  if (patch.milestoneId !== undefined) input.milestoneId = patch.milestoneId;
   if (patch.myDay !== undefined) input.today = patch.myDay ? todayISO() : null;
 
   await gql(UpdateTodoDocument, { input: input as any }, signal);
@@ -667,6 +680,83 @@ const RemoveListDocument = graphql(`
 
 export async function removeList(id: string): Promise<void> {
   await gql(RemoveListDocument, { id });
+}
+
+const MilestonesDocument = graphql(`
+  query Milestones($projectId: ID) {
+    milestones(projectId: $projectId) {
+      id
+      name
+      description
+      dueDate
+      projectId
+    }
+  }
+`);
+
+export async function fetchMilestones(
+  projectId?: string,
+): Promise<Milestone[]> {
+  const data = await gql(MilestonesDocument, { projectId });
+  return data.milestones;
+}
+
+const CreateMilestoneDocument = graphql(`
+  mutation CreateMilestone($input: CreateMilestoneInput!) {
+    createMilestone(input: $input) {
+      id
+      name
+      description
+      dueDate
+      projectId
+    }
+  }
+`);
+
+export async function createMilestone(
+  name: string,
+  projectId?: string | null,
+  dueDate?: string | null,
+): Promise<Milestone> {
+  const input: Record<string, unknown> = { name };
+  if (projectId != null) input.projectId = projectId;
+  if (dueDate != null) input.dueDate = dueDate;
+
+  const data = await gql(CreateMilestoneDocument, { input: input as any });
+  return data.createMilestone;
+}
+
+const UpdateMilestoneDocument = graphql(`
+  mutation UpdateMilestone($input: UpdateMilestoneInput!) {
+    updateMilestone(input: $input) {
+      id
+    }
+  }
+`);
+
+export async function updateMilestone(
+  id: string,
+  patch: {
+    name?: string;
+    description?: string | null;
+    dueDate?: string | null;
+    projectId?: string | null;
+  },
+  signal?: AbortSignal,
+): Promise<void> {
+  await gql(UpdateMilestoneDocument, { input: { id, ...patch } as any }, signal);
+}
+
+const RemoveMilestoneDocument = graphql(`
+  mutation RemoveMilestone($id: ID!) {
+    removeMilestone(id: $id) {
+      id
+    }
+  }
+`);
+
+export async function removeMilestone(id: string): Promise<void> {
+  await gql(RemoveMilestoneDocument, { id });
 }
 
 const projectFieldsFragment = graphql(`
