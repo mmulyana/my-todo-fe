@@ -59,7 +59,10 @@ export function useCompletedTodos(filter: TodoFilter) {
   });
 }
 
-const MY_DAY_FILTER: TodoFilter = { view: "TODAY" };
+const MY_DAY_FILTER: TodoFilter = {
+  view: "TODAY",
+  includeSubtodos: true,
+};
 
 export function useMyDayTodos(options?: { enabled?: boolean }) {
   return useQuery({

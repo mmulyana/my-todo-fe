@@ -119,6 +119,7 @@ export type View =
 
 export type TodoFilter = {
   view?: Uppercase<SmartListId>;
+  includeSubtodos?: boolean;
   listId?: string;
   projectId?: string;
   q?: string;
