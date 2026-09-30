@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,8 @@ type PageShellProps = {
   icon?: ReactNode;
   actions?: ReactNode;
   trail?: Project[];
+  backTo?: string;
+  backLabel?: string;
   children: ReactNode;
   footer?: ReactNode;
   classNameChildren?: string;
@@ -21,6 +23,8 @@ export function PageShell({
   icon,
   actions,
   trail = [],
+  backTo,
+  backLabel = "Back",
   children,
   footer = null,
   classNameChildren,
@@ -39,6 +43,16 @@ export function PageShell({
           >
             <Menu className="w-5 h-5" />
           </button>
+          {backTo && (
+            <Link
+              to={backTo}
+              aria-label={backLabel}
+              title={backLabel}
+              className="-ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          )}
           {trail.length > 0 && (
             <nav
               className="flex flex-wrap items-center gap-1.5 text-sm text-muted"
