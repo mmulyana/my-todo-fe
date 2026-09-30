@@ -1,4 +1,4 @@
-import { Box, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Box, ChevronDown, ChevronRight, Info, Plus } from "lucide-react";
 import { Link, useMatch } from "react-router-dom";
 import { useState } from "react";
 import { useProjects, useDeleteProject } from "../hooks/useProjects";
@@ -26,7 +26,8 @@ type ProjectNodeProps = {
 function ProjectNode({ project, depth, tree }: ProjectNodeProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const to = `/projects/${project.id}`;
-  const active = Boolean(useMatch(to));
+  const detailsTo = `${to}/details`;
+  const active = Boolean(useMatch(to)) || Boolean(useMatch(detailsTo));
   const children = tree.childrenOf(project.id);
   const hasChildren = children.length > 0;
   const expanded = tree.isOpen(project.id);
@@ -51,6 +52,18 @@ function ProjectNode({ project, depth, tree }: ProjectNodeProps) {
         </Link>
 
         <div className="flex gap-0.5">
+          <Link
+            to={detailsTo}
+            className={cn(
+              ROW_ACTION_CLASS,
+              "inline-flex lg:hidden lg:group-hover/row:inline-flex",
+            )}
+            aria-label={`${project.name} details`}
+            title="Project details"
+          >
+            <Info className="h-3.5 w-3.5" />
+          </Link>
+
           {depth < 3 && (
             <button
               type="button"

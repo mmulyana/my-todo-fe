@@ -139,6 +139,8 @@ export default function ProjectDetailPage() {
     <PageShell
       title={project.name}
       trail={projectTrail(projects, id)}
+      backTo={`/projects/${project.id}`}
+      backLabel="Back to project"
       actions={headerActions}
     >
       <div className="flex flex-col gap-8 w-full px-4 pb-6">

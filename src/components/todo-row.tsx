@@ -113,7 +113,7 @@ export function TodoRow({
               />
             )}
 
-            <div className="flex-1 min-w-0 flex items-start sm:items-center gap-2.5 rounded-xl">
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 rounded-xl">
               <div className="flex-1 min-w-0 flex items-center gap-2 py-1 text-left">
                 <TodoCheckbox
                   completed={todo.completed}
@@ -142,14 +142,17 @@ export function TodoRow({
                 />
               </div>
 
-              <div className="flex items-center flex-wrap sm:justify-end gap-1 shrink-0 text-[14px] sm:text-[12px] text-muted">
-                {!hideDueDate && todo.dueDate && (
-                  <TodoDueDate
-                    dueDate={todo.dueDate}
-                    completed={todo.completed}
-                  />
-                )}
-                <div className="hidden sm:flex items-center gap-1">
+              {(todo.dueDate && !hideDueDate) ||
+              (showList && todo.list?.name) ||
+              todo.milestone ||
+              (showProject && todo.project?.name) ? (
+                <div className="sm:hidden flex flex-wrap items-center gap-1 pl-7.5 pb-1 text-muted">
+                  {!hideDueDate && todo.dueDate && (
+                    <TodoDueDate
+                      dueDate={todo.dueDate}
+                      completed={todo.completed}
+                    />
+                  )}
                   {showList && todo.list?.name && (
                     <TodoListBadge list={todo.list} />
                   )}
@@ -160,6 +163,24 @@ export function TodoRow({
                     <TodoProjectBadge project={todo.project} />
                   )}
                 </div>
+              ) : null}
+
+              <div className="hidden sm:flex items-center justify-end gap-1 shrink-0 text-[12px] text-muted">
+                {!hideDueDate && todo.dueDate && (
+                  <TodoDueDate
+                    dueDate={todo.dueDate}
+                    completed={todo.completed}
+                  />
+                )}
+                {showList && todo.list?.name && (
+                  <TodoListBadge list={todo.list} />
+                )}
+                {todo.milestone && (
+                  <TodoMilestoneBadge milestone={todo.milestone} />
+                )}
+                {showProject && todo.project?.name && (
+                  <TodoProjectBadge project={todo.project} />
+                )}
               </div>
             </div>
           </div>
