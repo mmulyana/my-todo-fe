@@ -438,15 +438,15 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
           <div className="flex items-center my-2 max-lg:mt-4">
             <span className="w-5 h-5 shrink-0" />
             <div className="flex-1 min-w-0 flex items-center gap-4 group h-5">
-              <div className="flex-1 h-px bg-line flex md:hidden group-hover:flex" />
+              <div className="flex-1 h-px bg-line flex pointer-fine:hidden pointer-fine:group-hover:flex" />
               <button
                 type="button"
-                className="text-xs font-medium text-muted hover:text-white transition-colors py-1 cursor-pointer shrink-0 md:hidden group-hover:flex"
+                className="text-xs font-medium text-muted hover:text-white transition-colors py-1 cursor-pointer shrink-0 flex pointer-fine:hidden pointer-fine:group-hover:flex"
                 onClick={() => setAddingList(true)}
               >
                 + New List
               </button>
-              <div className="flex-1 h-px bg-line hover lg:hidden group-hover:flex" />
+              <div className="flex-1 h-px bg-line flex pointer-fine:hidden pointer-fine:group-hover:flex" />
             </div>
           </div>
         )}

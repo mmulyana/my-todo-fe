@@ -12,12 +12,12 @@ type TodoDueDateProps = {
 
 function duePill({ dueDate, completed }: TodoDueDateProps) {
   if (!completed && isOverdue(dueDate)) {
-    return "!bg-danger/15 !text-danger font-semibold";
+    return "!text-danger font-semibold hover:!bg-danger/15";
   }
   if (!completed && dueDate === todayISO()) {
-    return "!bg-accent/15 !text-accent font-semibold";
+    return "!text-accent font-semibold hover:!bg-accent/15";
   }
-  return "!bg-tint/5 !text-fg/70";
+  return "!text-fg/70 hover:!bg-tint/5";
 }
 
 export function TodoDueDate({ dueDate, completed }: TodoDueDateProps) {
@@ -72,7 +72,7 @@ export function TodoPriorityBadge({ priority }: { priority: TodoPriority }) {
 
 export function TodoListBadge({ list }: { list: List }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 max-md:py-0.5 px-2 py-1 items-center">
       {list.name}
     </span>
   );
@@ -80,7 +80,7 @@ export function TodoListBadge({ list }: { list: List }) {
 
 export function TodoMilestoneBadge({ milestone }: { milestone: Milestone }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50  max-md:py-0.5 px-2 py-1 items-center">
       <Flag size={12} />
       {milestone.name}
     </span>
@@ -89,7 +89,7 @@ export function TodoMilestoneBadge({ milestone }: { milestone: Milestone }) {
 
 export function TodoProjectBadge({ project }: { project: TodoProject }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 px-2 py-1 font-semibold items-center">
+    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 max-md:py-0.5 px-2 py-1 items-center">
       <Box size={12} style={{ color: project.color ?? undefined }} />
       {project.name}
     </span>

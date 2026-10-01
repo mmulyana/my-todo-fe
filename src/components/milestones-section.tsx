@@ -2,9 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Calendar as CalendarIcon,
   ChevronRight,
+  Link2,
   Plus,
-  Trash2,
-  X,
 } from "lucide-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -16,14 +15,15 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { CircularProgress } from "./circular-progress";
-import { TodoCheckbox } from "./todo-metadata";
+import { TodoRow } from "./todo-row";
 import {
   useCreateMilestone,
   useDeleteMilestone,
@@ -57,7 +57,7 @@ export function MilestonesSection({ projectId }: MilestonesSectionProps) {
   const unassignedTodos = todos.filter((t) => !t.milestoneId);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col rounded-xl border border-line divide-y divide-line overflow-hidden">
       {milestones.map((milestone) => (
         <MilestoneCard
           key={milestone.id}
@@ -68,21 +68,17 @@ export function MilestonesSection({ projectId }: MilestonesSectionProps) {
         />
       ))}
 
-      {milestones.length === 0 && (
-        <p className="text-[13px] text-muted py-1">No milestones yet.</p>
-      )}
-
       <form
         onSubmit={submit}
-        className="flex items-center gap-2 py-1 text-muted"
+        className="flex items-center gap-2 px-2.5 h-10 text-muted"
       >
-        <div className="shrink-0 w-5.5 flex justify-center">
-          <Plus size={16} />
+        <div className="shrink-0 w-5 flex justify-center">
+          <Plus size={14} />
         </div>
         <input
           value={nameDraft}
           onChange={(e) => setNameDraft(e.target.value)}
-          placeholder="New milestone"
+          placeholder={milestones.length ? "New milestone" : "Add your first milestone"}
           aria-label="New milestone name"
           className="flex-1 min-w-0 bg-transparent border-none text-sm text-fg outline-none placeholder:text-muted"
         />
@@ -159,6 +155,7 @@ function MilestoneCard({
 
   const total = todos.length;
   const completed = todos.filter((t) => t.completed).length;
+  const percent = total ? Math.round((completed / total) * 100) : 0;
   const overdue = Boolean(
     milestone.dueDate && isOverdue(milestone.dueDate) && completed < total,
   );
@@ -186,8 +183,8 @@ function MilestoneCard({
   };
 
   return (
-    <div className="rounded-xl border border-line bg-raised/60">
-      <div className="flex items-center gap-1.5 px-2.5 py-2">
+    <div className="group/ms">
+      <div className="flex items-center gap-1.5 px-2.5 h-10 hover:bg-tint/[0.03] transition-colors">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -215,16 +212,6 @@ function MilestoneCard({
           className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm font-medium text-fg"
         />
 
-        <span
-          className="flex items-center gap-1 shrink-0"
-          title={`${completed} of ${total} todos completed`}
-        >
-          <CircularProgress value={completed} total={total} size={16} />
-          <span className="text-[11px] text-muted">
-            {completed}/{total}
-          </span>
-        </span>
-
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -232,9 +219,9 @@ function MilestoneCard({
               className={cn(
                 "shrink-0 flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium cursor-pointer transition-colors",
                 overdue
-                  ? "bg-danger/15 text-danger"
+                  ? "text-danger hover:bg-danger/15"
                   : milestone.dueDate
-                    ? "bg-tint/5 text-fg/70 hover:bg-tint/10"
+                    ? "text-fg/70 hover:bg-tint/5"
                     : "text-muted hover:text-fg hover:bg-tint/5",
               )}
               title="Due date"
@@ -260,55 +247,38 @@ function MilestoneCard({
           </PopoverContent>
         </Popover>
 
-        <button
-          type="button"
-          onClick={() => deleteMilestone.mutate(milestone.id)}
-          className="shrink-0 p-1 rounded-md text-muted hover:text-danger hover:bg-danger/5 transition-colors cursor-pointer"
-          aria-label="Delete milestone"
-          title="Delete milestone"
+        <span
+          className="flex items-center gap-0.5 shrink-0"
+          title={`${completed} of ${total} todos completed`}
         >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+          <CircularProgress value={completed} total={total} size={14} />
+          <span className="w-7 text-right text-[12px] tabular-nums text-muted">
+            {percent}%
+          </span>
+        </span>
       </div>
 
       {expanded && (
-        <div className="flex flex-col gap-0.5 px-2.5 pb-2.5 pl-9">
+        <div className="flex flex-col gap-0.5 px-2.5 pb-2.5 pl-9 bg-tint/[0.02]">
           <MilestoneDescriptionEditor milestone={milestone} />
 
-          {todos.map((todo) => (
-            <div key={todo.id} className="group/mt flex items-center gap-2">
-              <TodoCheckbox
-                completed={todo.completed}
-                onToggle={() =>
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-[12px] font-medium text-muted">Todos</span>
+            {unassignedTodos.length > 0 && (
+              <AssignTodoButton
+                todos={unassignedTodos}
+                onAssign={(id) =>
                   updateTodo.mutate({
-                    id: todo.id,
-                    patch: { completed: !todo.completed },
+                    id,
+                    patch: { milestoneId: milestone.id },
                   })
                 }
               />
-              <span
-                className={cn(
-                  "flex-1 min-w-0 truncate text-sm py-1",
-                  todo.completed && "text-muted line-through",
-                )}
-              >
-                {todo.title}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  updateTodo.mutate({
-                    id: todo.id,
-                    patch: { milestoneId: null },
-                  })
-                }
-                className="opacity-0 group-hover/mt:opacity-100 p-1 rounded text-muted hover:text-danger transition-opacity cursor-pointer"
-                aria-label="Remove from milestone"
-                title="Remove from milestone"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            )}
+          </div>
+
+          {todos.map((todo) => (
+            <TodoRow key={todo.id} todo={todo} hideGrab hideMilestone />
           ))}
 
           {todos.length === 0 && (
@@ -316,7 +286,9 @@ function MilestoneCard({
           )}
 
           <form onSubmit={addTodo} className="flex items-center gap-2 pt-1">
-            <Plus className="w-3.5 h-3.5 shrink-0 text-muted" />
+            <span className="grid place-items-center w-5.5 h-5.5 shrink-0">
+              <Plus className="w-4 h-4 text-muted" strokeWidth={2} />
+            </span>
             <input
               value={addingTitle}
               onChange={(e) => setAddingTitle(e.target.value)}
@@ -326,27 +298,64 @@ function MilestoneCard({
             />
           </form>
 
-          {unassignedTodos.length > 0 && (
-            <Select
-              key={unassignedTodos.length}
-              onValueChange={(id) =>
-                updateTodo.mutate({ id, patch: { milestoneId: milestone.id } })
-              }
-            >
-              <SelectTrigger className="h-7 mt-1 w-full text-[12px]">
-                <SelectValue placeholder="Assign existing todo..." />
-              </SelectTrigger>
-              <SelectContent>
-                {unassignedTodos.map((todo) => (
-                  <SelectItem key={todo.id} value={todo.id}>
-                    {todo.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <button
+            type="button"
+            onClick={() => deleteMilestone.mutate(milestone.id)}
+            className="mt-4 self-start rounded-md px-2 py-1 -ml-2 text-[12px] text-muted hover:bg-danger/5 hover:text-danger transition-colors cursor-pointer"
+          >
+            Delete milestone
+          </button>
+
         </div>
       )}
     </div>
+  );
+}
+
+function AssignTodoButton({
+  todos,
+  onAssign,
+}: {
+  todos: Todo[];
+  onAssign: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="-mr-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-muted hover:bg-tint/5 hover:text-fg transition-colors cursor-pointer"
+        >
+          <Link2 className="w-3.5 h-3.5 shrink-0" />
+          <span>Assign</span>
+          <span className="tabular-nums text-muted/70">{todos.length}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="end">
+        <Command>
+          <CommandInput placeholder="Search todos..." />
+          <CommandList>
+            <CommandEmpty>No todos found.</CommandEmpty>
+            <CommandGroup>
+              {todos.map((todo) => (
+                <CommandItem
+                  key={todo.id}
+                  value={`${todo.title} ${todo.id}`}
+                  onSelect={() => {
+                    onAssign(todo.id);
+                    setOpen(false);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <span className="truncate">{todo.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

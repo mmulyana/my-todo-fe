@@ -24,7 +24,7 @@ export function TodaySuggestionsSheet({
         hideClose
         aria-describedby={undefined}
         // note: full width on mobile, fixed panel width from sm upwards
-        className="w-full min-w-0 border-0 bg-transparent max-lg:p-2.5 p-3 shadow-none sm:w-[540px] sm:min-w-[540px]"
+        className="w-full min-w-0 border-0 bg-transparent p-2 lg:p-3 lg:pl-2 shadow-none sm:w-[540px] sm:min-w-[540px]"
       >
         <SheetTitle className="sr-only">Saran task untuk Today</SheetTitle>
         <div className="flex min-h-0 flex-1 flex-col rounded-2xl bg-surface p-0 shadow-lg">

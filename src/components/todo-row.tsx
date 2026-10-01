@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useSetAtom } from "jotai";
-import { projectDetailsAtom } from "../atoms/panes";
 import {
   TodoCheckbox,
   TodoDragHandle,
@@ -30,6 +28,7 @@ type TodoRowProps = {
   showProject?: boolean;
   showList?: boolean;
   hideDueDate?: boolean;
+  hideMilestone?: boolean;
   skipInvalidate?: boolean;
   dragHandleRef?: (element: Element | null) => void;
   dragging?: boolean;
@@ -42,6 +41,7 @@ export function TodoRow({
   showProject,
   showList = true,
   hideDueDate = false,
+  hideMilestone = false,
   skipInvalidate,
   dragHandleRef,
   dragging,
@@ -51,7 +51,6 @@ export function TodoRow({
   const [expanded, setExpanded] = useState(false);
   const [, setParams] = useSearchParams();
   const navigate = useNavigate();
-  const closeProjectDetails = useSetAtom(projectDetailsAtom);
 
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
@@ -66,7 +65,6 @@ export function TodoRow({
   const onToggleMyDay = () => patchTodo({ myDay: !todo.myDay });
 
   const onSelect = () => {
-    closeProjectDetails(null);
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
     if (!isDesktop) {
       navigate(`/todo/${todo.id}`);
@@ -92,6 +90,8 @@ export function TodoRow({
     );
     deleteTodo.mutate(todo.id);
   };
+
+  const milestone = hideMilestone ? null : todo.milestone;
 
   const steps = todo.subtodos.length;
   const open = expanded && steps > 0;
@@ -144,7 +144,7 @@ export function TodoRow({
 
               {(todo.dueDate && !hideDueDate) ||
               (showList && todo.list?.name) ||
-              todo.milestone ||
+              milestone ||
               (showProject && todo.project?.name) ? (
                 <div className="sm:hidden flex flex-wrap items-center gap-1 pl-7.5 pb-1 text-muted">
                   {!hideDueDate && todo.dueDate && (
@@ -156,8 +156,8 @@ export function TodoRow({
                   {showList && todo.list?.name && (
                     <TodoListBadge list={todo.list} />
                   )}
-                  {todo.milestone && (
-                    <TodoMilestoneBadge milestone={todo.milestone} />
+                  {milestone && (
+                    <TodoMilestoneBadge milestone={milestone} />
                   )}
                   {showProject && todo.project?.name && (
                     <TodoProjectBadge project={todo.project} />
@@ -175,8 +175,8 @@ export function TodoRow({
                 {showList && todo.list?.name && (
                   <TodoListBadge list={todo.list} />
                 )}
-                {todo.milestone && (
-                  <TodoMilestoneBadge milestone={todo.milestone} />
+                {milestone && (
+                  <TodoMilestoneBadge milestone={milestone} />
                 )}
                 {showProject && todo.project?.name && (
                   <TodoProjectBadge project={todo.project} />

@@ -41,31 +41,45 @@ export function CircularProgress({
       aria-valuenow={value}
       className={cn(
         "shrink-0",
-        ratio === 0 && "text-muted/50",
-        ratio > 0 && ratio < 1 && "text-blue-500",
-        ratio >= 1 && "text-success",
+        ratio === 0 && "text-muted/60",
+        ratio > 0 && ratio <= 0.5 && "text-blue-500",
+        ratio > 0.5 && "text-success",
         className,
       )}
     >
-      {ratio > 0 &&
-        (ratio >= 1 ? (
+      {ratio >= 1 ? (
+        <>
+          <circle cx={center} cy={center} r={center} className="fill-current" />
+          <path
+            d={`M ${size * 0.3} ${size * 0.52} L ${size * 0.44} ${size * 0.66} L ${size * 0.72} ${size * 0.36}`}
+            fill="none"
+            stroke="white"
+            strokeWidth={Math.max(size * 0.12, 1.2)}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      ) : (
+        <>
+          {ratio > 0 && (
+            <path d={sectorPath} className="fill-current opacity-60" />
+          )}
           <circle
             cx={center}
             cy={center}
-            r={fillRadius}
-            className="fill-current opacity-50"
+            r={radius}
+            fill="none"
+            strokeWidth={strokeWidth}
+            strokeDasharray={
+              ratio === 0
+                ? `${(2 * Math.PI * radius) / 14} ${(2 * Math.PI * radius) / 14}`
+                : undefined
+            }
+            strokeLinecap={ratio === 0 ? "round" : undefined}
+            className="stroke-current"
           />
-        ) : (
-          <path d={sectorPath} className="fill-current opacity-60" />
-        ))}
-      <circle
-        cx={center}
-        cy={center}
-        r={radius}
-        fill="none"
-        strokeWidth={strokeWidth}
-        className="stroke-current"
-      />
+        </>
+      )}
     </svg>
   );
 }

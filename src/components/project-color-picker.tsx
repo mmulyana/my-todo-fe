@@ -1,5 +1,5 @@
 import { Box, Check, Palette } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Popover,
   PopoverContent,
@@ -31,24 +31,28 @@ const PROJECT_COLORS = [
 type ProjectColorPickerProps = {
   color: string | null | undefined;
   onChange: (color: string | null) => void;
+  children?: ReactNode;
 };
 
 export function ProjectColorPicker({
   color,
   onChange,
+  children,
 }: ProjectColorPickerProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="grid h-14 w-14 place-items-center rounded-2xl bg-tint/8 text-muted transition-colors hover:bg-tint/15 cursor-pointer"
-          aria-label="Choose project color"
-        >
-          <Box className="h-7 w-7" style={{ color: color ?? undefined }} />
-        </button>
+        {children ?? (
+          <button
+            type="button"
+            className="grid h-14 w-14 place-items-center rounded-2xl bg-tint/8 text-muted transition-colors hover:bg-tint/15 cursor-pointer"
+            aria-label="Choose project color"
+          >
+            <Box className="h-7 w-7" style={{ color: color ?? undefined }} />
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-56 p-2">
         <div className="grid grid-cols-6 gap-1.5">
