@@ -79,7 +79,8 @@ export function useCarriedOverTodos(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: todosKey(MY_DAY_FILTER),
     queryFn: () => api.fetchTodos(MY_DAY_FILTER),
-    select: (todos) => todos.filter((t) => !t.myDay),
+    // note: suggestions only offer work that is still open, completed todos are never suggested
+    select: (todos) => todos.filter((t) => !t.myDay && !t.completed),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
     enabled: options?.enabled,
