@@ -24,7 +24,7 @@ export function TodaySuggestionsSheet({
         hideClose
         aria-describedby={undefined}
         // note: full width on mobile, fixed panel width from sm upwards
-        className="w-full min-w-0 border-0 bg-transparent p-3 shadow-none sm:w-[540px] sm:min-w-[540px]"
+        className="w-full min-w-0 border-0 bg-transparent max-lg:p-2.5 p-3 shadow-none sm:w-[540px] sm:min-w-[540px]"
       >
         <SheetTitle className="sr-only">Saran task untuk Today</SheetTitle>
         <div className="flex min-h-0 flex-1 flex-col rounded-2xl bg-surface p-0 shadow-lg">
@@ -52,17 +52,6 @@ export function TodaySuggestionsSheet({
                 <div className="min-w-0 flex-1">
                   <TodoRow todo={todo} hideDueDate hideGrab showList={false} />
                 </div>
-                <button
-                  type="button"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-fg hover:bg-tint/10 disabled:opacity-60"
-                  onClick={() =>
-                    updateTodo.mutate({ id: todo.id, patch: { myDay: true } })
-                  }
-                  disabled={updateTodo.isPending}
-                >
-                  <Plus size={14} />
-                  Add
-                </button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -78,6 +67,17 @@ export function TodaySuggestionsSheet({
                 >
                   <X size={14} />
                 </Button>
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-fg hover:bg-tint/10 disabled:opacity-60"
+                  onClick={() =>
+                    updateTodo.mutate({ id: todo.id, patch: { myDay: true } })
+                  }
+                  disabled={updateTodo.isPending}
+                >
+                  <Plus size={14} />
+                  Add
+                </button>
               </div>
             ))}
           </div>
