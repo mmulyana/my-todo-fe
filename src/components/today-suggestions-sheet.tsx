@@ -3,6 +3,7 @@ import { TodoRow } from "./todo-row";
 import { useUpdateTodo } from "../hooks/useTodos";
 import type { Todo } from "../types";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "./ui/button";
 
 type TodaySuggestionsSheetProps = {
   todos: Todo[];
@@ -22,7 +23,8 @@ export function TodaySuggestionsSheet({
       <SheetContent
         hideClose
         aria-describedby={undefined}
-        className="w-[80dvw] min-w-[80dvw] border-0 bg-transparent p-3 shadow-none sm:w-[540px] sm:min-w-[540px]"
+        // note: full width on mobile, fixed panel width from sm upwards
+        className="w-full min-w-0 border-0 bg-transparent p-3 shadow-none sm:w-[540px] sm:min-w-[540px]"
       >
         <SheetTitle className="sr-only">Saran task untuk Today</SheetTitle>
         <div className="flex min-h-0 flex-1 flex-col rounded-2xl bg-surface p-0 shadow-lg">
@@ -61,6 +63,21 @@ export function TodaySuggestionsSheet({
                   <Plus size={14} />
                   Add
                 </button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Remove ${todo.title} from Today`}
+                  title="Remove from Today"
+                  // note: clears the stale today date so the todo stops showing up as a suggestion
+                  className="h-7 w-7 shrink-0 text-muted opacity-70 hover:bg-tint/10 hover:text-fg hover:opacity-100"
+                  onClick={() =>
+                    updateTodo.mutate({ id: todo.id, patch: { myDay: false } })
+                  }
+                  disabled={updateTodo.isPending}
+                >
+                  <X size={14} />
+                </Button>
               </div>
             ))}
           </div>
