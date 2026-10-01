@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
@@ -30,6 +30,15 @@ export function PageShell({
   classNameChildren,
 }: PageShellProps) {
   const { openSidebar } = useSidebarContext();
+  const navigate = useNavigate();
+
+  const goBack = (to?: string) => {
+    // note: bail out when backTo is not set, never trust the target to be there
+    if (!to) return;
+    // note: pop history instead of pushing the target, pushing made the browser back button bounce between both pages
+    if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+    else navigate(to, { replace: true });
+  };
 
   return (
     <main className="flex-1 min-w-0 flex flex-col h-full min-h-0 bg-surface rounded-2xl border border-line overflow-hidden relative">
@@ -44,14 +53,15 @@ export function PageShell({
             <Menu className="w-5 h-5" />
           </button>
           {backTo && (
-            <Link
-              to={backTo}
+            <button
+              type="button"
+              onClick={() => goBack(backTo)}
               aria-label={backLabel}
               title={backLabel}
-              className="-ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors"
+              className="-ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-            </Link>
+            </button>
           )}
           {trail.length > 0 && (
             <nav

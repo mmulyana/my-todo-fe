@@ -27,7 +27,10 @@ function ProjectNode({ project, depth, tree }: ProjectNodeProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const to = `/projects/${project.id}`;
   const detailsTo = `${to}/details`;
-  const active = Boolean(useMatch(to)) || Boolean(useMatch(detailsTo));
+  // note: evaluate both matches every render, a short-circuited useMatch() changes the hook count and crashes React (#310)
+  const projectMatch = useMatch(to);
+  const detailsMatch = useMatch(detailsTo);
+  const active = Boolean(projectMatch) || Boolean(detailsMatch);
   const children = tree.childrenOf(project.id);
   const hasChildren = children.length > 0;
   const expanded = tree.isOpen(project.id);
