@@ -5,6 +5,7 @@ import { todayISO } from "./lib/dates";
 import type {
   ApiToken,
   Attachment,
+  CalendarEvent,
   AttachmentType,
   DocumentContent,
   List,
@@ -18,6 +19,7 @@ import type {
   Todo,
   TodoAncestor,
   TodoFilter,
+  TodoPriority,
 } from "./types";
 
 const BASE_URL =
@@ -186,10 +188,7 @@ const todoFieldsFragment = graphql(`
 
 type TodoFieldsResult = ResultOf<typeof todoFieldsFragment>;
 
-const toTodo = (
-  r: TodoFieldsResult,
-  ancestors: TodoAncestor[] = [],
-): Todo => ({
+const toTodo = (r: TodoFieldsResult, ancestors: TodoAncestor[] = []): Todo => ({
   id: r.id,
   listId: r.listId,
   projectId: r.projectId,
@@ -746,7 +745,11 @@ export async function updateMilestone(
   },
   signal?: AbortSignal,
 ): Promise<void> {
-  await gql(UpdateMilestoneDocument, { input: { id, ...patch } as any }, signal);
+  await gql(
+    UpdateMilestoneDocument,
+    { input: { id, ...patch } as any },
+    signal,
+  );
 }
 
 const RemoveMilestoneDocument = graphql(`
@@ -1211,4 +1214,121 @@ const RemoveTimeEntryDocument = graphql(`
 
 export async function removeTimeEntry(id: string): Promise<void> {
   await gql(RemoveTimeEntryDocument, { id });
+}
+
+const calendarEventFieldsFragment = graphql(`
+  fragment CalendarEventFields on CalendarEvent {
+    id
+    title
+    description
+    startAt
+    endAt
+    allDay
+    color
+    todoId
+    todo {
+      id
+      title
+      completed
+      important
+      priority
+      project {
+        id
+        name
+        code
+        color
+      }
+      list {
+        id
+        name
+      }
+    }
+  }
+`);
+
+const toCalendarEvent = (
+  e: ResultOf<typeof calendarEventFieldsFragment>,
+): CalendarEvent => ({
+  ...e,
+  todo: e.todo
+    ? { ...e.todo, priority: e.todo.priority as TodoPriority | null }
+    : null,
+});
+
+const CalendarEventsDocument = graphql(
+  `
+    query CalendarEvents($from: DateTime, $to: DateTime) {
+      calendarEvents(from: $from, to: $to) {
+        ...CalendarEventFields
+      }
+    }
+  `,
+  [calendarEventFieldsFragment],
+);
+
+export async function fetchCalendarEvents(
+  from: string,
+  to: string,
+): Promise<CalendarEvent[]> {
+  const data = await gql(CalendarEventsDocument, { from, to });
+  return data.calendarEvents.map((e) =>
+    toCalendarEvent(readFragment(calendarEventFieldsFragment, e)),
+  );
+}
+
+export type CalendarEventInput = {
+  title?: string | null;
+  description?: string | null;
+  startAt: string;
+  endAt: string;
+  allDay?: boolean | null;
+  color?: string | null;
+  todoId?: string | null;
+};
+
+const CreateCalendarEventDocument = graphql(
+  `
+    mutation CreateCalendarEvent($input: CreateCalendarEventInput!) {
+      createCalendarEvent(input: $input) {
+        ...CalendarEventFields
+      }
+    }
+  `,
+  [calendarEventFieldsFragment],
+);
+
+export async function createCalendarEvent(
+  input: CalendarEventInput,
+): Promise<CalendarEvent> {
+  const data = await gql(CreateCalendarEventDocument, { input });
+  return toCalendarEvent(
+    readFragment(calendarEventFieldsFragment, data.createCalendarEvent),
+  );
+}
+
+const UpdateCalendarEventDocument = graphql(`
+  mutation UpdateCalendarEvent($input: UpdateCalendarEventInput!) {
+    updateCalendarEvent(input: $input) {
+      id
+    }
+  }
+`);
+
+export async function updateCalendarEvent(
+  id: string,
+  patch: Partial<CalendarEventInput>,
+): Promise<void> {
+  await gql(UpdateCalendarEventDocument, { input: { id, ...patch } });
+}
+
+const RemoveCalendarEventDocument = graphql(`
+  mutation RemoveCalendarEvent($id: ID!) {
+    removeCalendarEvent(id: $id) {
+      id
+    }
+  }
+`);
+
+export async function removeCalendarEvent(id: string): Promise<void> {
+  await gql(RemoveCalendarEventDocument, { id });
 }

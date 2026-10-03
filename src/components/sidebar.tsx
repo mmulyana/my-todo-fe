@@ -1,5 +1,6 @@
 import { NavLink, useMatch } from "react-router-dom";
 import {
+  CalendarDays,
   ChevronsUpDown,
   Infinity as InfinityIcon,
   LogOut,
@@ -132,6 +133,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             );
           })}
           <TimerNavLink />
+          <NavLink
+            to="/calendar"
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md",
+                isActive
+                  ? "bg-tint/5 font-medium text-fg"
+                  : "text-fg/50 hover:bg-tint/5",
+              )
+            }
+          >
+            <CalendarDays className="shrink-0 w-4.5 h-4.5" />
+            <span className="flex-1 truncate">Calendar</span>
+          </NavLink>
 
           <SidebarTree />
         </nav>

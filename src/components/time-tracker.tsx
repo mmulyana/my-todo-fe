@@ -507,20 +507,21 @@ export function TimerBar({ className }: { className?: string }) {
   );
 }
 
-function EntryTodoPicker({
-  entry,
+export function TodoPicker({
+  selectedId,
+  onChoose,
   children,
 }: {
-  entry: TimeEntry;
+  selectedId?: string | null;
+  onChoose: (todo: TimerTodo) => void;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const updateEntry = useUpdateTimeEntry();
   const createEntryTodo = useCreateEntryTodo();
 
-  const choose = (todo: TimerTodo | null) => {
-    updateEntry.mutate({ id: entry.id, todo });
+  const choose = (todo: TimerTodo) => {
+    onChoose(todo);
     setOpen(false);
     setQuery("");
   };
@@ -537,13 +538,31 @@ function EntryTodoPicker({
           />
           <TodoOptions
             query={query}
-            selectedId={entry.todoId}
+            selectedId={selectedId}
             onPick={choose}
             onCreate={async (title) => choose(await createEntryTodo(title))}
           />
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function EntryTodoPicker({
+  entry,
+  children,
+}: {
+  entry: TimeEntry;
+  children: ReactNode;
+}) {
+  const updateEntry = useUpdateTimeEntry();
+  return (
+    <TodoPicker
+      selectedId={entry.todoId}
+      onChoose={(todo) => updateEntry.mutate({ id: entry.id, todo })}
+    >
+      {children}
+    </TodoPicker>
   );
 }
 
@@ -569,7 +588,7 @@ function ClockInput({
       onKeyDown={(e) => {
         if (e.key === "Enter") e.currentTarget.blur();
       }}
-      className="w-14 text-center bg-transparent rounded px-1 py-0.5 text-sm tabular-nums text-muted hover:bg-tint/5 focus:bg-tint/5 focus:text-fg outline-none [&::-webkit-calendar-picker-indicator]:hidden"
+      className="block w-14 text-center bg-transparent rounded px-1 py-0.5 text-sm tabular-nums text-muted hover:bg-tint/5 focus:bg-tint/5 focus:text-fg outline-none [&::-webkit-calendar-picker-indicator]:hidden"
     />
   );
 }

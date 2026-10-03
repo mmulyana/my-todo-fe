@@ -125,6 +125,8 @@ export type TodoFilter = {
   q?: string;
   completed?: boolean;
   priority?: TodoPriority;
+  dueFrom?: string;
+  dueTo?: string;
   limit?: number;
 };
 
@@ -168,4 +170,23 @@ export type TimeEntry = {
     project: TodoProject | null;
     list: { id: string; name: string } | null;
   } | null;
+};
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  description: string;
+  startAt: string;
+  // note: exclusive end, one-day all-day event ends at the next midnight
+  endAt: string;
+  allDay: boolean;
+  color: string | null;
+  todoId: string | null;
+  // note: important/priority are missing on a todo just picked in the dialog until the refetch
+  todo:
+    | (NonNullable<TimeEntry["todo"]> & {
+        important?: boolean;
+        priority?: TodoPriority | null;
+      })
+    | null;
 };

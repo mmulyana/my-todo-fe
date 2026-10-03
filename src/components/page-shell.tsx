@@ -16,6 +16,7 @@ type PageShellProps = {
   children: ReactNode;
   footer?: ReactNode;
   classNameChildren?: string;
+  fill?: boolean;
 };
 
 export function PageShell({
@@ -28,6 +29,7 @@ export function PageShell({
   children,
   footer = null,
   classNameChildren,
+  fill = false,
 }: PageShellProps) {
   const { openSidebar } = useSidebarContext();
   const navigate = useNavigate();
@@ -93,14 +95,20 @@ export function PageShell({
         {actions}
       </header>
 
-      <div
-        className={cn(
-          "flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4",
-          classNameChildren,
-        )}
-      >
-        <div className="flex flex-col">{children}</div>
-      </div>
+      {fill ? (
+        <div className={cn("flex-1 min-h-0 flex flex-col", classNameChildren)}>
+          {children}
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4",
+            classNameChildren,
+          )}
+        >
+          <div className="flex flex-col">{children}</div>
+        </div>
+      )}
 
       {footer}
     </main>
