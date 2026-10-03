@@ -301,7 +301,7 @@ function TimerTodoField() {
       <Command shouldFilter={false} className="flex-1 min-w-0 bg-transparent">
         <Popover open={open && showInput} onOpenChange={setOpen}>
           <PopoverAnchor asChild>
-            <div className="flex items-center gap-2 min-w-0 h-7">
+            <div className="flex items-center gap-2 min-w-0 h-10">
               {showInput ? (
                 <CommandPrimitive.Input
                   ref={inputRef}
@@ -335,7 +335,7 @@ function TimerTodoField() {
                     isRunning ? "Pick a todo for this timer" : "New task"
                   }
                   aria-label="Todo for timer"
-                  className="flex-1 min-w-0 border-none bg-transparent text-fg text-[14px] outline-none placeholder:text-muted focus:outline-none disabled:opacity-60"
+                  className="flex-1 min-w-0 border-none bg-transparent text-fg text-base outline-none placeholder:text-muted focus:outline-none disabled:opacity-60"
                 />
               ) : (
                 <button
@@ -345,7 +345,7 @@ function TimerTodoField() {
                     setOpen(true);
                     requestAnimationFrame(() => inputRef.current?.focus());
                   }}
-                  className="flex items-center gap-2 min-w-0 flex-1 text-left text-[14px] text-fg cursor-pointer"
+                  className="flex items-center gap-2 min-w-0 flex-1 text-left text-base text-fg cursor-pointer"
                 >
                   <span className="truncate">{current!.title}</span>
                 </button>
@@ -394,10 +394,10 @@ function TimerTargets() {
       <>
         <ProjectTag
           project={current.project}
-          className="h-7 px-2.5 rounded-lg border border-line max-w-40"
+          className="h-9 px-2.5 rounded-lg border border-line max-w-40"
         />
         {current.list && (
-          <span className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg border border-line max-w-35 min-w-0 text-xs text-muted">
+          <span className="inline-flex items-center gap-1 h-9 px-3 rounded-lg border border-line max-w-35 min-w-0 text-sm text-muted">
             <ListFilter size={12} className="shrink-0" />
             <span className="truncate">{current.list.name}</span>
           </span>
@@ -426,14 +426,14 @@ function TimerTargets() {
           if (list && pId && list.projectId !== pId) setListId("");
         }}
         placeholder="No Project"
-        className="h-7 text-xs px-2.5 shadow-none border-line rounded-lg w-auto min-w-27.5 max-w-40"
+        className="h-9 text-sm px-3 shadow-none border-line rounded-lg w-auto min-w-27.5 max-w-40"
       />
       <ListCombobox
         lists={availableLists}
         value={listId}
         onChange={setListId}
         placeholder="No List"
-        className="hidden sm:inline-flex h-7 text-xs px-2.5 shadow-none bg-transparent border-line rounded-lg w-auto min-w-23.75 max-w-35"
+        className="hidden sm:inline-flex h-9 text-sm px-3 shadow-none bg-transparent border-line rounded-lg w-auto min-w-23.75 max-w-35"
       />
     </>
   );
@@ -446,7 +446,7 @@ function TimerClock() {
   return (
     <span
       className={cn(
-        "ml-auto sm:ml-1 w-16 text-right font-mono tabular-nums text-sm",
+        "ml-auto sm:ml-1 w-20 text-right font-mono tabular-nums text-lg",
         running ? "text-fg" : "text-muted",
       )}
     >
@@ -466,7 +466,7 @@ function TimerAction() {
       <button
         type="button"
         onClick={() => stopTimer.mutate()}
-        className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg bg-danger text-white text-xs font-medium hover:opacity-90 cursor-pointer"
+        className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-danger text-white text-sm font-medium hover:opacity-90 cursor-pointer"
       >
         <Square className="w-3 h-3 fill-current" />
         Stop
@@ -480,7 +480,7 @@ function TimerAction() {
       type="button"
       onClick={startFromDraft}
       disabled={creating}
-      className="inline-flex items-center gap-1.5 h-7 px-3 rounded-lg bg-accent text-white text-xs font-medium hover:opacity-90 disabled:opacity-60 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-accent text-white text-sm font-medium hover:opacity-90 disabled:opacity-60 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <Play className="w-3 h-3 fill-current" />
       Start
@@ -493,7 +493,7 @@ export function TimerBar({ className }: { className?: string }) {
     <div
       className={cn(
         // note: same background in every state, running is shown by the stop button and clock
-        "flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 px-4 py-2.5 rounded-xl bg-tint/3",
+        "flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 px-4 py-3.5 rounded-xl bg-tint/3",
         className,
       )}
     >

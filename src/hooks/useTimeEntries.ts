@@ -10,10 +10,10 @@ export const RUNNING_TIME_ENTRY_KEY = ['running-time-entry'] as const
 
 const KEYS = [TIME_ENTRIES_KEY, RUNNING_TIME_ENTRY_KEY]
 
-export function useTimeEntries(from: string) {
+export function useTimeEntries(from: string, to?: string) {
   return useQuery({
-    queryKey: [...TIME_ENTRIES_KEY, from],
-    queryFn: () => api.fetchTimeEntries(from),
+    queryKey: [...TIME_ENTRIES_KEY, from, to],
+    queryFn: () => api.fetchTimeEntries(from, to),
     placeholderData: (prev) => prev,
   })
 }
