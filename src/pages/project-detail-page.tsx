@@ -6,7 +6,9 @@ import {
   ArchiveRestore,
   Box,
   ChevronRight,
+  File,
   FileText,
+  Link as LinkIcon,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -25,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreateDocument, useDocuments } from "../hooks/useDocuments";
 import { useIsDesktop } from "../hooks/useMediaQuery";
 import { useTodos } from "../hooks/useTodos";
@@ -213,40 +216,6 @@ export default function ProjectDetailPage() {
             <MilestonesSection projectId={project.id} />
           </Section>
 
-          <Section
-            title="Documents"
-            count={documents.length}
-            action={
-              <SectionAddButton label="New document" onClick={addDocument} />
-            }
-          >
-            <RowGroup>
-              {documents.map((doc) => (
-                <Row key={doc.id} onClick={() => openDocument(doc.id)}>
-                  <FileText className="w-4 h-4 shrink-0 text-muted" />
-                  <span className="flex-1 min-w-0 truncate text-sm">
-                    {doc.title || "Untitled"}
-                  </span>
-                  <span className="shrink-0 text-[12px] text-muted">
-                    {formatDistanceToNow(new Date(doc.updatedAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
-                </Row>
-              ))}
-              {documents.length === 0 && (
-                <button
-                  type="button"
-                  onClick={addDocument}
-                  className="flex h-10 items-center gap-2 px-3 text-sm text-muted hover:text-fg transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Write the first document</span>
-                </button>
-              )}
-            </RowGroup>
-          </Section>
-
           <Section title="Sub-projects" count={subProjects.length}>
             <RowGroup>
               {subProjects.map((sub) => (
@@ -275,12 +244,69 @@ export default function ProjectDetailPage() {
             </RowGroup>
           </Section>
 
-          <Section title="Resources" count={project.attachments.length}>
-            <AttachmentSection
-              projectId={project.id}
-              attachments={project.attachments}
-              tabbed
-            />
+          <Section
+            title="Resources"
+            count={project.attachments.length + documents.length}
+          >
+            <Tabs defaultValue="documents">
+              <TabsList className="w-fit bg-tint/5 rounded-lg">
+                <TabsTrigger value="documents" className="gap-1">
+                  <FileText size={12} />
+                  Documents
+                </TabsTrigger>
+                <TabsTrigger value="links" className="gap-1">
+                  <LinkIcon size={12} />
+                  Links
+                </TabsTrigger>
+                <TabsTrigger value="files" className="gap-1">
+                  <File size={12} />
+                  Files
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="documents">
+                <RowGroup>
+                  {documents.map((doc) => (
+                    <Row key={doc.id} onClick={() => openDocument(doc.id)}>
+                      <FileText className="w-4 h-4 shrink-0 text-muted" />
+                      <span className="flex-1 min-w-0 truncate text-sm">
+                        {doc.title || "Untitled"}
+                      </span>
+                      <span className="shrink-0 text-[12px] text-muted">
+                        {formatDistanceToNow(new Date(doc.updatedAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </Row>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addDocument}
+                    className="flex h-10 items-center gap-2 px-3 text-sm text-muted hover:text-fg transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>
+                      {documents.length === 0
+                        ? "Write the first document"
+                        : "New document"}
+                    </span>
+                  </button>
+                </RowGroup>
+              </TabsContent>
+              <TabsContent value="links">
+                <AttachmentSection
+                  projectId={project.id}
+                  attachments={project.attachments}
+                  view="links"
+                />
+              </TabsContent>
+              <TabsContent value="files">
+                <AttachmentSection
+                  projectId={project.id}
+                  attachments={project.attachments}
+                  view="files"
+                />
+              </TabsContent>
+            </Tabs>
           </Section>
         </div>
 
@@ -562,26 +588,6 @@ function Section({ title, count, action, children }: SectionProps) {
       </div>
       {children}
     </section>
-  );
-}
-
-function SectionAddButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="grid h-6 w-6 place-items-center rounded-md text-muted hover:bg-tint/5 hover:text-fg transition-colors cursor-pointer"
-    >
-      <Plus className="w-3.5 h-3.5" />
-    </button>
   );
 }
 

@@ -125,6 +125,7 @@ export type TodoFilter = {
   q?: string;
   completed?: boolean;
   priority?: TodoPriority;
+  limit?: number;
 };
 
 export type User = {
@@ -152,3 +153,19 @@ export type ApiToken = {
 };
 
 export type NewApiToken = ApiToken & { token: string };
+
+export type TimeEntry = {
+  id: string;
+  description: string;
+  startedAt: string;
+  // note: null means the timer is still running
+  endedAt: string | null;
+  todoId: string | null;
+  todo: {
+    id: string;
+    title: string;
+    completed: boolean;
+    project: TodoProject | null;
+    list: { id: string; name: string } | null;
+  } | null;
+};

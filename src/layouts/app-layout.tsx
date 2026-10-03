@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { DetailPane } from '../components/detail-pane'
 import { Sidebar } from '@/components/sidebar'
+import { DocumentTitleTimer } from '@/components/document-title-timer'
 
 type SidebarContextValue = {
   openSidebar: () => void
@@ -47,6 +48,7 @@ export function AppLayout() {
   return (
     <SidebarContext.Provider value={{ openSidebar: () => setSidebarOpen(true) }}>
       <div className="h-dvh w-dvw overflow-hidden bg-bg text-fg text-[15px] leading-normal flex lg:grid lg:grid-cols-[280px_1fr]">
+        <DocumentTitleTimer />
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="flex-1 min-w-0 h-full p-2 lg:p-3 lg:pl-2 flex gap-1 overflow-hidden">

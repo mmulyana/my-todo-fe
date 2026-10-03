@@ -13,6 +13,7 @@ import type {
   Project,
   ProjectDocument,
   ProjectDocumentDetail,
+  TimeEntry,
   Subtodo,
   Todo,
   TodoAncestor,
@@ -1078,4 +1079,136 @@ const RemoveDocumentDocument = graphql(`
 
 export async function removeDocument(id: string): Promise<void> {
   await gql(RemoveDocumentDocument, { id });
+}
+
+// ---------------------------------------------------------------------------
+// Time entries
+// ---------------------------------------------------------------------------
+
+const timeEntryFieldsFragment = graphql(`
+  fragment TimeEntryFields on TimeEntry {
+    id
+    description
+    startedAt
+    endedAt
+    todoId
+    todo {
+      id
+      title
+      completed
+      project {
+        id
+        name
+        code
+        color
+      }
+      list {
+        id
+        name
+      }
+    }
+  }
+`);
+
+const TimeEntriesDocument = graphql(
+  `
+    query TimeEntries($from: DateTime, $to: DateTime) {
+      timeEntries(from: $from, to: $to) {
+        ...TimeEntryFields
+      }
+    }
+  `,
+  [timeEntryFieldsFragment],
+);
+
+export async function fetchTimeEntries(
+  from?: string,
+  to?: string,
+): Promise<TimeEntry[]> {
+  const data = await gql(TimeEntriesDocument, {
+    from: from ?? null,
+    to: to ?? null,
+  });
+  return data.timeEntries.map((e) => readFragment(timeEntryFieldsFragment, e));
+}
+
+const RunningTimeEntryDocument = graphql(
+  `
+    query RunningTimeEntry {
+      runningTimeEntry {
+        ...TimeEntryFields
+      }
+    }
+  `,
+  [timeEntryFieldsFragment],
+);
+
+export async function fetchRunningTimeEntry(): Promise<TimeEntry | null> {
+  const data = await gql(RunningTimeEntryDocument, {});
+  return data.runningTimeEntry
+    ? readFragment(timeEntryFieldsFragment, data.runningTimeEntry)
+    : null;
+}
+
+const StartTimeEntryDocument = graphql(
+  `
+    mutation StartTimeEntry($input: StartTimeEntryInput) {
+      startTimeEntry(input: $input) {
+        ...TimeEntryFields
+      }
+    }
+  `,
+  [timeEntryFieldsFragment],
+);
+
+export async function startTimeEntry(input: {
+  todoId?: string | null;
+  description?: string | null;
+}): Promise<TimeEntry> {
+  const data = await gql(StartTimeEntryDocument, { input });
+  return readFragment(timeEntryFieldsFragment, data.startTimeEntry);
+}
+
+const StopTimeEntryDocument = graphql(`
+  mutation StopTimeEntry {
+    stopTimeEntry {
+      id
+    }
+  }
+`);
+
+export async function stopTimeEntry(): Promise<void> {
+  await gql(StopTimeEntryDocument, {});
+}
+
+const UpdateTimeEntryDocument = graphql(`
+  mutation UpdateTimeEntry($input: UpdateTimeEntryInput!) {
+    updateTimeEntry(input: $input) {
+      id
+    }
+  }
+`);
+
+export async function updateTimeEntry(
+  id: string,
+  patch: {
+    todoId?: string | null;
+    description?: string | null;
+    startedAt?: string;
+    endedAt?: string;
+  },
+): Promise<void> {
+  await gql(UpdateTimeEntryDocument, { input: { id, ...patch } });
+}
+
+const RemoveTimeEntryDocument = graphql(`
+  mutation RemoveTimeEntry($id: ID!) {
+    removeTimeEntry(id: $id) {
+      id
+    }
+  }
+`);
+
+export async function removeTimeEntry(id: string): Promise<void> {
+  await gql(RemoveTimeEntryDocument, { id });
 }

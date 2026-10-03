@@ -145,8 +145,8 @@ function useOptimisticTodo<TVars>(
   });
 }
 
-function useRefetchingTodo<TVars>(
-  mutationFn: (vars: TVars) => Promise<unknown>,
+function useRefetchingTodo<TVars, TResult = unknown>(
+  mutationFn: (vars: TVars) => Promise<TResult>,
 ) {
   const qc = useQueryClient();
   return useMutation({

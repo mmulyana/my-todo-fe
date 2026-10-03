@@ -11,6 +11,7 @@ import AllPage from "./pages/all-page";
 import TodoDetailPage from "./pages/todo-detail-page";
 import DocumentPage from "./pages/document-page";
 import SettingsPage from "./pages/settings-page";
+import TimerPage from "./pages/timer-page";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
           { path: "today", element: <TodayPage /> },
           { path: "important", element: <ImportantPage /> },
           { path: "all", element: <AllPage /> },
+          { path: "timer", element: <TimerPage /> },
           { path: "projects/:projectId", element: <ProjectPage /> },
           {
             path: "projects/:projectId/details",

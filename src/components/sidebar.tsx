@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useMatch } from "react-router-dom";
 import {
   ChevronsUpDown,
   Infinity as InfinityIcon,
@@ -7,6 +7,7 @@ import {
   Share2,
   Star,
   Sun,
+  Timer,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/useTheme";
 import { useMe } from "@/hooks/useMe";
+import { useNow, useRunningTimeEntry } from "@/hooks/useTimeEntries";
+import { entrySeconds, formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { SmartListId } from "@/types";
 
@@ -34,6 +37,42 @@ export const NAVLIST: navlinks[] = [
   { id: "important", name: "Important", icon: Star },
   { id: "all", name: "All", icon: InfinityIcon },
 ];
+
+// note: only this component ticks, it pauses on the timer page since the input already shows the time
+function SidebarTimerClock() {
+  const onTimerPage = Boolean(useMatch("/timer"));
+  const { data: running } = useRunningTimeEntry();
+  const active = Boolean(running) && !onTimerPage;
+  const now = useNow(active);
+  if (!active || !running) return null;
+
+  return (
+    <span className="flex items-center gap-1.5 text-xs font-mono tabular-nums text-accent">
+      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+      {formatDuration(entrySeconds(running, now))}
+    </span>
+  );
+}
+
+function TimerNavLink() {
+  return (
+    <NavLink
+      to="/timer"
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md",
+          isActive
+            ? "bg-tint/5 font-medium text-fg"
+            : "text-fg/50 hover:bg-tint/5",
+        )
+      }
+    >
+      <Timer className="shrink-0 w-4.5 h-4.5" />
+      <span className="flex-1 truncate">Timer</span>
+      <SidebarTimerClock />
+    </NavLink>
+  );
+}
 
 type SidebarProps = {
   open: boolean;
@@ -92,6 +131,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </NavLink>
             );
           })}
+          <TimerNavLink />
 
           <SidebarTree />
         </nav>

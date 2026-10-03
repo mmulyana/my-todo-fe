@@ -16,6 +16,7 @@ import {
 import { resolveAttachmentUrl } from "../api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Attachment } from "../types";
+import { cn } from "@/lib/utils";
 
 type AttachmentSectionProps = ({ todoId: string } | { projectId: string }) & {
   attachments: Attachment[];
@@ -160,7 +161,41 @@ export function AttachmentSection({
       </>
     );
 
-    if (view === "links") return linksContent;
+    // note: one bordered wrapper like the project documents list, tabbed mode keeps separate cards
+    if (view === "links") {
+      return (
+        <div className="flex flex-col overflow-hidden rounded-xl border border-line divide-y divide-line">
+          {links.map((attachment) => (
+            <LinkCard
+              key={attachment.id}
+              attachment={attachment}
+              onDelete={() => deleteAttachment.mutate(attachment.id)}
+              bare
+            />
+          ))}
+
+          {createAttachment.isPending && (
+            <div className="flex h-10 items-center gap-2 px-3 text-sm text-muted">
+              <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+              <span>Fetching preview...</span>
+            </div>
+          )}
+
+          <form
+            className="flex h-10 items-center gap-2 px-3 text-muted"
+            onSubmit={submit}
+          >
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Add attachment link"
+              className="flex-1 min-w-0 border-none bg-transparent text-sm text-fg outline-none placeholder:text-muted"
+            />
+          </form>
+        </div>
+      );
+    }
     if (view === "files") return filesContent;
 
     return (
@@ -240,13 +275,26 @@ type AttachmentRowProps = {
 };
 
 /** Rich card for links: thumbnail, title, description, source. */
-function LinkCard({ attachment, onDelete }: AttachmentRowProps) {
+function LinkCard({
+  attachment,
+  onDelete,
+  bare = false,
+}: AttachmentRowProps & {
+  bare?: boolean;
+}) {
   const href = attachment.url;
   const title = attachment.title || attachment.filename || hostOf(href);
   const source = attachment.siteName || hostOf(href);
 
   return (
-    <div className="group/att relative flex overflow-hidden rounded-xl border border-line bg-raised/60 hover:bg-raised transition-colors">
+    <div
+      className={cn(
+        "group/att relative flex overflow-hidden transition-colors",
+        bare
+          ? "hover:bg-tint/[0.03]"
+          : "rounded-xl border border-line bg-raised/60 hover:bg-raised",
+      )}
+    >
       <a
         href={href}
         target="_blank"
