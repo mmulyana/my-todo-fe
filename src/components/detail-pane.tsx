@@ -15,7 +15,7 @@ import { useProjects } from "../hooks/useProjects";
 import { useMilestones } from "../hooks/useMilestones";
 import { activeProjects, isArchived } from "../projects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
-import type { Todo } from "../types";
+import { AGENT_ASSIGNEE, type Todo } from "../types";
 import {
   X,
   ChevronRight,
@@ -26,6 +26,7 @@ import {
   Calendar,
   Columns3,
   Flag,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -232,6 +233,23 @@ export function DetailPaneContent({
               {todo.myDay ? "Remove Today" : "Add Today"}
             </button>
           </MetaRow>
+          {!isChild && (
+            <MetaRow icon={<Bot className="w-4 h-4" />} label="Agent">
+              <button
+                className={cn(
+                  "inline-flex items-center gap-1.5 py-2 px-2.5 rounded-lg text-sm cursor-pointer transition-colors hover:bg-tint/5",
+                  todo.assignee ? "text-success" : "hover:text-fg",
+                )}
+                onClick={() =>
+                  update({ assignee: todo.assignee ? null : AGENT_ASSIGNEE })
+                }
+                aria-pressed={!!todo.assignee}
+                title="The agent picks this up once it is in the Ready column"
+              >
+                {todo.assignee ? "Assigned to agent" : "Assign to agent"}
+              </button>
+            </MetaRow>
+          )}
           {!isChild && (
             <MetaRow icon={<Box className="w-4 h-4" />} label="Project">
               <ProjectCombobox

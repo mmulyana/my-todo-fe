@@ -152,6 +152,7 @@ const todoFieldsFragment = graphql(`
       projectId
     }
     milestoneId
+    assignee
     milestone {
       id
       name
@@ -193,6 +194,7 @@ const toTodo = (r: TodoFieldsResult, ancestors: TodoAncestor[] = []): Todo => ({
   listId: r.listId,
   projectId: r.projectId,
   milestoneId: r.milestoneId,
+  assignee: r.assignee ?? null,
   parentId: r.parentId ?? null,
   ancestors,
   title: r.title,
@@ -345,6 +347,7 @@ export async function updateTodo(
   if (patch.listId !== undefined) input.listId = patch.listId;
   if (patch.projectId !== undefined) input.projectId = patch.projectId;
   if (patch.milestoneId !== undefined) input.milestoneId = patch.milestoneId;
+  if (patch.assignee !== undefined) input.assignee = patch.assignee;
   if (patch.myDay !== undefined) input.today = patch.myDay ? todayISO() : null;
 
   await gql(UpdateTodoDocument, { input: input as any }, signal);

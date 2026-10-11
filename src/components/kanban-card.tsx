@@ -1,4 +1,4 @@
-import { GripVertical, Star, Sun } from "lucide-react";
+import { Bot, GripVertical, Star, Sun } from "lucide-react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/types";
@@ -30,7 +30,11 @@ export function KanbanCard({
   });
 
   const hasMeta =
-    !!todo.dueDate || !!todo.list?.name || todo.myDay || todo.important;
+    !!todo.dueDate ||
+    !!todo.list?.name ||
+    todo.myDay ||
+    todo.important ||
+    !!todo.assignee;
 
   return (
     <div
@@ -80,6 +84,15 @@ export function KanbanCard({
                 title="Important"
               >
                 <Star size={12} className="fill-warn" />
+              </span>
+            )}
+            {todo.assignee && (
+              <span
+                className="flex items-center gap-1 rounded-lg bg-success/15 px-1.5 py-1 text-xs text-success"
+                title="Assigned to agent"
+              >
+                <Bot size={12} />
+                agent
               </span>
             )}
           </div>

@@ -1,3 +1,5 @@
+export const AGENT_ASSIGNEE = "agent";
+
 export type Subtodo = {
   id: string;
   title: string;
@@ -43,6 +45,8 @@ export type Todo = {
   listId: string | null;
   projectId: string | null;
   milestoneId: string | null;
+  /** null = manual work; AGENT_ASSIGNEE = picked up by the agent runner. */
+  assignee: string | null;
   title: string;
   note: string;
   parentId: string | null;
