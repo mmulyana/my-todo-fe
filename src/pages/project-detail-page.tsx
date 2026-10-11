@@ -20,6 +20,7 @@ import { AttachmentSection } from "../components/attachment-section";
 import { DeleteProjectDialog } from "../components/delete-project-dialog";
 import { DocumentSheet } from "../components/document-sheet";
 import { MilestonesSection } from "../components/milestones-section";
+import { ReposSection } from "../components/repos-section";
 import {
   Select,
   SelectContent,
@@ -214,6 +215,10 @@ export default function ProjectDetailPage() {
         <div className="flex min-w-0 flex-col gap-10 xl:col-start-1 xl:row-start-2">
           <Section title="Milestones">
             <MilestonesSection projectId={project.id} />
+          </Section>
+
+          <Section title="Repositories" count={project.repos.length}>
+            <ReposSection project={project} />
           </Section>
 
           <Section title="Sub-projects" count={subProjects.length}>

@@ -47,6 +47,8 @@ export type Todo = {
   milestoneId: string | null;
   /** null = manual work; AGENT_ASSIGNEE = picked up by the agent runner. */
   assignee: string | null;
+  /** One of the project's repos; null = the project's only repo. */
+  repo: string | null;
   title: string;
   note: string;
   parentId: string | null;
@@ -84,6 +86,8 @@ export type Project = {
   parentId: string | null;
   code?: string | null;
   archivedAt?: string | null;
+  /** Canonical repo URLs the agent may work in. */
+  repos: string[];
   attachments: Attachment[];
 };
 

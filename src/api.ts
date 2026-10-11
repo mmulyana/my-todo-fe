@@ -153,6 +153,7 @@ const todoFieldsFragment = graphql(`
     }
     milestoneId
     assignee
+    repo
     milestone {
       id
       name
@@ -195,6 +196,7 @@ const toTodo = (r: TodoFieldsResult, ancestors: TodoAncestor[] = []): Todo => ({
   projectId: r.projectId,
   milestoneId: r.milestoneId,
   assignee: r.assignee ?? null,
+  repo: r.repo ?? null,
   parentId: r.parentId ?? null,
   ancestors,
   title: r.title,
@@ -348,6 +350,7 @@ export async function updateTodo(
   if (patch.projectId !== undefined) input.projectId = patch.projectId;
   if (patch.milestoneId !== undefined) input.milestoneId = patch.milestoneId;
   if (patch.assignee !== undefined) input.assignee = patch.assignee;
+  if (patch.repo !== undefined) input.repo = patch.repo;
   if (patch.myDay !== undefined) input.today = patch.myDay ? todayISO() : null;
 
   await gql(UpdateTodoDocument, { input: input as any }, signal);
@@ -776,6 +779,7 @@ const projectFieldsFragment = graphql(`
     parentId
     code
     archivedAt
+    repos
     attachments {
       id
       filename
@@ -863,6 +867,7 @@ export async function updateProject(
     parentId?: string | null;
     code?: string | null;
     color?: string | null;
+    repos?: string[];
   },
 ): Promise<void> {
   await gql(UpdateProjectDocument, { input: { id, ...patch } as any });

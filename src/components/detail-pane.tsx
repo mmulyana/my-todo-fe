@@ -16,6 +16,7 @@ import { useMilestones } from "../hooks/useMilestones";
 import { activeProjects, isArchived } from "../projects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
 import { AGENT_ASSIGNEE, type Todo } from "../types";
+import { repoName } from "../lib/repo";
 import {
   X,
   ChevronRight,
@@ -27,6 +28,7 @@ import {
   Columns3,
   Flag,
   Bot,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -104,6 +106,8 @@ export function DetailPaneContent({
   const { data: kanbanColumns = [] } = useKanbanColumns(todo?.projectId ?? "");
   const { data: milestones = [] } = useMilestones(todo?.projectId ?? undefined);
   const { data: allProjects = [] } = useProjects();
+  const projectRepos =
+    allProjects.find((p) => p.id === todo?.projectId)?.repos ?? [];
 
   const updateTodo = useUpdateTodo();
   const moveTodoToKanbanColumn = useMoveTodoToKanbanColumn();
@@ -248,6 +252,35 @@ export function DetailPaneContent({
               >
                 {todo.assignee ? "Assigned to agent" : "Assign to agent"}
               </button>
+            </MetaRow>
+          )}
+          {!isChild && projectRepos.length > 0 && (
+            <MetaRow icon={<GitBranch className="w-4 h-4" />} label="Repo">
+              <Select
+                value={todo.repo ?? "auto"}
+                onValueChange={(value) =>
+                  update({ repo: value === "auto" ? null : value })
+                }
+              >
+                <SelectTrigger
+                  className="h-8 rounded-lg text-fg hover:bg-tint/5 focus:border-accent border-none text-sm"
+                  aria-label="Repo"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">
+                    {projectRepos.length === 1
+                      ? `${repoName(projectRepos[0])} (only repo)`
+                      : "Not chosen"}
+                  </SelectItem>
+                  {projectRepos.map((url) => (
+                    <SelectItem key={url} value={url}>
+                      {repoName(url)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </MetaRow>
           )}
           {!isChild && (

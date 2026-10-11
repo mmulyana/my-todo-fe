@@ -39,6 +39,7 @@ export function useCreateProject() {
           description: input.description ?? null,
           parentId: input.parentId ?? null,
           code: input.code ?? null,
+          repos: [],
           attachments: [],
         },
       ]),
@@ -96,6 +97,7 @@ export function useUpdateProject() {
     parentId?: string | null;
     code?: string | null;
     color?: string | null;
+    repos?: string[];
   }>(
     [PROJECTS_KEY],
     ({ id, ...patchFields }) => api.updateProject(id, patchFields),

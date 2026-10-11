@@ -2,6 +2,7 @@ import { Bot, GripVertical, Star, Sun } from "lucide-react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/types";
+import { repoName } from "@/lib/repo";
 import {
   TodoDueDate,
   TodoListBadge,
@@ -15,12 +16,7 @@ type KanbanCardProps = {
   onOpen: () => void;
 };
 
-export function KanbanCard({
-  todo,
-  index,
-  columnId,
-  onOpen,
-}: KanbanCardProps) {
+export function KanbanCard({ todo, index, columnId, onOpen }: KanbanCardProps) {
   const { ref, handleRef, isDragging } = useSortable({
     id: todo.id,
     index,
@@ -89,10 +85,14 @@ export function KanbanCard({
             {todo.assignee && (
               <span
                 className="flex items-center gap-1 rounded-lg bg-success/15 px-1.5 py-1 text-xs text-success"
-                title="Assigned to agent"
+                title={
+                  todo.repo
+                    ? `Assigned to agent · ${todo.repo}`
+                    : "Assigned to agent"
+                }
               >
                 <Bot size={12} />
-                agent
+                {todo.repo ? repoName(todo.repo) : "agent"}
               </span>
             )}
           </div>
