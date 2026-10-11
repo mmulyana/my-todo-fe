@@ -51,6 +51,8 @@ export type Todo = {
   repo: string | null;
   title: string;
   note: string;
+  /** Editor document. Only populated by the single-todo query, lists leave it out. */
+  noteJson?: DocumentContent;
   parentId: string | null;
   /** Root-first chain of parents. Only populated by the single-todo query. */
   ancestors: TodoAncestor[];

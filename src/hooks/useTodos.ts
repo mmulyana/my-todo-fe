@@ -174,8 +174,8 @@ export function useUpdateTodo() {
   );
 }
 
-function useRefetchingAttachment<TVars>(
-  mutationFn: (vars: TVars) => Promise<unknown>,
+function useRefetchingAttachment<TVars, TResult = unknown>(
+  mutationFn: (vars: TVars) => Promise<TResult>,
 ) {
   const qc = useQueryClient();
   return useMutation({
