@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CheckSquare, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { login } from "../api";
+import { AuthCard } from "../components/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -33,27 +34,30 @@ export default function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 shadow-xl">
-        <div className="mx-auto w-14 h-14 rounded-2xl border-line flex items-center justify-center p-1.5">
-          <div className="w-full h-full rounded-xl bg-raised flex items-center justify-center">
-            <CheckSquare className="w-6 h-6 text-accent" />
-          </div>
-        </div>
-
-        <h1 className="mt-4 text-xl font-semibold text-center text-fg">
-          Sign in to continue
-        </h1>
-        <p className="mt-1 text-sm text-muted text-center">
-          Please sign in to manage your tasks
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3.5">
-          {error && (
-            <p className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-3 py-2">
-              {error}
-            </p>
-          )}
+    <AuthCard
+      title="Sign in to continue"
+      subtitle="Please sign in to manage your tasks"
+      footer={
+        <>
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-accent font-medium hover:underline"
+          >
+            Sign Up
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3.5">
+        {error && (
+          <p
+            role="alert"
+            className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-3 py-2"
+          >
+            {error}
+          </p>
+        )}
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="login-email" className="text-xs font-medium text-muted">
@@ -113,14 +117,6 @@ export default function LoginPage() {
             {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-muted">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-accent font-medium hover:underline">
-            Sign Up
-          </Link>
-        </p>
-      </div>
-    </div>
+      </AuthCard>
   );
 }
