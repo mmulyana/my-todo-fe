@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CheckSquare, Mail, User, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, User, Lock, Eye, EyeOff } from "lucide-react";
 import { register as registerUser } from "../api";
+import { AuthCard } from "../components/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,27 +37,27 @@ export default function RegisterPage() {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 shadow-xl">
-        <div className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center p-1.5">
-          <div className="w-full h-full rounded-xl bg-raised flex items-center justify-center">
-            <CheckSquare className="w-6 h-6 text-accent" />
-          </div>
-        </div>
-
-        <h1 className="mt-4 text-xl font-semibold text-center text-fg">
-          Create your account
-        </h1>
-        <p className="mt-1 text-sm text-muted text-center">
-          Sign up to start organizing your tasks
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3.5">
-          {error && (
-            <p className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-3 py-2">
-              {error}
-            </p>
-          )}
+    <AuthCard
+      title="Create your account"
+      subtitle="Sign up to start organizing your tasks"
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="text-accent font-medium hover:underline">
+            Sign In
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3.5">
+        {error && (
+          <p
+            role="alert"
+            className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-md px-3 py-2"
+          >
+            {error}
+          </p>
+        )}
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="register-email" className="text-xs font-medium text-muted">
@@ -129,7 +130,9 @@ export default function RegisterPage() {
             </div>
             {errors.password && (
               <span className="text-xs text-danger">
-                Password must be at least 6 characters
+                {errors.password.type === "minLength"
+                  ? "Password must be at least 6 characters"
+                  : "Password is required"}
               </span>
             )}
           </div>
@@ -138,14 +141,6 @@ export default function RegisterPage() {
             {isSubmitting ? "Creating account..." : "Sign Up"}
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-muted">
-          Already have an account?{" "}
-          <Link to="/login" className="text-accent font-medium hover:underline">
-            Sign In
-          </Link>
-        </p>
-      </div>
-    </div>
+      </AuthCard>
   );
 }
