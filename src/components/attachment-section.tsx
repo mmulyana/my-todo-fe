@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   File,
   File as FileIcon,
@@ -15,6 +15,8 @@ import {
 } from "../hooks/useTodos";
 import { resolveAttachmentUrl } from "../api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ImageViewer } from "./image-viewer";
+import { toViewerImages } from "../lib/viewer-images";
 import type { Attachment } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -47,12 +49,34 @@ function hostOf(url: string): string {
   }
 }
 
-export function AttachmentSection({
+export function AttachmentSection(props: AttachmentSectionProps) {
+  const [viewerId, setViewerId] = useState<string | null>(null);
+  const images = useMemo(
+    () => toViewerImages(props.attachments),
+    [props.attachments],
+  );
+  const viewerIndex = images.findIndex((image) => image.id === viewerId);
+
+  return (
+    <>
+      <AttachmentSectionContent {...props} onOpenImage={setViewerId} />
+      <ImageViewer
+        images={images}
+        index={viewerIndex >= 0 ? viewerIndex : null}
+        onIndexChange={(next) => setViewerId(images[next]?.id ?? null)}
+        onClose={() => setViewerId(null)}
+      />
+    </>
+  );
+}
+
+function AttachmentSectionContent({
   attachments,
   tabbed = false,
   view,
+  onOpenImage,
   ...target
-}: AttachmentSectionProps) {
+}: AttachmentSectionProps & { onOpenImage: (id: string) => void }) {
   const [url, setUrl] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -137,6 +161,7 @@ export function AttachmentSection({
             <FileTile
               key={attachment.id}
               attachment={attachment}
+              onOpenImage={() => onOpenImage(attachment.id)}
               onDelete={() => deleteAttachment.mutate(attachment.id)}
             />
           ))}
@@ -233,6 +258,7 @@ export function AttachmentSection({
           <AttachmentRow
             key={attachment.id}
             attachment={attachment}
+            onOpenImage={() => onOpenImage(attachment.id)}
             onDelete={() => deleteAttachment.mutate(attachment.id)}
           />
         ),
@@ -272,7 +298,23 @@ export function AttachmentSection({
 type AttachmentRowProps = {
   attachment: Attachment;
   onDelete: () => void;
+  /** Called for a plain click on an image, other types keep their link behaviour. */
+  onOpenImage?: () => void;
 };
+
+// note: klik biasa pada gambar membuka viewer, klik dengan modifier tetap membuka tab baru lewat href
+function openImageOnClick(
+  attachment: Attachment,
+  onOpenImage: (() => void) | undefined,
+) {
+  return (event: React.MouseEvent) => {
+    if (attachment.type !== "IMAGE" || !onOpenImage) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
+      return;
+    event.preventDefault();
+    onOpenImage();
+  };
+}
 
 /** Rich card for links: thumbnail, title, description, source. */
 function LinkCard({
@@ -348,7 +390,7 @@ function LinkCard({
 }
 
 /** Square tile for uploaded files: image preview, or an icon with the extension. */
-function FileTile({ attachment, onDelete }: AttachmentRowProps) {
+function FileTile({ attachment, onDelete, onOpenImage }: AttachmentRowProps) {
   const href = resolveAttachmentUrl(attachment.url);
   const ext = extensionOf(attachment.filename);
 
@@ -358,6 +400,7 @@ function FileTile({ attachment, onDelete }: AttachmentRowProps) {
         href={href}
         target="_blank"
         rel="noreferrer"
+        onClick={openImageOnClick(attachment, onOpenImage)}
         className="block aspect-square overflow-hidden rounded-xl border border-line bg-raised/60 hover:bg-raised transition-colors"
       >
         {attachment.type === "IMAGE" ? (
@@ -392,7 +435,11 @@ function FileTile({ attachment, onDelete }: AttachmentRowProps) {
   );
 }
 
-function AttachmentRow({ attachment, onDelete }: AttachmentRowProps) {
+function AttachmentRow({
+  attachment,
+  onDelete,
+  onOpenImage,
+}: AttachmentRowProps) {
   const href = resolveAttachmentUrl(attachment.url);
 
   return (
@@ -412,6 +459,7 @@ function AttachmentRow({ attachment, onDelete }: AttachmentRowProps) {
         href={href}
         target="_blank"
         rel="noreferrer"
+        onClick={openImageOnClick(attachment, onOpenImage)}
         className="flex-1 min-w-0 truncate py-1.5 text-sm text-fg/80 hover:underline"
       >
         {attachment.filename}
