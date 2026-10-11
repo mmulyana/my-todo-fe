@@ -190,7 +190,11 @@ const todoFieldsFragment = graphql(`
 
 type TodoFieldsResult = ResultOf<typeof todoFieldsFragment>;
 
-const toTodo = (r: TodoFieldsResult, ancestors: TodoAncestor[] = []): Todo => ({
+const toTodo = (
+  r: TodoFieldsResult,
+  ancestors: TodoAncestor[] = [],
+  noteJson?: DocumentContent,
+): Todo => ({
   id: r.id,
   listId: r.listId,
   projectId: r.projectId,
@@ -201,6 +205,7 @@ const toTodo = (r: TodoFieldsResult, ancestors: TodoAncestor[] = []): Todo => ({
   ancestors,
   title: r.title,
   note: r.note ?? "",
+  noteJson,
   completed: r.completed,
   important: r.important,
   priority: r.priority as Todo["priority"],
@@ -255,6 +260,7 @@ const TodoDocument = graphql(
     query Todo($id: ID!) {
       todo(id: $id) {
         ...TodoFields
+        noteJson
         parent {
           id
           title
@@ -289,7 +295,11 @@ export async function fetchTodo(id: string): Promise<Todo | null> {
   for (let node = data.todo.parent; node; node = node.parent) {
     ancestors.unshift({ id: node.id, title: node.title });
   }
-  return toTodo(readFragment(todoFieldsFragment, data.todo), ancestors);
+  return toTodo(
+    readFragment(todoFieldsFragment, data.todo),
+    ancestors,
+    (data.todo.noteJson ?? null) as DocumentContent,
+  );
 }
 
 type NewTodoFields = {
@@ -342,6 +352,7 @@ export async function updateTodo(
   const input: Record<string, unknown> = { id };
   if (patch.title !== undefined) input.title = patch.title;
   if (patch.note !== undefined) input.note = patch.note;
+  if (patch.noteJson !== undefined) input.noteJson = patch.noteJson;
   if (patch.completed !== undefined) input.completed = patch.completed;
   if (patch.important !== undefined) input.important = patch.important;
   if (patch.priority !== undefined) input.priority = patch.priority;

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AttachmentSection } from "./attachment-section";
+import { NoteEditor } from "./note-editor";
 import { SubtodoSection } from "./subtodo-section";
 import { PriorityIcon } from "./priority-icon";
 import { formatDue, fromISODate, isOverdue, toISODate } from "../lib/dates";
@@ -125,10 +126,6 @@ export function DetailPaneContent({
   const [titleDraft, onTitleChange] = useDebouncedField(
     todo?.title ?? "",
     (title, signal) => update({ title }, signal),
-  );
-  const [noteDraft, onNoteChange] = useDebouncedField(
-    todo?.note ?? "",
-    (note, signal) => update({ note }, signal),
   );
 
   if (!todo) return null;
@@ -427,12 +424,12 @@ export function DetailPaneContent({
 
           <div className="flex flex-col gap-1.5 mt-1">
             <span className="text-sm">Note</span>
-            <textarea
-              className="w-full p-2 rounded-lg border border-line bg-raised  text-xs outline-none focus:border-accent resize-y"
-              value={noteDraft}
-              onChange={(e) => onNoteChange(e.target.value)}
-              placeholder="Add note..."
-              rows={3}
+            <NoteEditor
+              key={todo.id}
+              todoId={todo.id}
+              noteJson={todo.noteJson}
+              attachments={todo.attachments}
+              onChange={(noteJson, signal) => update({ noteJson }, signal)}
             />
           </div>
 

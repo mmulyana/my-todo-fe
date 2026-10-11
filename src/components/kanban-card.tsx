@@ -1,4 +1,4 @@
-import { Bot, GripVertical, Star, Sun } from "lucide-react";
+import { Bot, FileText, GripVertical, Star, Sun } from "lucide-react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/types";
@@ -25,7 +25,9 @@ export function KanbanCard({ todo, index, columnId, onOpen }: KanbanCardProps) {
     group: columnId,
   });
 
+  const hasNote = todo.note.trim() !== "";
   const hasMeta =
+    hasNote ||
     !!todo.dueDate ||
     !!todo.list?.name ||
     todo.myDay ||
@@ -57,11 +59,16 @@ export function KanbanCard({ todo, index, columnId, onOpen }: KanbanCardProps) {
             {todo.title}
           </p>
         </div>
-        {todo.note && (
-          <p className="mt-1 line-clamp-2 text-xs text-muted">{todo.note}</p>
-        )}
         {hasMeta && (
           <div className="mt-2 flex flex-wrap items-center gap-1 text-muted">
+            {hasNote && (
+              <span
+                className="flex items-center rounded-lg px-1.5 py-1"
+                title="Has note"
+              >
+                <FileText size={12} />
+              </span>
+            )}
             {todo.dueDate && (
               <TodoDueDate dueDate={todo.dueDate} completed={todo.completed} />
             )}
