@@ -43,13 +43,13 @@ function AttachmentView({ node }: NodeViewProps) {
   const title = attachment.title || attachment.filename || hostOf(href);
   const thumb = attachment.type === "IMAGE" ? href : attachment.image;
 
-  const openViewer = (event: React.MouseEvent) => {
-    if (imageIndex < 0) return;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
+  const open = () => {
+    if (imageIndex >= 0) {
+      setViewerIndex(imageIndex);
+      setViewerOpen(true);
       return;
-    event.preventDefault();
-    setViewerIndex(imageIndex);
-    setViewerOpen(true);
+    }
+    window.open(href, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -60,12 +60,18 @@ function AttachmentView({ node }: NodeViewProps) {
         onIndexChange={setViewerIndex}
         onClose={() => setViewerOpen(false)}
       />
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        onClick={openViewer}
-        className="flex items-center gap-2.5 rounded-lg border border-line bg-raised/60 p-2 no-underline hover:bg-raised"
+      {/* note: bukan <a> karena extension Link Tiptap memanggil window.open untuk setiap anchor di editor, klik jadi membuka dua kali */}
+      <div
+        role="link"
+        tabIndex={0}
+        onClick={open}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+          }
+        }}
+        className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line bg-raised/60 p-2 hover:bg-raised"
       >
         {thumb ? (
           <img
@@ -89,7 +95,7 @@ function AttachmentView({ node }: NodeViewProps) {
             {attachment.siteName || hostOf(href)}
           </span>
         </span>
-      </a>
+      </div>
     </NodeViewWrapper>
   );
 }
