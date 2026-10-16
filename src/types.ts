@@ -90,6 +90,8 @@ export type Project = {
   archivedAt?: string | null;
   /** Canonical repo URLs the agent may work in. */
   repos: string[];
+  /** Float so a project can be dropped between two others (1 and 2 -> 1.5). */
+  position: number;
   attachments: Attachment[];
 };
 
