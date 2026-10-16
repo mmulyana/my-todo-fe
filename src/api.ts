@@ -791,6 +791,7 @@ const projectFieldsFragment = graphql(`
     code
     archivedAt
     repos
+    position
     attachments {
       id
       filename
@@ -879,6 +880,7 @@ export async function updateProject(
     code?: string | null;
     color?: string | null;
     repos?: string[];
+    position?: number;
   },
 ): Promise<void> {
   await gql(UpdateProjectDocument, { input: { id, ...patch } as any });

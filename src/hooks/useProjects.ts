@@ -40,6 +40,7 @@ export function useCreateProject() {
           parentId: input.parentId ?? null,
           code: input.code ?? null,
           repos: [],
+          position: projects.reduce((max, p) => Math.max(max, p.position), -1) + 1,
           attachments: [],
         },
       ]),
@@ -98,12 +99,15 @@ export function useUpdateProject() {
     code?: string | null;
     color?: string | null;
     repos?: string[];
+    position?: number;
   }>(
     [PROJECTS_KEY],
     ({ id, ...patchFields }) => api.updateProject(id, patchFields),
     (qc, { id, ...patchFields }) =>
       patch<Project>(qc, PROJECTS_KEY, (projects) =>
-        projects.map((p) => (p.id === id ? { ...p, ...patchFields } : p)),
+        projects
+          .map((p) => (p.id === id ? { ...p, ...patchFields } : p))
+          .sort((a, b) => a.position - b.position),
       ),
   );
 }
