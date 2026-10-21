@@ -90,18 +90,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         onClick={onClose}
         aria-hidden="true"
         className={cn(
-          "fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 md:hidden",
+          "fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 lg:hidden",
           open ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       />
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72.5 max-w-[85vw] flex flex-col min-h-0 pt-4 pb-2 px-2 bg-bg transition-transform duration-200 ease-out md:static md:z-auto md:w-auto md:max-w-none md:translate-x-0 md:transition-none",
+          "fixed inset-y-0 left-0 z-50 w-72.5 max-w-[85vw] flex flex-col min-h-0 pt-4 pb-2 px-2 bg-bg transition-transform duration-200 ease-out lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:transition-none",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex justify-end shrink-0 px-1 mb-1 md:hidden">
+        <div className="flex justify-end shrink-0 px-1 mb-1 lg:hidden">
           <button
             type="button"
             onClick={onClose}
