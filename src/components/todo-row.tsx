@@ -11,10 +11,18 @@ import {
   TodoProjectBadge,
   TodoSubtodoProgress,
 } from "./todo-metadata";
+import { toast } from "sonner";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  selectedTodoIdsAtom,
+  selectingAtom,
+  selectionModeAtom,
+  toggleTodoSelectionAtom,
+} from "../atoms/selection";
 import { useDeleteTodo, useTodo, useUpdateTodo } from "../hooks/useTodos";
 import type { Subtodo, Todo } from "../types";
 import { cn } from "@/lib/utils";
-import { Star, Sun, Trash2 } from "lucide-react";
+import { Check, CheckSquare, Star, Sun, Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -52,19 +60,41 @@ export function TodoRow({
   const [, setParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const selectedIds = useAtomValue(selectedTodoIdsAtom);
+  const toggleSelection = useSetAtom(toggleTodoSelectionAtom);
+  const setSelectionMode = useSetAtom(selectionModeAtom);
+  const selected = selectedIds.includes(todo.id);
+  const selecting = useAtomValue(selectingAtom);
+
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
 
   const patchTodo = (patch: Partial<Todo>) =>
     updateTodo.mutate({ id: todo.id, patch, skipInvalidate });
 
-  const onToggleComplete = () => patchTodo({ completed: !todo.completed });
+  const onToggleComplete = () => {
+    const completing = !todo.completed;
+    patchTodo({ completed: completing });
+    if (!completing) return;
+    toast("Todo completed", {
+      action: {
+        label: "Undo",
+        onClick: () =>
+          updateTodo.mutate({ id: todo.id, patch: { completed: false }, skipInvalidate }),
+      },
+    });
+  };
 
   const onToggleImportant = () => patchTodo({ important: !todo.important });
 
   const onToggleMyDay = () => patchTodo({ myDay: !todo.myDay });
 
-  const onSelect = () => {
+  const onSelect = (e?: React.MouseEvent) => {
+    if (e && (e.shiftKey || e.ctrlKey || e.metaKey || selecting)) {
+      e.preventDefault();
+      toggleSelection(todo.id);
+      return;
+    }
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
     if (!isDesktop) {
       navigate(`/todo/${todo.id}`);
@@ -78,6 +108,11 @@ export function TodoRow({
       },
       { replace: true },
     );
+  };
+
+  const onContextSelect = () => {
+    setSelectionMode(true);
+    toggleSelection(todo.id);
   };
 
   const onDelete = () => {
@@ -102,23 +137,52 @@ export function TodoRow({
         <ContextMenuTrigger asChild>
           <div
             className={cn(
-              "group/row flex items-center group",
+              "group/row flex items-center group rounded-lg",
               dragging && "opacity-40",
+              selecting && "cursor-pointer",
             )}
+            aria-selected={selecting ? selected : undefined}
+            onClick={(e) => {
+              if (!selecting || nested) return;
+              if ((e.target as HTMLElement).closest("button, a, input")) return;
+              toggleSelection(todo.id);
+            }}
           >
             {!nested && !hideGrab && (
               <TodoDragHandle
                 title={todo.title}
-                dragHandleRef={dragHandleRef}
+                dragHandleRef={selecting ? undefined : dragHandleRef}
               />
             )}
 
-            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 rounded-xl">
+            <div
+              className={cn(
+                "flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 rounded-xl",
+                // note: margin negatif melebarkan highlight ke kolom drag handle dan pr-4 container tanpa menggeser teks
+                selecting && "-ml-2 pl-2 -mr-0.5 pr-2 rounded-lg transition-colors hover:bg-tint/[0.03]",
+                selected && "bg-tint/5 hover:bg-tint/5",
+              )}
+            >
               <div className="flex-1 min-w-0 flex items-center gap-2 py-1 text-left">
-                <TodoCheckbox
-                  completed={todo.completed}
-                  onToggle={onToggleComplete}
-                />
+                {selecting && !nested ? (
+                  // note: ukuran sama dengan TodoCheckbox (22px) supaya teks tidak bergeser saat masuk mode pilih
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-full border-[1.5px] transition-colors",
+                      selected
+                        ? "bg-accent border-accent text-white"
+                        : "border-line group-hover/row:border-muted",
+                    )}
+                  >
+                    {selected && <Check className="w-3 h-3" strokeWidth={3} />}
+                  </span>
+                ) : (
+                  <TodoCheckbox
+                    completed={todo.completed}
+                    onToggle={onToggleComplete}
+                  />
+                )}
                 {todo.priority != null && (
                   <TodoPriorityBadge priority={todo.priority} />
                 )}
@@ -187,6 +251,10 @@ export function TodoRow({
         </ContextMenuTrigger>
 
         <ContextMenuContent className="w-44">
+          <ContextMenuItem onSelect={onContextSelect}>
+            <CheckSquare className="w-3.5 h-3.5" />
+            <span>{selected ? "Deselect" : "Select"}</span>
+          </ContextMenuItem>
           <ContextMenuItem onSelect={onToggleImportant}>
             <Star
               className={cn(
@@ -245,9 +313,12 @@ function SubtodoItem({ step, hideDueDate }: SubtodoItemProps) {
 
   if (!todo) {
     return (
-      <div className="flex items-center gap-2.5 opacity-60">
+      // note: ukuran harus sama dengan baris TodoRow (py-1, checkbox 22px, teks 15px) supaya tinggi tidak melompat saat data tiba
+      <div className="flex items-center gap-2 py-1 opacity-60">
         <span className="w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] border-line bg-raised" />
-        <span className="flex-1 min-w-0 truncate py-1.5">{step.title}</span>
+        <span className="flex-1 min-w-0 truncate text-[16px] sm:text-[15px]">
+          {step.title}
+        </span>
       </div>
     );
   }

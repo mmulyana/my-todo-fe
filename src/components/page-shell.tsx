@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
+import { SelectModeButton } from "./select-mode-button";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ type PageShellProps = {
   footer?: ReactNode;
   classNameChildren?: string;
   fill?: boolean;
+  selectable?: boolean;
 };
 
 export function PageShell({
@@ -30,6 +32,7 @@ export function PageShell({
   footer = null,
   classNameChildren,
   fill = false,
+  selectable = false,
 }: PageShellProps) {
   const { openSidebar } = useSidebarContext();
   const navigate = useNavigate();
@@ -92,7 +95,10 @@ export function PageShell({
             {title}
           </h1>
         </div>
-        {actions}
+        <div className="flex items-center gap-1 shrink-0">
+          {selectable && <SelectModeButton />}
+          {actions}
+        </div>
       </header>
 
       {fill ? (

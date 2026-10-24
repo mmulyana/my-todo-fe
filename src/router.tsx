@@ -10,8 +10,8 @@ import LoginPage from "./pages/login-page";
 import AllPage from "./pages/all-page";
 import TodoDetailPage from "./pages/todo-detail-page";
 import DocumentPage from "./pages/document-page";
-import SettingsPage from "./pages/settings-page";
 import TimerPage from "./pages/timer-page";
+import UpcomingPage from "./pages/upcoming-page";
 import CalendarPage from "./pages/calendar-page";
 
 export const router = createBrowserRouter([
@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/today" replace /> },
           { path: "today", element: <TodayPage /> },
           { path: "important", element: <ImportantPage /> },
+          { path: "upcoming", element: <UpcomingPage /> },
           { path: "all", element: <AllPage /> },
           { path: "timer", element: <TimerPage /> },
           { path: "calendar", element: <CalendarPage /> },
@@ -47,7 +48,8 @@ export const router = createBrowserRouter([
             element: <DocumentPage />,
           },
           { path: "todo/:todoId", element: <TodoDetailPage /> },
-          { path: "mcp", element: <SettingsPage /> },
+          { path: "settings", element: <Navigate to="/today?settings=profile" replace /> },
+          { path: "mcp", element: <Navigate to="/today?settings=mcp" replace /> },
           { path: "*", element: <Navigate to="/today" replace /> },
         ],
       },

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { CheckSquare } from "lucide-react";
+import { BrandLogo } from "./brand-logo";
+import { BRAND } from "@/lib/brand";
 
 type AuthCardProps = {
   title: string;
@@ -12,8 +13,12 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg p-4">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-lg">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-white shadow-xs">
-          <CheckSquare className="h-5 w-5" />
+        <div className="flex flex-col items-center gap-1">
+          <BrandLogo size={44} />
+          <span className="mt-2 text-sm font-semibold tracking-tight text-fg">
+            {BRAND.name}
+          </span>
+          <span className="text-xs text-muted text-center">{BRAND.tagline}</span>
         </div>
 
         <h1 className="mt-4 text-center text-xl font-semibold text-fg">

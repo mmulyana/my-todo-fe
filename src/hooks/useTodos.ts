@@ -4,8 +4,11 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { toast } from "sonner";
 import * as api from "../api";
 import { INBOX } from "../views";
+import { toISODate } from "../lib/dates";
 import type { List, Todo, TodoFilter, View } from "../types";
 import { PROJECTS_KEY } from "./useProjects";
 
@@ -84,6 +87,37 @@ export function useCarriedOverTodos(options?: { enabled?: boolean }) {
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
     enabled: options?.enabled,
+  });
+}
+
+// note: dueTo tanpa dueFrom = semua yang lewat tenggat, subtodo ikut karena rentang due dianggap lookup kalender
+export function useOverdueTodos(options?: { enabled?: boolean }) {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const filter: TodoFilter = { dueTo: toISODate(yesterday), completed: false };
+  return useQuery({
+    queryKey: todosKey(filter),
+    queryFn: () => api.fetchTodos(filter),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+    enabled: options?.enabled,
+  });
+}
+
+export function useUpcomingTodos(days: number) {
+  const from = new Date();
+  const to = new Date();
+  to.setDate(to.getDate() + days - 1);
+  const filter: TodoFilter = {
+    dueFrom: toISODate(from),
+    dueTo: toISODate(to),
+    completed: false,
+  };
+  return useQuery({
+    queryKey: todosKey(filter),
+    queryFn: () => api.fetchTodos(filter),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   });
 }
 
@@ -263,11 +297,50 @@ export function useMoveTodoToList() {
   );
 }
 
+const UNDO_MS = 5_000;
+
+// note: hapus ditunda UNDO_MS supaya bisa dibatalkan, todo langsung hilang dari cache. Tutup tab sebelum itu = tidak terhapus
 export function useDeleteTodo() {
-  return useOptimisticTodo<string>(
-    (id) => api.removeTodo(id),
-    (qc, id) => writeTodo(qc, id, () => null),
+  const qc = useQueryClient();
+
+  const mutate = useCallback(
+    (input: string | string[]) => {
+      const ids = Array.isArray(input) ? input : [input];
+      const snapshot = [
+        ...qc.getQueriesData({ queryKey: TODOS_KEY }),
+        ...qc.getQueriesData({ queryKey: TODO_KEY }),
+      ];
+      const restore = () =>
+        snapshot.forEach(([key, data]) => qc.setQueryData(key, data));
+      ids.forEach((id) => writeTodo(qc, id, () => null));
+
+      const timer = setTimeout(async () => {
+        try {
+          await Promise.all(ids.map((id) => api.removeTodo(id)));
+        } catch {
+          restore();
+          toast.error(ids.length > 1 ? "Could not delete the todos" : "Could not delete the todo");
+        } finally {
+          qc.invalidateQueries({ queryKey: TODOS_KEY });
+          qc.invalidateQueries({ queryKey: TODO_KEY });
+        }
+      }, UNDO_MS);
+
+      toast(ids.length > 1 ? `${ids.length} todos deleted` : "Todo deleted", {
+        duration: UNDO_MS,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            clearTimeout(timer);
+            restore();
+          },
+        },
+      });
+    },
+    [qc],
   );
+
+  return { mutate };
 }
 
 export function useCreateSubtodo() {

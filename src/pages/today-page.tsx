@@ -41,6 +41,7 @@ export default function TodayPage() {
 
   return (
     <PageShell
+      selectable
       title={query ? `Searching "${query}"` : "Today"}
       icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}
@@ -59,7 +60,7 @@ export default function TodayPage() {
       }
     >
       <div className="space-y-1.5">
-        <div className="space-y-1">
+        <div>
           {visible?.map((todo) => (
             <TodoRow key={todo.id} todo={todo} showProject />
           ))}

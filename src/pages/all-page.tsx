@@ -21,6 +21,7 @@ export default function AllPage() {
 
   return (
     <PageShell
+      selectable
       title={query ? `Searching "${query}"` : 'All'}
       icon={<CheckSquare size={20} className="text-accent" />}
       footer={null}
