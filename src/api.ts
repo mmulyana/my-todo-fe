@@ -310,6 +310,7 @@ type NewTodoFields = {
   important?: boolean;
   myDay?: boolean;
   dueDate?: string | null;
+  priority?: number | null;
 };
 
 const CreateTodoDocument = graphql(
@@ -330,6 +331,7 @@ export async function createTodo(fields: NewTodoFields): Promise<Todo> {
   if (fields.milestoneId != null) input.milestoneId = fields.milestoneId;
   if (fields.important) input.important = true;
   if (fields.dueDate) input.dueDate = fields.dueDate;
+  if (fields.priority) input.priority = fields.priority;
   if (fields.myDay) input.today = todayISO();
 
   const data = await gql(CreateTodoDocument, { input: input as any });
@@ -931,6 +933,8 @@ const LoginDocument = graphql(`
         id
         email
         username
+        displayName
+        avatarUrl
         createdAt
         updatedAt
       }
@@ -957,6 +961,8 @@ const RegisterDocument = graphql(`
         id
         email
         username
+        displayName
+        avatarUrl
         createdAt
         updatedAt
       }
@@ -983,6 +989,8 @@ const MeDocument = graphql(`
       id
       email
       username
+      displayName
+      avatarUrl
       createdAt
       updatedAt
     }
@@ -992,6 +1000,86 @@ const MeDocument = graphql(`
 export async function fetchMe(): Promise<import("./types").User> {
   const data = await gql(MeDocument, {});
   return data.me;
+}
+
+const UpdateProfileDocument = graphql(`
+  mutation UpdateProfile($input: UpdateProfileInput!) {
+    updateProfile(input: $input) {
+      id
+      email
+      username
+      displayName
+      avatarUrl
+      createdAt
+      updatedAt
+    }
+  }
+`);
+
+export async function updateProfile(input: {
+  displayName?: string | null;
+  username?: string | null;
+}): Promise<import("./types").User> {
+  const data = await gql(UpdateProfileDocument, { input });
+  return data.updateProfile;
+}
+
+const ChangePasswordDocument = graphql(`
+  mutation ChangePassword($input: ChangePasswordInput!) {
+    changePassword(input: $input)
+  }
+`);
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await gql(ChangePasswordDocument, {
+    input: { currentPassword, newPassword },
+  });
+}
+
+export async function uploadAvatar(
+  file: File,
+  isRetry = false,
+): Promise<import("./types").User> {
+  const token = localStorage.getItem("accessToken");
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${REST_BASE_URL}/users/me/avatar`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  });
+
+  if (res.status === 401 && !isRetry && localStorage.getItem("refreshToken")) {
+    try {
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+      await refreshPromise;
+      return uploadAvatar(file, true);
+    } catch {
+      logout();
+      throw new Error("Session expired, please sign in again");
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message || "Failed to upload avatar");
+  }
+
+  return res.json();
+}
+
+export async function removeAvatar(): Promise<import("./types").User> {
+  return restFetch<import("./types").User>("/users/me/avatar", {
+    method: "DELETE",
+  });
 }
 
 export function logout() {

@@ -6,6 +6,9 @@ import { activeProjects, isArchived } from "../projects";
 import { useLists } from "../hooks/useLists";
 import { ProjectCombobox } from "./project-combobox";
 import { ListCombobox } from "./list-combobox";
+import { PRIORITY_CONFIG } from "./priority-icon";
+import { formatDueRelative } from "../lib/dates";
+import { parseQuickAdd } from "../lib/quick-add";
 import { cn } from "@/lib/utils";
 import type { List, View } from "../types";
 
@@ -81,6 +84,17 @@ export function TodoInput({
     }
   }, [view, defaultListId]);
 
+  const parsed = useMemo(
+    () => (draft.trim() ? parseQuickAdd(draft, projects) : null),
+    [draft, projects],
+  );
+  const parsedProject = parsed?.projectId
+    ? projects.find((p) => p.id === parsed.projectId)
+    : null;
+  const hasParsed = Boolean(
+    parsed && (parsed.dueDate || parsed.priority || parsed.projectId),
+  );
+
   const availableLists = selectedProjectId
     ? allLists.filter((l) => l.projectId === selectedProjectId)
     : allLists;
@@ -89,16 +103,20 @@ export function TodoInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const title = draft.trim();
-    if (!title) {
+    if (!draft.trim()) {
       onCancel?.();
       return;
     }
+    const quick = parseQuickAdd(draft, projects);
 
     createTodo.mutate({
-      title,
+      title: quick.title,
+      dueDate: quick.dueDate,
+      priority: quick.priority,
       projectId:
-        selectedProjectId || (view?.kind === "project" ? view.id : null),
+        quick.projectId ||
+        selectedProjectId ||
+        (view?.kind === "project" ? view.id : null),
       listId: selectedListId || (view?.kind === "list" ? view.id : null),
       important: view?.kind === "smart" && view.id === "important",
       myDay: view?.kind === "smart" && view.id === "today",
@@ -147,6 +165,25 @@ export function TodoInput({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        {hasParsed && parsed && (
+          <div className="flex items-center gap-1.5 text-xs text-accent" aria-live="polite">
+            {parsed.dueDate && (
+              <span className="rounded-md bg-accent/10 px-2 py-0.5">
+                {formatDueRelative(parsed.dueDate)}
+              </span>
+            )}
+            {parsed.priority && (
+              <span className="rounded-md bg-accent/10 px-2 py-0.5">
+                {PRIORITY_CONFIG[parsed.priority].label.replace(" priority", "")}
+              </span>
+            )}
+            {parsedProject && (
+              <span className="rounded-md bg-accent/10 px-2 py-0.5">
+                {parsedProject.name}
+              </span>
+            )}
+          </div>
+        )}
         {!hideComboboxes && (
           <>
             <ProjectCombobox

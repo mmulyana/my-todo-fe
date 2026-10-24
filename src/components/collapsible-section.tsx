@@ -39,11 +39,14 @@ export function CollapsibleSection({
             </span>
           </button>
         </div>
-        <div className="flex-1 min-w-0 flex items-center gap-1">
-          <span className="truncate text-sm font-medium cursor-pointer">
-            {label}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex-1 min-w-0 flex items-center gap-1.5 text-left cursor-pointer"
+        >
+          <span className="truncate text-sm font-medium">{label}</span>
+          <span className="text-xs tabular-nums text-muted">{count}</span>
+        </button>
       </div>
       {open && children}
     </div>

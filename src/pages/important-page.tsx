@@ -20,6 +20,7 @@ export default function ImportantPage() {
 
   return (
     <PageShell
+      selectable
       title={query ? `Searching "${query}"` : "Important"}
       icon={<Star size={20} className="text-warn fill-warn" />}
       footer={null}

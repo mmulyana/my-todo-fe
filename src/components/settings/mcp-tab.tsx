@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { KeyRound, Share2, Trash2 } from "lucide-react";
-import { PageShell } from "../components/page-shell";
-import { NewTokenModal } from "../components/new-token-modal";
-import { CopyButton } from "../components/copy-button";
-import { McpSetupGuide } from "../components/mcp-setup-guide";
+import { KeyRound, Trash2 } from "lucide-react";
+import { NewTokenModal } from "../new-token-modal";
+import { CopyButton } from "../copy-button";
+import { McpSetupGuide } from "../mcp-setup-guide";
 import { Button } from "@/components/ui/button";
-import { useApiTokens, useRevokeApiToken } from "../hooks/useApiTokens";
-import { API_ORIGIN } from "../api";
-import type { NewApiToken } from "../types";
+import { useApiTokens, useRevokeApiToken } from "../../hooks/useApiTokens";
+import { API_ORIGIN } from "../../api";
+import type { NewApiToken } from "../../types";
 
 const MCP_URL = `${API_ORIGIN}/api/mcp`;
 
@@ -20,25 +19,22 @@ function formatDate(iso: string | null) {
   });
 }
 
-export default function SettingsPage() {
+export function McpTab() {
   const { data: tokens = [], isLoading } = useApiTokens();
   const revokeToken = useRevokeApiToken();
   const [modalOpen, setModalOpen] = useState(false);
   const [revealedToken, setRevealedToken] = useState<NewApiToken | null>(null);
 
   return (
-    <PageShell
-      title="MCP"
-      icon={<Share2 />}
-      actions={
-        <Button size="sm" className="gap-1" onClick={() => setModalOpen(true)}>
-          <KeyRound className="w-3.5 h-3.5" /> New token
-        </Button>
-      }
-    >
-      <div className="flex flex-col gap-6 px-3.5">
+    <>
+      <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-fg">MCP Access</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-medium text-fg">MCP Access</h2>
+            <Button size="sm" className="gap-1" onClick={() => setModalOpen(true)}>
+              <KeyRound className="w-3.5 h-3.5" /> New token
+            </Button>
+          </div>
           <p className="text-sm text-muted leading-relaxed max-w-3xl">
             Personal access tokens let external MCP clients - Claude Desktop, Claude Code -
             read and manage your todos on your behalf. Each token acts as you; revoke one the
@@ -140,6 +136,6 @@ export default function SettingsPage() {
         onOpenChange={setModalOpen}
         onCreated={(token) => setRevealedToken(token)}
       />
-    </PageShell>
+    </>
   );
 }

@@ -1,10 +1,13 @@
 import { NavLink, useMatch } from "react-router-dom";
 import {
+  CalendarClock,
   CalendarDays,
   ChevronsUpDown,
   Infinity as InfinityIcon,
   LogOut,
   Moon,
+  Search,
+  Settings,
   Share2,
   Star,
   Sun,
@@ -13,6 +16,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { SidebarTree } from "./sidebar-tree";
+import { Avatar } from "./avatar";
+import { userLabel } from "@/lib/user";
+import { BrandLogo } from "./brand-logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,13 +34,14 @@ import { cn } from "@/lib/utils";
 import type { SmartListId } from "@/types";
 
 type navlinks = {
-  id: SmartListId;
+  id: SmartListId | "upcoming";
   name: string;
   icon: LucideIcon;
 };
 
 export const NAVLIST: navlinks[] = [
   { id: "today", name: "Today", icon: Sun },
+  { id: "upcoming", name: "Upcoming", icon: CalendarClock },
   { id: "important", name: "Important", icon: Star },
   { id: "all", name: "All", icon: InfinityIcon },
 ];
@@ -78,9 +85,10 @@ function TimerNavLink() {
 type SidebarProps = {
   open: boolean;
   onClose: () => void;
+  onSearch: () => void;
 };
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({ open, onClose, onSearch }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const { data: me } = useMe();
 
@@ -101,14 +109,30 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex justify-end shrink-0 px-1 mb-1 lg:hidden">
+        <div className="flex items-center justify-between shrink-0 px-2.5 mb-3">
+          <BrandLogo showName size={26} />
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="p-1.5 rounded-full text-muted hover:text-fg bg-tint/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-muted hover:text-fg bg-tint/5 transition-colors cursor-pointer lg:hidden"
           >
             <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
+
+        <div className="px-1 mb-2">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSearch();
+            }}
+            className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-md text-fg/50 bg-tint/5 hover:text-fg transition-colors cursor-pointer"
+          >
+            <Search className="shrink-0 w-4.5 h-4.5" />
+            <span className="flex-1 text-left">Search</span>
+            <kbd className="hidden lg:block text-[11px] text-muted font-sans">Ctrl K</kbd>
           </button>
         </div>
 
@@ -158,12 +182,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 type="button"
                 className="flex w-full items-center gap-2.5 py-1.5 px-2.5 rounded-md text-left hover:bg-surface/50 data-[state=open]:bg-surface/50 transition-colors cursor-pointer"
               >
-                <span className="shrink-0 flex items-center justify-center w-6.5 h-6.5 rounded-full bg-accent text-white text-xs font-medium uppercase">
-                  {(me?.username ?? me?.email ?? "?").slice(0, 1)}
-                </span>
+                <Avatar user={me} size={26} />
                 <span className="flex-1 min-w-0">
                   <span className="block truncate text-sm font-medium text-fg">
-                    {me?.username ?? "..."}
+                    {userLabel(me) || "..."}
                   </span>
                   <span className="block truncate text-xs text-muted">
                     {me?.email ?? ""}
@@ -178,7 +200,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               className="w-(--radix-dropdown-menu-trigger-width)"
             >
               <DropdownMenuItem asChild className="gap-2 cursor-pointer">
-                <NavLink to="/mcp">
+                <NavLink to="?settings=profile">
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </NavLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                <NavLink to="?settings=mcp">
                   <Share2 className="w-4 h-4" />
                   MCP
                 </NavLink>

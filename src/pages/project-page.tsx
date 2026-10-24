@@ -104,6 +104,7 @@ export default function ProjectPage() {
   return (
     <>
       <PageShell
+      selectable
         title={query ? `Searching "${query}"` : (project?.name ?? "Project")}
         subtitle={query ? null : (project?.description ?? null)}
         actions={!query ? projectActions : null}
