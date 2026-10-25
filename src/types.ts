@@ -140,6 +140,7 @@ export type TodoFilter = {
   dueFrom?: string;
   dueTo?: string;
   limit?: number;
+  offset?: number;
 };
 
 export type User = {

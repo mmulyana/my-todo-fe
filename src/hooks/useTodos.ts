@@ -1,7 +1,9 @@
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
+  type InfiniteData,
   type QueryClient,
 } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -18,6 +20,9 @@ export const KANBAN_COLUMNS_KEY = ["kanban-columns"] as const;
 
 const STALE_TIME = 30_000;
 const GC_TIME = 5 * 60_000;
+export const TODOS_PAGE_SIZE = 30;
+
+type TodosPage = { todos: Todo[]; hasMore: boolean };
 
 const todosKey = (filter: TodoFilter) => [...TODOS_KEY, filter] as const;
 const todoKey = (id: string) => [...TODO_KEY, id] as const;
@@ -27,6 +32,34 @@ export function useTodos(filter: TodoFilter, options?: { enabled?: boolean }) {
     queryKey: todosKey(filter),
     queryFn: () => api.fetchTodos(filter),
     staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+    enabled: options?.enabled,
+  });
+}
+
+// note: minta PAGE_SIZE + 1 baris, kelebihan satu itu penanda masih ada halaman berikutnya tanpa query count
+export function useInfiniteTodos(
+  filter: TodoFilter,
+  options?: { enabled?: boolean; staleTime?: number },
+) {
+  return useInfiniteQuery({
+    queryKey: [...TODOS_KEY, "infinite", filter] as const,
+    queryFn: async ({ pageParam }): Promise<TodosPage> => {
+      const rows = await api.fetchTodos({
+        ...filter,
+        limit: TODOS_PAGE_SIZE + 1,
+        offset: pageParam,
+      });
+      return {
+        todos: rows.slice(0, TODOS_PAGE_SIZE),
+        hasMore: rows.length > TODOS_PAGE_SIZE,
+      };
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) =>
+      last.hasMore ? pages.length * TODOS_PAGE_SIZE : undefined,
+    select: (data) => data.pages.flatMap((page) => page.todos),
+    staleTime: options?.staleTime ?? STALE_TIME,
     gcTime: GC_TIME,
     enabled: options?.enabled,
   });
@@ -126,12 +159,22 @@ function writeTodo(
   id: string,
   write: (todo: Todo) => Todo | null,
 ) {
-  qc.setQueriesData<Todo[]>({ queryKey: TODOS_KEY }, (todos) =>
-    todos?.flatMap((todo) => {
+  const apply = (todos: Todo[]) =>
+    todos.flatMap((todo) => {
       if (todo.id !== id) return [todo];
       const next = write(todo);
       return next ? [next] : [];
-    }),
+    });
+  qc.setQueriesData<Todo[] | InfiniteData<TodosPage>>(
+    { queryKey: TODOS_KEY },
+    (data) => {
+      if (!data) return data;
+      if (Array.isArray(data)) return apply(data);
+      return {
+        ...data,
+        pages: data.pages.map((page) => ({ ...page, todos: apply(page.todos) })),
+      };
+    },
   );
   qc.setQueryData<Todo | null>(todoKey(id), (todo) =>
     todo ? write(todo) : todo,

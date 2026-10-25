@@ -34,7 +34,10 @@ export function patch<T>(
   key: QueryKey,
   fn: (items: T[]) => T[],
 ) {
-  qc.setQueriesData<T[]>({ queryKey: key }, (items) => items && fn(items))
+  // note: cache paginasi (infinite query) bukan array, dilewati dan di-refetch lewat invalidate
+  qc.setQueriesData<T[]>({ queryKey: key }, (items) =>
+    Array.isArray(items) ? fn(items) : items,
+  )
 }
 
 export const tempId = () => `temp-${crypto.randomUUID()}`

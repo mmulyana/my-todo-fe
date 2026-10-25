@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 type CollapsibleSectionProps = {
   label: string;
-  count: number;
+  count?: number;
   children: ReactNode;
   defaultOpen?: boolean;
   className?: string;
@@ -45,7 +45,9 @@ export function CollapsibleSection({
           className="flex-1 min-w-0 flex items-center gap-1.5 text-left cursor-pointer"
         >
           <span className="truncate text-sm font-medium">{label}</span>
-          <span className="text-xs tabular-nums text-muted">{count}</span>
+          {count !== undefined && (
+            <span className="text-xs tabular-nums text-muted">{count}</span>
+          )}
         </button>
       </div>
       {open && children}
