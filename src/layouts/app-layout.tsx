@@ -7,6 +7,7 @@ import { parseSettingsTab, type SettingsTab } from '@/lib/settings-tabs'
 import { CommandPalette } from '@/components/command-palette'
 import { Sidebar } from '@/components/sidebar'
 import { DocumentTitleTimer } from '@/components/document-title-timer'
+import { isKanbanLocation } from '@/components/project-view-tabs'
 
 type SidebarContextValue = {
   openSidebar: () => void
@@ -110,7 +111,7 @@ export function AppLayout() {
 
         <div className="flex-1 min-w-0 h-full p-2 lg:p-3 lg:pl-2 flex gap-1 overflow-hidden">
           <Outlet />
-          {openTodoId && (
+          {openTodoId && !isKanbanLocation(pathname, params.get('view')) && (
             <DetailPane todoId={openTodoId} onClose={closeTodo} />
           )}
         </div>

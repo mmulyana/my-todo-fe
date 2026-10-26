@@ -76,28 +76,35 @@ export function TodoPriorityBadge({ priority }: { priority: TodoPriority }) {
   );
 }
 
+const BADGE_CLASS =
+  "text-[15px] sm:text-[14px] flex gap-1 text-tint/50 items-center max-w-[80px] min-w-0 shrink-0";
+
 export function TodoListBadge({ list }: { list: List }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 max-md:py-0.5 px-2 py-1 items-center">
-      {list.name}
+    <span className={BADGE_CLASS} title={list.name}>
+      <span className="truncate">{list.name}</span>
     </span>
   );
 }
 
 export function TodoMilestoneBadge({ milestone }: { milestone: Milestone }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50  max-md:py-0.5 px-2 py-1 items-center">
-      <Flag size={12} />
-      {milestone.name}
+    <span className={BADGE_CLASS} title={milestone.name}>
+      <Flag size={12} className="shrink-0" />
+      <span className="truncate">{milestone.name}</span>
     </span>
   );
 }
 
 export function TodoProjectBadge({ project }: { project: TodoProject }) {
   return (
-    <span className="text-[14px] sm:text-xs flex gap-1 rounded-lg bg-tint/5 text-tint/50 max-md:py-0.5 px-2 py-1 items-center">
-      <Box size={12} style={{ color: project.color ?? undefined }} />
-      {project.name}
+    <span className={BADGE_CLASS} title={project.name}>
+      <Box
+        size={12}
+        className="shrink-0"
+        style={{ color: project.color ?? undefined }}
+      />
+      <span className="truncate">{project.name}</span>
     </span>
   );
 }

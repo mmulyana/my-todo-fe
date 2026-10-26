@@ -8,6 +8,7 @@ import {
   readProjectView,
 } from "../components/project-view-tabs";
 import { TodoRow } from "../components/todo-row";
+import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { KanbanBoard } from "@/components/kanban-board";
 import { useTodos } from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
@@ -54,7 +55,7 @@ export default function ProjectPage() {
       ? viewParam
       : readProjectView(id);
 
-  const { data: todos = [] } = useTodos(
+  const { data: todos = [], isLoading } = useTodos(
     query ? { q: query } : { projectId: id },
   );
   const { data: lists = [] } = useLists();
@@ -78,7 +79,7 @@ export default function ProjectPage() {
           <span>Archived</span>
         </span>
       )}
-      {activeView === "list" && completedCount > 0 && (
+      {completedCount > 0 && (
         <button
           type="button"
           onClick={toggleHideCompleted}
@@ -104,7 +105,6 @@ export default function ProjectPage() {
   return (
     <>
       <PageShell
-      selectable
         title={query ? `Searching "${query}"` : (project?.name ?? "Project")}
         subtitle={query ? null : (project?.description ?? null)}
         actions={!query ? projectActions : null}
@@ -113,7 +113,9 @@ export default function ProjectPage() {
         classNameChildren={cn(activeView === "kanban" && "pb-0 pr-0")}
       >
         {activeView === "kanban" && !query ? (
-          <KanbanBoard projectId={id} />
+          <KanbanBoard projectId={id} hideCompleted={hideCompleted} />
+        ) : isLoading ? (
+          <TodoListSkeleton />
         ) : query ? (
           rootTodos.map((todo) => (
             <TodoRow key={todo.id} todo={todo} skipInvalidate />

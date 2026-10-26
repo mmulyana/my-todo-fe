@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import {
   addWeeks,
   endOfWeek,
@@ -106,7 +107,7 @@ export default function TimerPage() {
     >
       <div className="w-full flex flex-col gap-4">
         {isLoading ? (
-          <p className="text-sm text-muted px-1">Loading…</p>
+          <TodoListSkeleton rows={4} />
         ) : groups.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-12 text-center animate-in fade-in-0 slide-in-from-bottom-2 motion-reduce:slide-in-from-bottom-0 duration-300 ease-out-strong">
             <Timer className="w-8 h-8 text-muted/50" />

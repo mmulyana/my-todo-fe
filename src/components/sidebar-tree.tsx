@@ -110,7 +110,7 @@ function ProjectNode({ project, index, depth, tree }: ProjectNodeProps) {
     >
       <div
         className={cn(
-          "group/row flex items-center gap-1.5 px-2 h-8 rounded-lg relative text-sm transition-colors cursor-pointer hover:text-fg",
+          "group/row flex items-center gap-1.5 px-2 h-8 rounded-lg relative text-[15px] transition-colors cursor-pointer hover:text-fg",
           active ? "bg-tint/5 text-fg font-medium" : "text-muted",
         )}
       >
@@ -318,7 +318,7 @@ export function SidebarTree() {
       <div className="flex items-center justify-between px-2 py-1 mb-1">
         <button
           type="button"
-          className="flex-1 flex items-center text-xs font-semibold text-muted hover:text-fg tracking-wider cursor-pointer transition-colors text-left"
+          className="flex-1 flex items-center text-[15px] font-medium text-muted hover:text-fg cursor-pointer transition-colors text-left"
         >
           <span>Projects</span>
         </button>

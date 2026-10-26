@@ -5,6 +5,7 @@ import { TodaySuggestionsSheet } from "../components/today-suggestions-sheet";
 import { AddTodoBar } from "../components/add-todo-bar";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
+import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import {
   useCarriedOverTodos,
   useMyDayTodos,
@@ -20,17 +21,20 @@ export default function TodayPage() {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const query = (params.get("q") ?? "").trim();
 
-  const { data: searchResults = [] } = useTodos(
+  const { data: searchResults = [], isLoading: searching } = useTodos(
     { q: query },
     { enabled: !!query },
   );
-  const { data: myDayTodos = [] } = useMyDayTodos({ enabled: !query });
+  const { data: myDayTodos = [], isLoading: loadingMyDay } = useMyDayTodos({
+    enabled: !query,
+  });
   const { data: leftoverTodos = [] } = useCarriedOverTodos({
     enabled: !query,
   });
   const { data: lists = [] } = useLists();
 
   const visible = query ? searchResults : myDayTodos;
+  const loading = query ? searching : loadingMyDay;
   const leftOvers = query ? [] : leftoverTodos;
 
   const todayLabel = new Date().toLocaleDateString(undefined, {
@@ -41,7 +45,6 @@ export default function TodayPage() {
 
   return (
     <PageShell
-      selectable
       title={query ? `Searching "${query}"` : "Today"}
       icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}
@@ -61,9 +64,13 @@ export default function TodayPage() {
     >
       <div className="space-y-1.5">
         <div>
-          {visible?.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} showProject />
-          ))}
+          {loading ? (
+            <TodoListSkeleton />
+          ) : (
+            visible?.map((todo) => (
+              <TodoRow key={todo.id} todo={todo} showProject />
+            ))
+          )}
         </div>
         {!query && (
           <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />

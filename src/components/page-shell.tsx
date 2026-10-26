@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
-import { SelectModeButton } from "./select-mode-button";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
@@ -18,7 +17,6 @@ type PageShellProps = {
   footer?: ReactNode;
   classNameChildren?: string;
   fill?: boolean;
-  selectable?: boolean;
 };
 
 export function PageShell({
@@ -32,7 +30,6 @@ export function PageShell({
   footer = null,
   classNameChildren,
   fill = false,
-  selectable = false,
 }: PageShellProps) {
   const { openSidebar } = useSidebarContext();
   const navigate = useNavigate();
@@ -70,7 +67,7 @@ export function PageShell({
           )}
           {trail.length > 0 && (
             <nav
-              className="flex flex-wrap items-center gap-1.5 text-sm text-muted"
+              className="flex flex-wrap items-center gap-1.5 text-[15px] text-muted"
               aria-label="Parent projects"
             >
               {trail.map((project) => (
@@ -91,12 +88,11 @@ export function PageShell({
               {icon}
             </span>
           )}
-          <h1 className="ml-1.5 h-fit m-0 text-sm tracking-[-0.02em] truncate font-medium text-fg">
+          <h1 className="ml-1.5 h-fit m-0 text-[15px] tracking-[-0.02em] truncate font-medium text-fg">
             {title}
           </h1>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {selectable && <SelectModeButton />}
           {actions}
         </div>
       </header>

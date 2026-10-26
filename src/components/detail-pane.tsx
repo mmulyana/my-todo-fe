@@ -16,6 +16,8 @@ import { useProjects } from "../hooks/useProjects";
 import { useMilestones } from "../hooks/useMilestones";
 import { activeProjects, isArchived } from "../projects";
 import { useDebouncedField } from "../hooks/useDebouncedField";
+import { useMe } from "../hooks/useMe";
+import { Tooltip } from "./ui/tooltip";
 import { AGENT_ASSIGNEE, type Todo } from "../types";
 import { repoName } from "../lib/repo";
 import {
@@ -32,7 +34,6 @@ import {
   GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ProjectCombobox } from "@/components/project-combobox";
 import {
   Popover,
@@ -49,6 +50,7 @@ import {
 } from "./ui/select";
 import type { ReactNode } from "react";
 import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 type DetailPaneContentProps = {
   todoId: string;
@@ -69,28 +71,17 @@ export function DetailPane({ todoId, onClose, onOpenTodo }: DetailPaneProps) {
   }
 
   return (
-    <Sheet
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <aside
+      aria-label="Todo details"
+      className="hidden lg:flex h-full min-h-0 w-[400px] xl:w-[460px] shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface animate-in fade-in-0 slide-in-from-right-4 duration-200 ease-out-strong motion-reduce:slide-in-from-right-0"
     >
-      <SheetContent
-        hideClose
-        aria-describedby={undefined}
-        className="border-0 bg-transparent p-3 shadow-none sm:max-w-[440px] lg:max-w-[480px]"
-      >
-        <SheetTitle className="sr-only">Todo details</SheetTitle>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface p-0 shadow-lg">
-          <DetailPaneContent
-            key={currentId}
-            todoId={currentId}
-            onClose={onClose}
-            onOpenTodo={onOpenTodo ?? setCurrentId}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+      <DetailPaneContent
+        key={currentId}
+        todoId={currentId}
+        onClose={onClose}
+        onOpenTodo={onOpenTodo ?? setCurrentId}
+      />
+    </aside>
   );
 }
 
@@ -99,13 +90,14 @@ export function DetailPaneContent({
   onClose,
   onOpenTodo,
 }: DetailPaneContentProps) {
-  const { data: todo } = useTodo(todoId);
+  const { data: todo, isLoading } = useTodo(todoId);
   const { data: projectTodos = [] } = useTodos(
     { projectId: todo?.projectId ?? "" },
     { enabled: Boolean(todo?.projectId) },
   );
   const { data: kanbanColumns = [] } = useKanbanColumns(todo?.projectId ?? "");
   const { data: milestones = [] } = useMilestones(todo?.projectId ?? undefined);
+  const { data: me } = useMe();
   const { data: allProjects = [] } = useProjects();
   const projectRepos =
     allProjects.find((p) => p.id === todo?.projectId)?.repos ?? [];
@@ -128,9 +120,13 @@ export function DetailPaneContent({
     (title, signal) => update({ title }, signal),
   );
 
-  if (!todo) return null;
+  if (!todo) {
+    return isLoading ? <DetailSkeleton onClose={onClose} /> : null;
+  }
 
   const isChild = todo.ancestors.length > 0;
+  // note: yang sudah ter-assign tetap bisa dilepas walau aksesnya dicabut
+  const agentLocked = !me?.agentAccess && !todo.assignee;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -236,19 +232,31 @@ export function DetailPaneContent({
           </MetaRow>
           {!isChild && (
             <MetaRow icon={<Bot className="w-4 h-4" />} label="Agent">
-              <button
-                className={cn(
-                  "inline-flex items-center gap-1.5 py-2 px-2.5 rounded-lg text-sm cursor-pointer transition-colors hover:bg-tint/5",
-                  todo.assignee ? "text-success" : "hover:text-fg",
-                )}
-                onClick={() =>
-                  update({ assignee: todo.assignee ? null : AGENT_ASSIGNEE })
-                }
-                aria-pressed={!!todo.assignee}
-                title="The agent picks this up once it is in the Ready column"
-              >
-                {todo.assignee ? "Assigned to agent" : "Assign to agent"}
-              </button>
+              {agentLocked ? (
+                <Tooltip content="Agent access isn't enabled for your account yet. Ask an admin to turn it on.">
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex items-center gap-1.5 py-2 px-2.5 rounded-lg text-sm opacity-50 cursor-not-allowed"
+                  >
+                    Assign to agent
+                  </button>
+                </Tooltip>
+              ) : (
+                <button
+                  className={cn(
+                    "inline-flex items-center gap-1.5 py-2 px-2.5 rounded-lg text-sm cursor-pointer transition-colors hover:bg-tint/5",
+                    todo.assignee ? "text-success" : "hover:text-fg",
+                  )}
+                  onClick={() =>
+                    update({ assignee: todo.assignee ? null : AGENT_ASSIGNEE })
+                  }
+                  aria-pressed={!!todo.assignee}
+                  title="The agent picks this up once it is in the Ready column"
+                >
+                  {todo.assignee ? "Assigned to agent" : "Assign to agent"}
+                </button>
+              )}
             </MetaRow>
           )}
           {!isChild && projectRepos.length > 0 && (
@@ -452,6 +460,39 @@ export function DetailPaneContent({
             <span>Delete</span>
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailSkeleton({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      role="status"
+      aria-label="Loading todo"
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="shrink-0 h-[46px] px-4 border-b border-line flex items-center justify-between gap-2 w-full">
+        <button
+          onClick={onClose}
+          className="ml-auto bg-tint/5 flex items-center gap-0.5 text-muted hover:text-fg rounded-full p-1.5 hover:bg-tint/5 transition-colors cursor-pointer"
+          title="Close details"
+        >
+          <X size={14} strokeWidth={3} />
+        </button>
+      </div>
+      <div className="px-4 pt-4 flex items-center gap-2">
+        <Skeleton className="w-5.5 h-5.5 shrink-0 rounded-[7px]" />
+        <Skeleton className="h-6 w-3/5" />
+      </div>
+      <div className="px-4 pt-6 flex flex-col gap-3">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="flex items-center gap-3 min-h-9">
+            <Skeleton className="h-4 w-28 shrink-0" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        ))}
+        <Skeleton className="mt-2 h-24 w-full" />
       </div>
     </div>
   );

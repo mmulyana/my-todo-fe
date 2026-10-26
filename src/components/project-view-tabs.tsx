@@ -16,6 +16,13 @@ export function readProjectView(projectId: string): "list" | "kanban" {
   }
 }
 
+export function isKanbanLocation(pathname: string, view: string | null): boolean {
+  const match = pathname.match(/^\/projects\/([^/]+)\/?$/);
+  if (!match) return false;
+  if (view === "kanban" || view === "list") return view === "kanban";
+  return readProjectView(match[1]) === "kanban";
+}
+
 export function saveProjectView(projectId: string, view: "list" | "kanban") {
   try {
     localStorage.setItem(viewKey(projectId), view);

@@ -4,6 +4,8 @@ import { CollisionPriority } from "@dnd-kit/abstract";
 import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DetailPaneContent } from "@/components/detail-pane";
 import { cn } from "@/lib/utils";
 import {
   useCreateKanbanColumn,
@@ -121,12 +123,32 @@ function Column({
     </section>
   );
 }
-export function KanbanBoard({ projectId }: { projectId: string }) {
-  const { data: todos = [] } = useTodos({ projectId });
+export function KanbanBoard({
+  projectId,
+  hideCompleted = false,
+}: {
+  projectId: string;
+  hideCompleted?: boolean;
+}) {
+  const { data: allTodos = [] } = useTodos({ projectId });
+  const todos = useMemo(
+    () => (hideCompleted ? allTodos.filter((t) => !t.completed) : allTodos),
+    [allTodos, hideCompleted],
+  );
   const { data: kanbanColumns = [] } = useKanbanColumns(projectId);
   const create = useCreateKanbanColumn();
   const moveTodo = useMoveTodoToKanbanColumn();
-  const [, setParams] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const openTodoId = params.get("todo");
+  const setOpenTodo = (id: string | null) =>
+    setParams(
+      (prev) => {
+        if (id) prev.set("todo", id);
+        else prev.delete("todo");
+        return prev;
+      },
+      { replace: true },
+    );
   const [columns, setColumns] = useState<Columns>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [addingColumn, setAddingColumn] = useState(false);
@@ -174,15 +196,7 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
               column={column}
               ids={columns[column.id] ?? []}
               todos={items}
-              onOpen={(id) =>
-                setParams(
-                  (prev) => {
-                    prev.set("todo", id);
-                    return prev;
-                  },
-                  { replace: true },
-                )
-              }
+              onOpen={setOpenTodo}
             />
           ))}
           {addingColumn ? (
@@ -224,12 +238,34 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
         </div>
         <DragOverlay>
           {activeId && items.get(activeId) ? (
-            <div className="w-72 rounded-xl bg-raised p-3 shadow-xl">
+            <div className="w-72 rounded-xl border border-line bg-bg p-3 shadow-xl">
               {items.get(activeId)?.title}
             </div>
           ) : null}
         </DragOverlay>
       </DragDropProvider>
+      <Dialog
+        open={Boolean(openTodoId)}
+        onOpenChange={(open) => {
+          if (!open) setOpenTodo(null);
+        }}
+      >
+        <DialogContent
+          hideClose
+          aria-describedby={undefined}
+          className="flex h-[85dvh] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden bg-surface p-0"
+        >
+          <DialogTitle className="sr-only">Todo details</DialogTitle>
+          {openTodoId && (
+            <DetailPaneContent
+              key={openTodoId}
+              todoId={openTodoId}
+              onClose={() => setOpenTodo(null)}
+              onOpenTodo={setOpenTodo}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

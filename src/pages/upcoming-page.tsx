@@ -3,6 +3,7 @@ import { CalendarClock } from "lucide-react";
 import { CollapsibleSection } from "../components/collapsible-section";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
+import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { useOverdueTodos, useUpcomingTodos } from "../hooks/useTodos";
 import { formatDue, todayISO } from "../lib/dates";
 import type { Todo } from "../types";
@@ -10,7 +11,7 @@ import type { Todo } from "../types";
 const DAYS = 14;
 
 export default function UpcomingPage() {
-  const { data: overdue = [] } = useOverdueTodos();
+  const { data: overdue = [], isLoading: loadingOverdue } = useOverdueTodos();
   const { data: upcoming = [], isLoading } = useUpcomingTodos(DAYS);
 
   const days = useMemo(() => {
@@ -26,12 +27,14 @@ export default function UpcomingPage() {
 
   return (
     <PageShell
-      selectable
       title="Upcoming"
       icon={<CalendarClock size={20} className="text-accent" />}
       subtitle={`Overdue and the next ${DAYS} days`}
       footer={null}
     >
+      {isLoading || loadingOverdue ? (
+        <TodoListSkeleton rows={6} />
+      ) : (
       <div className="space-y-3">
         <CollapsibleSection label="Overdue" count={overdue.length} defaultOpen>
           {overdue.map((todo) => (
@@ -56,6 +59,7 @@ export default function UpcomingPage() {
           </p>
         )}
       </div>
+      )}
     </PageShell>
   );
 }
