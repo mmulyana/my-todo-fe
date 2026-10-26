@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { Collapse } from "@/components/ui/collapse";
+import { cn } from "@/lib/utils";
 
 type CollapsibleSectionProps = {
   label: string;
@@ -31,11 +33,14 @@ export function CollapsibleSection({
             aria-expanded={open}
           >
             <span className="grid place-items-center w-5 h-5 shrink-0">
-              {open ? (
-                <ChevronDown size={14} strokeWidth={2} />
-              ) : (
-                <ChevronRight size={14} strokeWidth={2} />
-              )}
+              <ChevronRight
+                size={14}
+                strokeWidth={2}
+                className={cn(
+                  "transition-transform duration-200 ease-out-strong",
+                  open && "rotate-90",
+                )}
+              />
             </span>
           </button>
         </div>
@@ -50,7 +55,7 @@ export function CollapsibleSection({
           )}
         </button>
       </div>
-      {open && children}
+      <Collapse open={open}>{children}</Collapse>
     </div>
   );
 }

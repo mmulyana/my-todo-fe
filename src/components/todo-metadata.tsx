@@ -48,7 +48,7 @@ export function TodoImportantButton({
     <button
       type="button"
       className={cn(
-        "shrink-0 transition-opacity",
+        "shrink-0 transition-[opacity,transform] duration-150 ease-out-strong active:scale-90",
         important
           ? "text-warn opacity-100"
           : "text-muted opacity-0 group-hover/row:opacity-100 hover:text-warn",
@@ -57,7 +57,13 @@ export function TodoImportantButton({
       aria-label={important ? "Remove from Important" : "Mark as Important"}
       aria-pressed={important}
     >
-      <Star size={16} className={important ? "fill-warn" : ""} />
+      <Star
+        size={16}
+        className={cn(
+          "transition-[fill] duration-150 ease-out-strong",
+          important ? "fill-warn" : "fill-transparent",
+        )}
+      />
     </button>
   );
 }
@@ -109,7 +115,7 @@ export function TodoCheckbox({
     <button
       type="button"
       className={cn(
-        "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px]",
+        "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-[background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.96]",
         completed
           ? "bg-accent border-accent text-white"
           : "border-line hover:border-muted",
@@ -122,7 +128,7 @@ export function TodoCheckbox({
         className={cn(
           "w-3 h-3",
           completed
-            ? "text-white"
+            ? "text-white animate-check-in"
             : "text-muted opacity-0 group-hover/row:opacity-40",
         )}
       >

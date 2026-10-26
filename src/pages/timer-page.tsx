@@ -108,7 +108,7 @@ export default function TimerPage() {
         {isLoading ? (
           <p className="text-sm text-muted px-1">Loading…</p>
         ) : groups.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-12 text-center">
+          <div className="flex flex-col items-center gap-2 py-12 text-center animate-in fade-in-0 slide-in-from-bottom-2 motion-reduce:slide-in-from-bottom-0 duration-300 ease-out-strong">
             <Timer className="w-8 h-8 text-muted/50" />
             <p className="text-sm text-muted">
               No time tracked this week.
