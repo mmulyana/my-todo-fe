@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAtom } from "jotai";
 import { useQueryClient } from "@tanstack/react-query";
@@ -70,7 +70,11 @@ export function BulkActionBar() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selecting, exit]);
 
-  if (!selecting) return null;
+  // note: tetap ter-mount sampai animasi keluar selesai
+  const [mounted, setMounted] = useState(selecting);
+  if (selecting && !mounted) setMounted(true);
+
+  if (!mounted) return null;
 
   const patchAll = (patch: Partial<Todo>) => {
     if (selected.length === 0) return;
@@ -90,7 +94,12 @@ export function BulkActionBar() {
     <div
       role="toolbar"
       aria-label="Bulk actions"
-      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-xl border border-line bg-raised px-2 py-1.5 shadow-lg max-w-[calc(100vw-1rem)] overflow-x-auto"
+      data-state={selecting ? "open" : "closed"}
+      onAnimationEnd={() => {
+        if (!selecting) setMounted(false);
+      }}
+      // note: inset-x-0 + mx-auto (bukan translate) supaya tidak bentrok dengan transform animasi
+      className="fixed bottom-6 inset-x-0 mx-auto w-fit z-50 flex items-center gap-0.5 rounded-xl border border-line bg-raised px-2 py-1.5 shadow-lg max-w-[calc(100vw-1rem)] overflow-x-auto ease-out-strong data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-4 data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-4 data-[state=closed]:duration-150 data-[state=closed]:fill-mode-forwards data-[state=closed]:pointer-events-none motion-reduce:slide-in-from-bottom-0 motion-reduce:slide-out-to-bottom-0"
     >
       <span className="px-2 text-xs font-medium tabular-nums text-muted whitespace-nowrap">
         {selected.length > 0 ? `${selected.length} selected` : "Select todos"}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type CircularProgressProps = {
@@ -16,6 +17,13 @@ export function CircularProgress({
   className,
 }: CircularProgressProps) {
   const ratio = total > 0 ? Math.min(Math.max(value / total, 0), 1) : 0;
+  // note: animasi selesai hanya saat rasio baru mencapai 1, bukan saat mount
+  const [prevRatio, setPrevRatio] = useState(ratio);
+  const [justDone, setJustDone] = useState(false);
+  if (ratio !== prevRatio) {
+    setPrevRatio(ratio);
+    setJustDone(ratio >= 1);
+  }
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
   const fillRadius = Math.max(radius - strokeWidth * 1.6, 0);
@@ -49,7 +57,12 @@ export function CircularProgress({
     >
       {ratio >= 1 ? (
         <>
-          <circle cx={center} cy={center} r={center} className="fill-current" />
+          <circle
+            cx={center}
+            cy={center}
+            r={center}
+            className={cn("fill-current", justDone && "animate-pop-in")}
+          />
           <path
             d={`M ${size * 0.3} ${size * 0.52} L ${size * 0.44} ${size * 0.66} L ${size * 0.72} ${size * 0.36}`}
             fill="none"
@@ -57,6 +70,9 @@ export function CircularProgress({
             strokeWidth={Math.max(size * 0.12, 1.2)}
             strokeLinecap="round"
             strokeLinejoin="round"
+            pathLength={justDone ? 1 : undefined}
+            strokeDasharray={justDone ? 1 : undefined}
+            className={justDone ? "animate-check-draw" : undefined}
           />
         </>
       ) : (

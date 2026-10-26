@@ -51,7 +51,7 @@ export default function UpcomingPage() {
           </CollapsibleSection>
         ))}
         {empty && (
-          <p className="px-1 pt-6 text-sm text-muted">
+          <p className="px-1 pt-6 text-sm text-muted animate-in fade-in-0 slide-in-from-bottom-2 motion-reduce:slide-in-from-bottom-0 duration-300 ease-out-strong">
             Nothing due in the next {DAYS} days.
           </p>
         )}

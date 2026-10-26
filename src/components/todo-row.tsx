@@ -22,6 +22,7 @@ import {
 import { useDeleteTodo, useTodo, useUpdateTodo } from "../hooks/useTodos";
 import type { Subtodo, Todo } from "../types";
 import { cn } from "@/lib/utils";
+import { Collapse } from "@/components/ui/collapse";
 import { Check, CheckSquare, Star, Sun, Trash2 } from "lucide-react";
 import {
   ContextMenu,
@@ -187,7 +188,7 @@ export function TodoRow({
                   <TodoPriorityBadge priority={todo.priority} />
                 )}
                 <button
-                  className={`truncate text-[16px] sm:text-[15px] ${todo.completed ? "text-muted line-through" : ""}`}
+                  className={`truncate text-[16px] sm:text-[15px] transition-colors duration-150 ${todo.completed ? "text-muted line-through" : ""}`}
                   onClick={onSelect}
                 >
                   {todo.title}
@@ -289,14 +290,14 @@ export function TodoRow({
         </ContextMenuContent>
       </ContextMenu>
 
-      {open && (
-        // note: indent so the child checkbox lines up under this row title.
+      <Collapse open={open}>
+        {/* note: indent so the child checkbox lines up under this row title. */}
         <div className={cn("flex flex-col pb-1", nested ? "pl-8" : "pl-12")}>
           {todo.subtodos.map((step) => (
             <SubtodoItem key={step.id} step={step} hideDueDate={hideDueDate} />
           ))}
         </div>
-      )}
+      </Collapse>
     </div>
   );
 }
