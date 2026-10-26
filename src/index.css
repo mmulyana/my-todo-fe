@@ -123,6 +123,39 @@
   animation: check-in 160ms var(--ease-out-strong) both;
 }
 
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--tint) 7%, transparent);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--tint) 8%, transparent),
+    transparent
+  );
+  animation: shimmer 1.4s var(--ease-in-out-strong) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+
 /* note: reduced motion = tanpa gerak spasial, fade tetap jalan */
 @media (prefers-reduced-motion: reduce) {
   .animate-pop-in,
@@ -171,6 +204,33 @@
   select {
     font: inherit;
     color: inherit;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--tint) 18%, transparent) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--tint) 18%, transparent);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+    transition: background-color 150ms var(--ease-out-strong);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--tint) 32%, transparent);
   }
 
   input:focus-visible,

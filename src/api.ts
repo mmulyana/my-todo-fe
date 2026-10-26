@@ -935,6 +935,7 @@ const LoginDocument = graphql(`
         username
         displayName
         avatarUrl
+        agentAccess
         createdAt
         updatedAt
       }
@@ -963,6 +964,7 @@ const RegisterDocument = graphql(`
         username
         displayName
         avatarUrl
+        agentAccess
         createdAt
         updatedAt
       }
@@ -991,6 +993,7 @@ const MeDocument = graphql(`
       username
       displayName
       avatarUrl
+      agentAccess
       createdAt
       updatedAt
     }
@@ -1010,6 +1013,7 @@ const UpdateProfileDocument = graphql(`
       username
       displayName
       avatarUrl
+      agentAccess
       createdAt
       updatedAt
     }

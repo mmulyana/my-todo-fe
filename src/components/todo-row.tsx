@@ -5,8 +5,6 @@ import {
   TodoDragHandle,
   TodoDueDate,
   TodoImportantButton,
-  TodoListBadge,
-  TodoMilestoneBadge,
   TodoPriorityBadge,
   TodoProjectBadge,
   TodoSubtodoProgress,
@@ -48,9 +46,7 @@ type TodoRowProps = {
 export function TodoRow({
   todo,
   showProject,
-  showList = true,
   hideDueDate = false,
-  hideMilestone = false,
   skipInvalidate,
   dragHandleRef,
   dragging,
@@ -127,8 +123,6 @@ export function TodoRow({
     deleteTodo.mutate(todo.id);
   };
 
-  const milestone = hideMilestone ? null : todo.milestone;
-
   const steps = todo.subtodos.length;
   const open = expanded && steps > 0;
 
@@ -187,6 +181,11 @@ export function TodoRow({
                 {todo.priority != null && (
                   <TodoPriorityBadge priority={todo.priority} />
                 )}
+                <div className="hidden sm:flex items-center gap-2 shrink-0 text-muted">
+                  {showProject && todo.project?.name && (
+                    <TodoProjectBadge project={todo.project} />
+                  )}
+                </div>
                 <button
                   className={`truncate text-[16px] sm:text-[15px] transition-colors duration-150 ${todo.completed ? "text-muted line-through" : ""}`}
                   onClick={onSelect}
@@ -208,8 +207,6 @@ export function TodoRow({
               </div>
 
               {(todo.dueDate && !hideDueDate) ||
-              (showList && todo.list?.name) ||
-              milestone ||
               (showProject && todo.project?.name) ? (
                 <div className="sm:hidden flex flex-wrap items-center gap-1 pl-7.5 pb-1 text-muted">
                   {!hideDueDate && todo.dueDate && (
@@ -217,12 +214,6 @@ export function TodoRow({
                       dueDate={todo.dueDate}
                       completed={todo.completed}
                     />
-                  )}
-                  {showList && todo.list?.name && (
-                    <TodoListBadge list={todo.list} />
-                  )}
-                  {milestone && (
-                    <TodoMilestoneBadge milestone={milestone} />
                   )}
                   {showProject && todo.project?.name && (
                     <TodoProjectBadge project={todo.project} />
@@ -236,15 +227,6 @@ export function TodoRow({
                     dueDate={todo.dueDate}
                     completed={todo.completed}
                   />
-                )}
-                {showList && todo.list?.name && (
-                  <TodoListBadge list={todo.list} />
-                )}
-                {milestone && (
-                  <TodoMilestoneBadge milestone={milestone} />
-                )}
-                {showProject && todo.project?.name && (
-                  <TodoProjectBadge project={todo.project} />
                 )}
               </div>
             </div>

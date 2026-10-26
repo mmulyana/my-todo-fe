@@ -1,7 +1,8 @@
 import { useSearchParams } from 'react-router-dom'
-import { CheckSquare } from 'lucide-react'
+import { Infinity as InfinityIcon } from 'lucide-react'
 import { PageShell } from '../components/page-shell'
 import { TodoRow } from '../components/todo-row'
+import { TodoListSkeleton } from '../components/todo-list-skeleton'
 import { AddTodoBar } from '../components/add-todo-bar'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { useInfiniteTodos } from '../hooks/useTodos'
@@ -19,7 +20,7 @@ function LoadMore({ hasMore, loading, onClick }: LoadMoreProps) {
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="mx-5 my-2 text-sm text-muted hover:text-fg transition-colors disabled:opacity-50"
+      className="self-start ml-5 my-2 text-sm text-muted hover:text-fg transition-colors disabled:opacity-50"
     >
       {loading ? 'Loading…' : 'Load more'}
     </button>
@@ -34,7 +35,7 @@ function CompletedTodos({ filter }: { filter: TodoFilter }) {
 
   return (
     <>
-      {isPending && <p className="mx-5 my-2 text-sm text-muted">Loading…</p>}
+      {isPending && <TodoListSkeleton rows={3} />}
       {todos.map((todo) => (
         <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
       ))}
@@ -51,29 +52,36 @@ export default function AllPage() {
   const [params] = useSearchParams()
   const query = (params.get('q') ?? '').trim()
 
-  const filter: TodoFilter = query ? { q: query } : { view: 'ALL' }
+  const filter: TodoFilter = {
+    ...(query ? { q: query } : { view: 'ALL' }),
+    order: 'DESC',
+  }
   const {
     data: todos = [],
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    isLoading,
   } = useInfiniteTodos({ ...filter, completed: false })
   const { data: lists = [] } = useLists()
 
   return (
     <PageShell
-      selectable
       title={query ? `Searching "${query}"` : 'All'}
-      icon={<CheckSquare size={20} className="text-accent" />}
+      icon={<InfinityIcon size={20} className="text-accent" />}
       footer={null}
     >
       {!query && <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />}
 
-      {todos
-        .filter((todo) => !todo.completed)
-        .map((todo) => (
-          <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
-        ))}
+      {isLoading ? (
+        <TodoListSkeleton />
+      ) : (
+        todos
+          .filter((todo) => !todo.completed)
+          .map((todo) => (
+            <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
+          ))
+      )}
       <LoadMore
         hasMore={Boolean(hasNextPage)}
         loading={isFetchingNextPage}

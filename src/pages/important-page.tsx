@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { Star } from "lucide-react";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
+import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { AddTodoBar } from "../components/add-todo-bar";
 import { useTodos } from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
@@ -13,23 +14,26 @@ export default function ImportantPage() {
   const [params] = useSearchParams();
   const query = (params.get("q") ?? "").trim();
 
-  const { data: todos = [] } = useTodos(
+  const { data: todos = [], isLoading } = useTodos(
     query ? { q: query } : { view: "IMPORTANT" },
   );
   const { data: lists = [] } = useLists();
 
   return (
     <PageShell
-      selectable
       title={query ? `Searching "${query}"` : "Important"}
       icon={<Star size={20} className="text-warn fill-warn" />}
       footer={null}
     >
       <div className="space-y-1.5">
         <div className="space-y-1">
-          {todos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} showProject />
-          ))}
+          {isLoading ? (
+            <TodoListSkeleton />
+          ) : (
+            todos.map((todo) => (
+              <TodoRow key={todo.id} todo={todo} showProject />
+            ))
+          )}
         </div>
         {!query && (
           <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />

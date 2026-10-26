@@ -38,7 +38,7 @@ export function KanbanCard({ todo, index, columnId, onOpen }: KanbanCardProps) {
     <div
       ref={ref}
       className={cn(
-        "group/card relative w-full rounded-xl border border-line bg-raised p-3",
+        "group/card relative w-full rounded-xl border border-line bg-bg p-3",
         todo.completed && "opacity-70",
         isDragging && "opacity-30",
       )}

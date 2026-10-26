@@ -139,6 +139,7 @@ export type TodoFilter = {
   priority?: TodoPriority;
   dueFrom?: string;
   dueTo?: string;
+  order?: 'ASC' | 'DESC';
   limit?: number;
   offset?: number;
 };
@@ -149,6 +150,7 @@ export type User = {
   username: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  agentAccess: boolean;
   createdAt: string;
   updatedAt: string;
 };
