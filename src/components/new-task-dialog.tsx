@@ -231,7 +231,6 @@ function NewTaskForm({
     <form onSubmit={submit} className="relative flex min-w-0 flex-col gap-4 p-4">
       <div className="flex">
         <textarea
-          autoFocus
           rows={1}
           value={title}
           onChange={(event) => setTitle(event.target.value.replace(/\n/g, " "))}
@@ -405,11 +404,22 @@ export function NewTaskDialog({
   defaultProjectId = null,
   defaultListId = null,
 }: NewTaskDialogProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        ref={contentRef}
         hideClose
         mobileBottomSheet
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          const focusTitle = () =>
+            contentRef.current
+              ?.querySelector("textarea")
+              ?.focus({ preventScroll: true });
+          if (window.innerWidth >= 640) focusTitle();
+          else window.setTimeout(focusTitle, 250);
+        }}
         className="max-w-md grid-cols-[minmax(0,1fr)] gap-0 rounded-2xl p-0"
       >
         <DialogTitle className="sr-only">New task</DialogTitle>

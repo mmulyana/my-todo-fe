@@ -4,25 +4,42 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+const DESKTOP_MIN_WIDTH = 640;
+const KEYBOARD_SETTLE_MS = 100;
+
 function useKeyboardInset(enabled: boolean) {
   const [inset, setInset] = React.useState(0);
+
   React.useEffect(() => {
-    const vv = window.visualViewport;
-    if (!enabled || !vv) return;
-    const update = () => {
-      if (window.innerWidth >= 640) return setInset(0);
-      setInset(
-        Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)),
-      );
+    const viewport = window.visualViewport;
+    if (!enabled || !viewport) return;
+
+    let settleTimer: number | undefined;
+
+    const measureKeyboardHeight = () => {
+      if (window.innerWidth >= DESKTOP_MIN_WIDTH) return 0;
+      const hiddenHeight =
+        window.innerHeight - viewport.height - viewport.offsetTop;
+      return Math.max(0, Math.round(hiddenHeight));
     };
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
+
+    const updateInset = () => setInset(measureKeyboardHeight());
+
+    const updateWhenSettled = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(updateInset, KEYBOARD_SETTLE_MS);
+    };
+
+    updateInset();
+    viewport.addEventListener("resize", updateWhenSettled);
+    viewport.addEventListener("scroll", updateWhenSettled);
     return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
+      window.clearTimeout(settleTimer);
+      viewport.removeEventListener("resize", updateWhenSettled);
+      viewport.removeEventListener("scroll", updateWhenSettled);
     };
   }, [enabled]);
+
   return enabled ? inset : 0;
 }
 
@@ -74,7 +91,12 @@ const DialogContent = React.forwardRef<
       )}
       style={{
         ...style,
-        ...(keyboardInset ? { bottom: keyboardInset } : null),
+        ...(mobileBottomSheet
+          ? {
+              bottom: keyboardInset,
+              transition: "bottom 200ms cubic-bezier(0.23, 1, 0.32, 1)",
+            }
+          : null),
       }}
       {...props}
     >
