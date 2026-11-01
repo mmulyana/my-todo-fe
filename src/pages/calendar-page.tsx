@@ -159,6 +159,7 @@ export default function CalendarPage() {
       title="Calendar"
       icon={<CalendarDays size={20} />}
       fill
+      hideNewTask
       actions={
         <div className="flex items-center gap-1 sm:gap-2">
           <button

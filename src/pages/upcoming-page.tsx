@@ -2,6 +2,13 @@ import { useMemo } from "react";
 import { CalendarClock } from "lucide-react";
 import { CollapsibleSection } from "../components/collapsible-section";
 import { PageShell } from "../components/page-shell";
+import { TodoFilterMenu } from "../components/todo-filter-menu";
+import {
+  CROSS_PROJECT_CATEGORIES,
+  useProjectFilterOptions,
+  useTodoFilters,
+} from "../hooks/useTodoFilters";
+import { applyFilters } from "@/lib/todo-filters";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { useOverdueTodos, useUpcomingTodos } from "../hooks/useTodos";
@@ -11,8 +18,12 @@ import type { Todo } from "../types";
 const DAYS = 14;
 
 export default function UpcomingPage() {
-  const { data: overdue = [], isLoading: loadingOverdue } = useOverdueTodos();
-  const { data: upcoming = [], isLoading } = useUpcomingTodos(DAYS);
+  const { data: allOverdue = [], isLoading: loadingOverdue } = useOverdueTodos();
+  const { data: allUpcoming = [], isLoading } = useUpcomingTodos(DAYS);
+  const [filters, setFilters] = useTodoFilters("page:upcoming");
+  const projectOptions = useProjectFilterOptions();
+  const overdue = useMemo(() => applyFilters(allOverdue, filters), [allOverdue, filters]);
+  const upcoming = useMemo(() => applyFilters(allUpcoming, filters), [allUpcoming, filters]);
 
   const days = useMemo(() => {
     const byDay = new Map<string, Todo[]>();
@@ -31,6 +42,15 @@ export default function UpcomingPage() {
       icon={<CalendarClock size={20} className="text-accent" />}
       subtitle={`Overdue and the next ${DAYS} days`}
       footer={null}
+      actions={
+        <TodoFilterMenu
+          todos={[...allOverdue, ...allUpcoming]}
+          categories={CROSS_PROJECT_CATEGORIES}
+          projects={projectOptions}
+          filters={filters}
+          onChange={setFilters}
+        />
+      }
     >
       {isLoading || loadingOverdue ? (
         <TodoListSkeleton rows={6} />

@@ -3,7 +3,6 @@ import {
   ChevronDown,
   ChevronRight,
   GripVertical,
-  Info,
   Plus,
 } from "lucide-react";
 import { Link, useMatch } from "react-router-dom";
@@ -23,6 +22,7 @@ import {
   subtreeIds,
 } from "../projects";
 import { InlineProjectInput } from "./inline-project-input";
+import { SidebarGroup } from "./sidebar-group";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -95,11 +95,7 @@ function ProjectNode({ project, index, depth, tree }: ProjectNodeProps) {
     collisionDetector: pointerIntersection,
   });
   const to = `/projects/${project.id}`;
-  const detailsTo = `${to}/details`;
-  // note: evaluate both matches every render, a short-circuited useMatch() changes the hook count and crashes React (#310)
-  const projectMatch = useMatch(to);
-  const detailsMatch = useMatch(detailsTo);
-  const active = Boolean(projectMatch) || Boolean(detailsMatch);
+  const active = Boolean(useMatch(to));
   const children = tree.childrenOf(project.id);
   const hasChildren = children.length > 0;
   const expanded = tree.isOpen(project.id);
@@ -110,7 +106,7 @@ function ProjectNode({ project, index, depth, tree }: ProjectNodeProps) {
     >
       <div
         className={cn(
-          "group/row flex items-center gap-1.5 px-2 h-8 rounded-lg relative text-[15px] transition-colors cursor-pointer hover:text-fg",
+          "group/row flex items-center gap-1.5 px-2 h-7.5 rounded-lg relative text-[14px] transition-colors cursor-pointer hover:text-fg",
           active ? "bg-tint/5 text-fg font-medium" : "text-muted",
         )}
       >
@@ -121,12 +117,12 @@ function ProjectNode({ project, index, depth, tree }: ProjectNodeProps) {
           title="Drag to reorder"
         >
           <Box
-            size={18}
+            size={16}
             strokeWidth={2}
             className="pointer-fine:group-hover/icon:hidden"
           />
           <GripVertical
-            size={18}
+            size={16}
             strokeWidth={2}
             className="hidden pointer-fine:group-hover/icon:block"
           />
@@ -137,18 +133,6 @@ function ProjectNode({ project, index, depth, tree }: ProjectNodeProps) {
         </Link>
 
         <div className="flex gap-0.5">
-          <Link
-            to={detailsTo}
-            className={cn(
-              ROW_ACTION_CLASS,
-              "inline-flex lg:hidden lg:group-hover/row:inline-flex",
-            )}
-            aria-label={`${project.name} details`}
-            title="Project details"
-          >
-            <Info className="h-3.5 w-3.5" />
-          </Link>
-
           {depth < 3 && (
             <button
               type="button"
@@ -314,26 +298,24 @@ export function SidebarTree() {
   };
 
   return (
-    <div className="flex flex-col mt-6">
-      <div className="flex items-center justify-between px-2 py-1 mb-1">
+    <SidebarGroup
+      id="projects"
+      label="Projects"
+      action={({ expand }) => (
         <button
           type="button"
-          className="flex-1 flex items-center text-[15px] font-medium text-muted hover:text-fg cursor-pointer transition-colors text-left"
-        >
-          <span>Projects</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setCreateRootOpen(true)}
+          onClick={() => {
+            expand();
+            setCreateRootOpen(true);
+          }}
           className={cn(ROW_ACTION_CLASS, "inline-flex")}
           aria-label="Create new project"
           title="Create"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>
-      </div>
-
+      )}
+    >
       <div className="flex flex-col gap-0.5">
         {createRootOpen && (
           <InlineProjectInput
@@ -365,6 +347,6 @@ export function SidebarTree() {
           ))}
         </DragDropProvider>
       </div>
-    </div>
+    </SidebarGroup>
   );
 }

@@ -1,10 +1,28 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams, useParams } from "react-router-dom";
-import { Archive, Eye, EyeOff } from "lucide-react";
+import { Archive } from "lucide-react";
+import { MilestonesSection } from "../components/milestones-section";
+import { SubProjectList } from "../components/sub-project-list";
+import { ProjectResources } from "../components/project-resources";
+import {
+  ProjectContentTabs,
+  parseProjectTab,
+} from "../components/project-tabs";
 import { ProjectLists } from "../components/project-lists";
+import { ProjectTodoToolbar } from "../components/project-todo-toolbar";
+import { ProjectActionsMenu } from "../components/project-actions-menu";
+import { ReorderContext } from "@/lib/reorder";
+import {
+  applyFilters,
+  loadFilters,
+  saveFilters,
+  type TodoFilters,
+} from "@/lib/todo-filters";
+import { ProjectHeading } from "../components/project-heading";
 import { PageShell } from "../components/page-shell";
 import {
   ProjectViewTabs,
+  SHOW_VIEW_CONTROLS,
   readProjectView,
 } from "../components/project-view-tabs";
 import { TodoRow } from "../components/todo-row";
@@ -13,45 +31,42 @@ import { KanbanBoard } from "@/components/kanban-board";
 import { useTodos } from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
 import { useProjects } from "../hooks/useProjects";
+import { useMilestones } from "../hooks/useMilestones";
 import { isArchived, projectTrail } from "../projects";
 import { cn } from "@/lib/utils";
 
-const hideCompletedKey = (projectId: string) => `hideCompleted:${projectId}`;
-
-function readHideCompleted(projectId: string): boolean {
-  try {
-    return localStorage.getItem(hideCompletedKey(projectId)) === "1";
-  } catch {
-    return false;
-  }
-}
-
+// note: key per project supaya state halaman (tab, draft, filter) ikut di-reset saat pindah project
 export default function ProjectPage() {
   const { projectId } = useParams();
+  return <ProjectPageContent key={projectId} />;
+}
+
+function ProjectPageContent() {
+  const { projectId } = useParams();
   const id = projectId!;
-  const [hideCompleted, setHideCompleted] = useState(() => readHideCompleted(id));
-
-  useEffect(() => {
-    setHideCompleted(readHideCompleted(id));
-  }, [id]);
-
-  const toggleHideCompleted = () => {
-    setHideCompleted((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(hideCompletedKey(id), next ? "1" : "0");
-      } catch {
-        // ignore (private mode / blocked storage)
-      }
-      return next;
-    });
+  const [reordering, setReordering] = useState(false);
+  const [filters, setFiltersState] = useState(() => loadFilters(id));
+  const setFilters = (next: TodoFilters) => {
+    setFiltersState(next);
+    saveFilters(id, next);
   };
 
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const tab = parseProjectTab(params.get("tab"));
+  const setTab = (next: ReturnType<typeof parseProjectTab>) =>
+    setParams(
+      (prev) => {
+        if (next === "todo") prev.delete("tab");
+        else prev.set("tab", next);
+        return prev;
+      },
+      { replace: true },
+    );
   const query = (params.get("q") ?? "").trim();
   const viewParam = params.get("view");
-  const activeView: "list" | "kanban" =
-    viewParam === "kanban" || viewParam === "list"
+  const activeView: "list" | "kanban" = !SHOW_VIEW_CONTROLS
+    ? "list"
+    : viewParam === "kanban" || viewParam === "list"
       ? viewParam
       : readProjectView(id);
 
@@ -65,9 +80,8 @@ export default function ProjectPage() {
   const listsOfProject = lists.filter((l) => l.projectId === id);
 
   const rootTodos = query ? todos : todos.filter((t) => !t.listId);
-  const visibleTodos = hideCompleted ? todos.filter((t) => !t.completed) : todos;
-
-  const completedCount = todos.filter((t) => t.completed).length;
+  const visibleTodos = applyFilters(todos, filters);
+  const { data: milestones = [] } = useMilestones(id);
 
   const archived = project ? isArchived(project) : false;
 
@@ -79,26 +93,10 @@ export default function ProjectPage() {
           <span>Archived</span>
         </span>
       )}
-      {completedCount > 0 && (
-        <button
-          type="button"
-          onClick={toggleHideCompleted}
-          aria-pressed={hideCompleted}
-          title={hideCompleted ? "Show completed" : "Hide completed"}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium transition-colors cursor-pointer max-lg:p-1.5",
-            hideCompleted
-              ? "text-fg bg-tint/10"
-              : "text-muted hover:text-fg hover:bg-tint/5",
-          )}
-        >
-          {hideCompleted ? <EyeOff size={14} /> : <Eye size={14} />}
-          <span className="max-lg:hidden">
-            {hideCompleted ? "Show completed" : "Hide completed"}
-          </span>
-        </button>
+      {SHOW_VIEW_CONTROLS && (
+        <ProjectViewTabs projectId={id} active={activeView} />
       )}
-      <ProjectViewTabs projectId={id} active={activeView} />
+      <ProjectActionsMenu project={project} />
     </div>
   ) : null;
 
@@ -108,12 +106,14 @@ export default function ProjectPage() {
         title={query ? `Searching "${query}"` : (project?.name ?? "Project")}
         subtitle={query ? null : (project?.description ?? null)}
         actions={!query ? projectActions : null}
+        newTaskProjectId={id}
         trail={query ? [] : projectTrail(projects, id)}
         footer={null}
         classNameChildren={cn(activeView === "kanban" && "pb-0 pr-0")}
+        wide={activeView === "kanban" && !query}
       >
         {activeView === "kanban" && !query ? (
-          <KanbanBoard projectId={id} hideCompleted={hideCompleted} />
+          <KanbanBoard projectId={id} hideCompleted={false} />
         ) : isLoading ? (
           <TodoListSkeleton />
         ) : query ? (
@@ -121,15 +121,45 @@ export default function ProjectPage() {
             <TodoRow key={todo.id} todo={todo} skipInvalidate />
           ))
         ) : (
-          <ProjectLists
-            key={id}
-            projectId={id}
-            lists={listsOfProject}
-            todos={visibleTodos}
-          />
+          <>
+            {project && (
+              <ProjectHeading project={project}>
+                <ProjectContentTabs
+                  active={tab}
+                  onChange={setTab}
+                  actions={
+                    tab === "todo" ? (
+                      <ProjectTodoToolbar
+                        reordering={reordering}
+                        onReorderingChange={setReordering}
+                        todos={todos}
+                        lists={listsOfProject}
+                        milestones={milestones}
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                      />
+                    ) : null
+                  }
+                />
+              </ProjectHeading>
+            )}
+            {tab === "todo" && (
+              <ReorderContext.Provider value={reordering}>
+                <ProjectLists
+                  projectId={id}
+                  lists={listsOfProject}
+                  todos={visibleTodos}
+                />
+              </ReorderContext.Provider>
+            )}
+          {tab === "milestone" && <MilestonesSection projectId={id} />}
+            {tab === "project" && <SubProjectList projectId={id} />}
+            {tab === "resource" && project && (
+              <ProjectResources project={project} />
+            )}
+          </>
         )}
       </PageShell>
-
     </>
   );
 }

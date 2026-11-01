@@ -156,7 +156,7 @@ function AttachmentSectionContent({
 
     const filesContent = (
       <>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-[repeat(auto-fill,120px)] gap-2">
           {files.map((attachment) => (
             <FileTile
               key={attachment.id}

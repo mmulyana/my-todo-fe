@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Lightbulb, Sun } from "lucide-react";
 import { TodaySuggestionsSheet } from "../components/today-suggestions-sheet";
-import { AddTodoBar } from "../components/add-todo-bar";
+import { TodoFilterMenu } from "../components/todo-filter-menu";
+import {
+  CROSS_PROJECT_CATEGORIES,
+  useProjectFilterOptions,
+  useTodoFilters,
+} from "../hooks/useTodoFilters";
+import { applyFilters } from "@/lib/todo-filters";
 import { PageShell } from "../components/page-shell";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
@@ -11,10 +17,6 @@ import {
   useMyDayTodos,
   useTodos,
 } from "../hooks/useTodos";
-import { useLists } from "../hooks/useLists";
-import type { View } from "../types";
-
-const view: View = { kind: "smart", id: "today" };
 
 export default function TodayPage() {
   const [params] = useSearchParams();
@@ -31,9 +33,11 @@ export default function TodayPage() {
   const { data: leftoverTodos = [] } = useCarriedOverTodos({
     enabled: !query,
   });
-  const { data: lists = [] } = useLists();
+  const [filters, setFilters] = useTodoFilters("page:today");
+  const projectOptions = useProjectFilterOptions();
 
-  const visible = query ? searchResults : myDayTodos;
+  const all = query ? searchResults : myDayTodos;
+  const visible = applyFilters(all, filters);
   const loading = query ? searching : loadingMyDay;
   const leftOvers = query ? [] : leftoverTodos;
 
@@ -50,15 +54,26 @@ export default function TodayPage() {
       subtitle={query ? null : todayLabel}
       footer={null}
       actions={
-        !query && leftOvers.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => setSuggestionsOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted hover:text-fg"
-          >
-            <Lightbulb className="h-4 w-4 text-warn" />
-            Suggestions
-          </button>
+        !query ? (
+          <>
+            {leftOvers.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSuggestionsOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted hover:text-fg"
+              >
+                <Lightbulb className="h-4 w-4 text-warn" />
+                Suggestions
+              </button>
+            )}
+            <TodoFilterMenu
+              todos={all}
+              categories={CROSS_PROJECT_CATEGORIES}
+              projects={projectOptions}
+              filters={filters}
+              onChange={setFilters}
+            />
+          </>
         ) : null
       }
     >
@@ -72,9 +87,6 @@ export default function TodayPage() {
             ))
           )}
         </div>
-        {!query && (
-          <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />
-        )}
       </div>
       <TodaySuggestionsSheet
         todos={leftOvers}

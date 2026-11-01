@@ -8,8 +8,15 @@ import { AddTodoBar } from "./add-todo-bar";
 import { useCreateList, useDeleteList, useUpdateList } from "../hooks/useLists";
 import { useMoveTodoToList } from "../hooks/useTodos";
 import { cn } from "@/lib/utils";
+import { useReordering } from "@/lib/reorder";
 import type { List, Todo } from "../types";
-import { ChevronDown, ChevronRight, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Plus,
+  Trash2,
+  TriangleIcon,
+} from "lucide-react";
+import { Collapse } from "@/components/ui/collapse";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,12 +60,14 @@ function SortableTodoRow({
   group: string;
   showList?: boolean;
 }) {
-  const { ref, handleRef, isDragging } = useSortable({
+  const reordering = useReordering();
+  const { ref, isDragging } = useSortable({
     id: todo.id,
     index,
     group,
     type: "todo",
     accept: "todo",
+    disabled: !reordering,
   });
 
   return (
@@ -67,7 +76,6 @@ function SortableTodoRow({
         todo={todo}
         showList={showList}
         skipInvalidate
-        dragHandleRef={handleRef}
         dragging={isDragging}
       />
     </div>
@@ -113,12 +121,14 @@ function SectionHeader({
   onToggleCollapsed,
   onUpdateName,
   onDelete,
+  onAdd,
 }: {
   name: string;
   collapsed: boolean;
   onToggleCollapsed: () => void;
-  onUpdateName: (newName: string) => void;
-  onDelete: () => void;
+  onUpdateName?: (newName: string) => void;
+  onDelete?: () => void;
+  onAdd: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(name);
@@ -126,7 +136,7 @@ function SectionHeader({
   const handleSave = () => {
     const trimmed = editName.trim();
     if (trimmed && trimmed !== name) {
-      onUpdateName(trimmed);
+      onUpdateName?.(trimmed);
     } else {
       setEditName(name);
     }
@@ -134,27 +144,39 @@ function SectionHeader({
   };
 
   return (
-    <div className="group/sec flex items-center group">
-      <div className="w-5 h-5 flex justify-center items-center">
-        <button
-          type="button"
-          className="hidden group-hover:flex items-center text-muted hover:text-fg transition-colors"
-          onClick={onToggleCollapsed}
-          aria-expanded={!collapsed}
-          aria-label={collapsed ? `Show ${name}` : `Hide ${name}`}
-        >
-          {collapsed ? (
-            <ChevronDown size={15} strokeWidth={2} />
-          ) : (
-            <ChevronRight size={15} strokeWidth={2} />
+    <div
+      className={cn(
+        "group/sec flex items-center h-10 px-3 rounded-lg cursor-pointer select-none transition-colors hover:bg-tint/5",
+      )}
+      onClick={() => {
+        if (!editing) onToggleCollapsed();
+      }}
+    >
+      <button
+        type="button"
+        className="flex p-0 items-center justify-center w-5 h-5 shrink-0 mr-2 rounded-md text-muted hover:bg-tint/10 hover:text-fg transition-colors cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleCollapsed();
+        }}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? `Show ${name}` : `Hide ${name}`}
+      >
+        <TriangleIcon
+          size={8}
+          strokeWidth={2.5}
+          className={cn(
+            "transition-transform duration-200 ease-out-strong fill-current",
+            collapsed ? "rotate-90" : "rotate-180",
           )}
-        </button>
-      </div>
+        />
+      </button>
 
       <div className="flex-1 min-w-0 flex items-center gap-2">
         {editing ? (
           <form
             className="flex-1 min-w-0"
+            onClick={(e) => e.stopPropagation()}
             onSubmit={(e) => {
               e.preventDefault();
               handleSave();
@@ -175,46 +197,61 @@ function SectionHeader({
                   setEditing(false);
                 }
               }}
-              className="w-full p-0 bg-transparent border-0 outline-none text-[15px]"
+              className="w-full p-0 bg-transparent border-0 outline-none text-[16px] sm:text-[15px]"
             />
           </form>
         ) : (
-          <div className="flex-1 min-w-0 flex items-center gap-1">
+          <>
             <span
-              className="truncate text-[15px] font-medium cursor-pointer"
-              onClick={() => {
+              className="truncate text-[16px] sm:text-[15px]"
+              onDoubleClick={(e) => {
+                if (!onUpdateName) return;
+                e.stopPropagation();
                 setEditName(name);
                 setEditing(true);
               }}
-              title="Click to edit list name"
+              title={onUpdateName ? "Double-click to rename" : undefined}
             >
               {name}
             </span>
-          </div>
+          </>
         )}
+      </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+      <div
+        className="flex items-center gap-0.5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {onDelete && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-100 sm:opacity-0 sm:group-hover/sec:opacity-100 sm:data-[state=open]:opacity-100 hover:bg-tint/10 hover:text-fg cursor-pointer"
+                className="inline-flex items-center justify-center w-7 h-7 rounded-md text-muted opacity-100 hover:bg-tint/10 hover:text-fg cursor-pointer"
                 aria-label={`Actions for list ${name}`}
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-36">
+            <DropdownMenuContent align="end" className="w-36 px-0">
+              <DropdownMenuItem
+                onClick={onAdd}
+                className="gap-2 rounded-none cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Todo</span>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onDelete}
-                className="gap-2 text-danger focus:bg-danger/10 focus:text-danger cursor-pointer"
+                className="gap-2 text-danger rounded-none focus:bg-danger/10 focus:text-danger cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete List</span>
+                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        )}
+      
       </div>
     </div>
   );
@@ -237,13 +274,14 @@ function ListSection({
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(
     null,
   );
+  const [adding, setAdding] = useState(false);
 
   const collapsed = dragging
     ? false
     : (collapsedOverride ?? todos.length === 0);
 
   return (
-    <div className="flex flex-col mt-2">
+    <div className="flex flex-col">
       <SectionHeader
         name={list.name}
         collapsed={collapsed}
@@ -252,40 +290,43 @@ function ListSection({
           updateList.mutate({ id: list.id, name: newName })
         }
         onDelete={() => deleteList.mutate(list.id)}
+        onAdd={() => {
+          setCollapsedOverride(false);
+          setAdding(true);
+        }}
       />
 
-      {!collapsed && (
-        <>
-          <DropZone
-            id={list.id}
-            className={cn("mb-1", dragging && "min-h-10")}
-          >
-            {todos.map((todo, index) => (
-              <SortableTodoRow
-                key={todo.id}
-                todo={todo}
-                index={index}
-                group={list.id}
-                showList={false}
-              />
-            ))}
+      <Collapse open={!collapsed}>
+        <DropZone id={list.id} className={cn("pb-1", dragging && "min-h-10")}>
+          {todos.map((todo, index) => (
+            <SortableTodoRow
+              key={todo.id}
+              todo={todo}
+              index={index}
+              group={list.id}
+              showList={false}
+            />
+          ))}
 
-            {todos.length === 0 && dragging && (
-              <p className="py-2.5 text-muted pl-9.5 text-center">
-                Drop a todo here
-              </p>
-            )}
-          </DropZone>
+          {todos.length === 0 && dragging && (
+            <p className="py-2.5 text-muted pl-9.5 text-center">
+              Drop a todo here
+            </p>
+          )}
+        </DropZone>
 
+        {adding && (
           <AddTodoBar
             view={{ kind: "list", id: list.id }}
             defaultProjectId={list.projectId}
             lists={allLists}
             showMobileFab={false}
             inline
+            autoFocus
+            onCancel={() => setAdding(false)}
           />
-        </>
-      )}
+        )}
+      </Collapse>
     </div>
   );
 }
@@ -388,13 +429,6 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
             </p>
           )}
         </DropZone>
-
-        <AddTodoBar
-          view={{ kind: "project", id: projectId }}
-          lists={lists}
-          showMobileFab={false}
-          inline
-        />
 
         {lists.map((list) => (
           <ListSection

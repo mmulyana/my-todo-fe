@@ -65,6 +65,7 @@ export default function TimerPage() {
     <PageShell
       title="Timer"
       icon={<Timer size={20} />}
+      hideNewTask
       classNameChildren="px-3 sm:px-4"
       actions={
         <div className="flex items-center gap-1 text-sm">

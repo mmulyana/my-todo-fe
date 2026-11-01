@@ -340,6 +340,13 @@ export function useMoveTodoToList() {
   );
 }
 
+export function useMoveSubtodo() {
+  return useRefetchingTodo(
+    ({ id, position }: { id: string; position: number }) =>
+      api.moveSubtodo(id, position),
+  );
+}
+
 const UNDO_MS = 5_000;
 
 // note: hapus ditunda UNDO_MS supaya bisa dibatalkan, todo langsung hilang dari cache. Tutup tab sebelum itu = tidak terhapus

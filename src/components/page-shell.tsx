@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Menu } from "lucide-react";
+import { ArrowLeft, Menu, SquarePen } from "lucide-react";
 import { useSidebarContext } from "../layouts/app-layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,9 @@ type PageShellProps = {
   footer?: ReactNode;
   classNameChildren?: string;
   fill?: boolean;
+  newTaskProjectId?: string | null;
+  hideNewTask?: boolean;
+  wide?: boolean;
 };
 
 export function PageShell({
@@ -30,8 +33,11 @@ export function PageShell({
   footer = null,
   classNameChildren,
   fill = false,
+  newTaskProjectId = null,
+  hideNewTask = false,
+  wide = false,
 }: PageShellProps) {
-  const { openSidebar } = useSidebarContext();
+  const { openSidebar, openNewTask } = useSidebarContext();
   const navigate = useNavigate();
 
   const goBack = (to?: string) => {
@@ -94,6 +100,17 @@ export function PageShell({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {actions}
+          {!hideNewTask && (
+            <button
+              type="button"
+              onClick={() => openNewTask(newTaskProjectId)}
+              aria-label="New task"
+              title="New task"
+              className="grid place-items-center w-8 h-8 rounded-full bg-bg text-muted hover:text-fg transition-colors cursor-pointer"
+            >
+              <SquarePen className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -104,11 +121,19 @@ export function PageShell({
       ) : (
         <div
           className={cn(
-            "flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4",
+            "flex-1 min-h-0 overflow-y-auto py-4",
+            wide ? "px-0.5 pr-4" : "px-4",
             classNameChildren,
           )}
         >
-          <div className="flex flex-col">{children}</div>
+          <div
+            className={cn(
+              "flex flex-col",
+              !wide && "w-full max-w-[1200px] mx-auto",
+            )}
+          >
+            {children}
+          </div>
         </div>
       )}
 

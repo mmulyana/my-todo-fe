@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
+import { TriangleIcon } from "lucide-react";
 import { Collapse } from "@/components/ui/collapse";
 import { cn } from "@/lib/utils";
 
@@ -22,38 +22,36 @@ export function CollapsibleSection({
 
   if (count === 0) return null;
 
+  const toggle = () => setOpen((value) => !value);
+
   return (
     <div className={className}>
-      <div className="group/sec flex items-center group">
-        <div className="w-5 h-5 flex justify-center items-center">
-          <button
-            type="button"
-            className="sm:hidden group-hover:flex items-center text-muted hover:text-fg transition-colors"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-          >
-            <span className="grid place-items-center w-5 h-5 shrink-0">
-              <ChevronRight
-                size={14}
-                strokeWidth={2}
-                className={cn(
-                  "transition-transform duration-200 ease-out-strong",
-                  open && "rotate-90",
-                )}
-              />
-            </span>
-          </button>
-        </div>
+      <div
+        className="group/sec flex items-center h-10 px-3 rounded-lg cursor-pointer select-none transition-colors hover:bg-tint/5"
+        onClick={toggle}
+      >
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex-1 min-w-0 flex items-center gap-1.5 text-left cursor-pointer"
+          className="flex p-0 items-center justify-center w-5 h-5 shrink-0 mr-2 rounded-md text-muted hover:bg-tint/10 hover:text-fg transition-colors cursor-pointer"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggle();
+          }}
+          aria-expanded={open}
+          aria-label={open ? `Hide ${label}` : `Show ${label}`}
         >
-          <span className="truncate text-sm font-medium">{label}</span>
-          {count !== undefined && (
-            <span className="text-xs tabular-nums text-muted">{count}</span>
-          )}
+          <TriangleIcon
+            size={8}
+            strokeWidth={2.5}
+            className={cn(
+              "transition-transform duration-200 ease-out-strong fill-current",
+              open ? "rotate-180" : "rotate-90",
+            )}
+          />
         </button>
+        <span className="flex-1 min-w-0 truncate text-[16px] sm:text-[15px]">
+          {label}
+        </span>
       </div>
       <Collapse open={open}>{children}</Collapse>
     </div>

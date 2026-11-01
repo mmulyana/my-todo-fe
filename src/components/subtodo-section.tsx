@@ -11,7 +11,7 @@ import type { Subtodo, Todo } from "../types";
 import { cn } from "@/lib/utils";
 
 const INPUT_CLASS =
-  "flex-1 min-w-0 border-none bg-transparent outline-none text-[13px] text-fg/70 placeholder:text-muted";
+  "flex-1 min-w-0 border-none bg-transparent outline-none text-[14px] text-fg placeholder:text-muted";
 
 type SubtodoSectionProps = {
   todo: Todo;
@@ -74,8 +74,8 @@ export function SubtodoSection({ todo, onOpenTodo }: SubtodoSectionProps) {
   };
 
   return (
-    <div className="px-4 pt-3">
-      <div className="flex flex-col gap-2">
+    <div>
+      <div className="flex flex-col">
         {todo.subtodos.map((step, index) => (
           <SubtodoRow
             key={step.id}
@@ -110,14 +110,14 @@ export function SubtodoSection({ todo, onOpenTodo }: SubtodoSectionProps) {
         ))}
 
         <form
-          className="flex items-center gap-2 py-0.5 text-muted"
+          className="flex items-center gap-2 rounded-lg px-3 py-1 text-muted"
           onSubmit={(e) => {
             e.preventDefault();
             addSubtask();
           }}
         >
-          <div className="shrink-0 w-5.5 flex justify-center">
-            <Plus className="shrink-0" size={16} />
+          <div className="shrink-0 w-5 flex justify-center">
+            <Plus className="shrink-0" size={14} />
           </div>
           <input
             ref={addInputRef}
@@ -160,10 +160,10 @@ function SubtodoRow({
   const [titleDraft, onChange] = useDebouncedField(step.title, onTitleChange);
 
   return (
-    <div className="relative group/sub flex items-center gap-2 rounded-lg transition-colors group py-0.5">
+    <div className="relative group/sub flex items-center gap-2 rounded-lg px-3 py-1 transition-colors group hover:bg-tint/5">
       <button
         className={cn(
-          "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
+          "grid place-items-center w-5 h-5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
           step.completed
             ? "bg-accent border-accent text-white"
             : "border-line hover:border-muted bg-raised",

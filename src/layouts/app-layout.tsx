@@ -6,11 +6,13 @@ import { SettingsDialog } from '@/components/settings/settings-dialog'
 import { parseSettingsTab, type SettingsTab } from '@/lib/settings-tabs'
 import { CommandPalette } from '@/components/command-palette'
 import { Sidebar } from '@/components/sidebar'
+import { NewTaskDialog } from '@/components/new-task-dialog'
 import { DocumentTitleTimer } from '@/components/document-title-timer'
 import { isKanbanLocation } from '@/components/project-view-tabs'
 
 type SidebarContextValue = {
   openSidebar: () => void
+  openNewTask: (projectId?: string | null) => void
 }
 
 const SidebarContext = createContext<SidebarContextValue | null>(null)
@@ -27,6 +29,8 @@ export function AppLayout() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [newTaskOpen, setNewTaskOpen] = useState(false)
+  const [newTaskProjectId, setNewTaskProjectId] = useState<string | null>(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
@@ -89,13 +93,26 @@ export function AppLayout() {
     )
 
   return (
-    <SidebarContext.Provider value={{ openSidebar: () => setSidebarOpen(true) }}>
+    <SidebarContext.Provider
+      value={{
+        openSidebar: () => setSidebarOpen(true),
+        openNewTask: (projectId = null) => {
+          setNewTaskProjectId(projectId)
+          setNewTaskOpen(true)
+        },
+      }}
+    >
       <div className="h-dvh w-dvw overflow-hidden bg-bg text-fg text-[15px] leading-normal flex lg:grid lg:grid-cols-[280px_1fr]">
         <DocumentTitleTimer />
         <Sidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onSearch={() => setSearchOpen(true)}
+        />
+        <NewTaskDialog
+          open={newTaskOpen}
+          onOpenChange={setNewTaskOpen}
+          defaultProjectId={newTaskProjectId}
         />
         <BulkActionBar />
         <SettingsDialog
@@ -109,7 +126,7 @@ export function AppLayout() {
           onOpenTodo={openTodo}
         />
 
-        <div className="flex-1 min-w-0 h-full p-2 lg:p-3 lg:pl-2 flex gap-1 overflow-hidden">
+        <div className="flex-1 min-w-0 h-full p-2 lg:p-3 lg:pl-0 flex gap-1 overflow-hidden">
           <Outlet />
           {openTodoId && !isKanbanLocation(pathname, params.get('view')) && (
             <DetailPane todoId={openTodoId} onClose={closeTodo} />
