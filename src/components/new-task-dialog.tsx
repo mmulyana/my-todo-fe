@@ -386,6 +386,7 @@ function NewTaskForm({
 
         <button
           type="submit"
+          onPointerDown={(event) => event.preventDefault()}
           disabled={!title.trim()}
           title="Add task"
           aria-label="Add task"
