@@ -4,11 +4,12 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { move } from "@dnd-kit/helpers";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { TodoRow } from "./todo-row";
-import { AddTodoBar } from "./add-todo-bar";
 import { useCreateList, useDeleteList, useUpdateList } from "../hooks/useLists";
 import { useMoveTodoToList } from "../hooks/useTodos";
 import { cn } from "@/lib/utils";
 import { useReordering } from "@/lib/reorder";
+import { useSetAtom } from "jotai";
+import { openNewTaskAtom } from "@/atoms/layout";
 import type { List, Todo } from "../types";
 import {
   MoreHorizontal,
@@ -261,20 +262,18 @@ function ListSection({
   list,
   todos,
   dragging,
-  allLists,
 }: {
   list: List;
   todos: Todo[];
   dragging: boolean;
-  allLists: List[];
 }) {
   const updateList = useUpdateList();
   const deleteList = useDeleteList();
+  const openNewTask = useSetAtom(openNewTaskAtom);
 
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(
     null,
   );
-  const [adding, setAdding] = useState(false);
 
   const collapsed = dragging
     ? false
@@ -292,7 +291,7 @@ function ListSection({
         onDelete={() => deleteList.mutate(list.id)}
         onAdd={() => {
           setCollapsedOverride(false);
-          setAdding(true);
+          openNewTask({ projectId: list.projectId, listId: list.id });
         }}
       />
 
@@ -314,18 +313,6 @@ function ListSection({
             </p>
           )}
         </DropZone>
-
-        {adding && (
-          <AddTodoBar
-            view={{ kind: "list", id: list.id }}
-            defaultProjectId={list.projectId}
-            lists={allLists}
-            showMobileFab={false}
-            inline
-            autoFocus
-            onCancel={() => setAdding(false)}
-          />
-        )}
       </Collapse>
     </div>
   );
@@ -436,7 +423,6 @@ export function ProjectLists({ projectId, lists, todos }: ProjectListsProps) {
             list={list}
             todos={todosOf(list.id)}
             dragging={Boolean(activeId)}
-            allLists={lists}
           />
         ))}
 

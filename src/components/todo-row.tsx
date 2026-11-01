@@ -21,11 +21,13 @@ import {
 import {
   useDeleteTodo,
   useMoveSubtodo,
+  usePrefetchTodo,
   useTodo,
   useUpdateTodo,
 } from "../hooks/useTodos";
 import type { Subtodo, Todo } from "../types";
 import { cn } from "@/lib/utils";
+import { currentSearchParams } from "@/lib/search-params";
 import { useReordering } from "@/lib/reorder";
 import { Collapse } from "@/components/ui/collapse";
 import { Check, CheckSquare, Star, Sun, Trash2 } from "lucide-react";
@@ -57,6 +59,7 @@ export function TodoRow({
   nested = false,
 }: TodoRowProps) {
   const reordering = useReordering();
+  const prefetchTodo = usePrefetchTodo();
   const [expanded, setExpanded] = useState(false);
   const [, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -81,7 +84,11 @@ export function TodoRow({
       action: {
         label: "Undo",
         onClick: () =>
-          updateTodo.mutate({ id: todo.id, patch: { completed: false }, skipInvalidate }),
+          updateTodo.mutate({
+            id: todo.id,
+            patch: { completed: false },
+            skipInvalidate,
+          }),
       },
     });
   };
@@ -102,10 +109,11 @@ export function TodoRow({
       return;
     }
     setParams(
-      (prev) => {
-        if (prev.get("todo") === todo.id) prev.delete("todo");
-        else prev.set("todo", todo.id);
-        return prev;
+      () => {
+        const next = currentSearchParams();
+        if (next.get("todo") === todo.id) next.delete("todo");
+        else next.set("todo", todo.id);
+        return next;
       },
       { replace: true },
     );
@@ -118,9 +126,10 @@ export function TodoRow({
 
   const onDelete = () => {
     setParams(
-      (prev) => {
-        if (prev.get("todo") === todo.id) prev.delete("todo");
-        return prev;
+      () => {
+        const next = currentSearchParams();
+        if (next.get("todo") === todo.id) next.delete("todo");
+        return next;
       },
       { replace: true },
     );
@@ -151,7 +160,8 @@ export function TodoRow({
             <div
               className={cn(
                 "flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2.5 rounded-xl",
-                selecting && "-ml-2 pl-2 -mr-0.5 pr-2 rounded-lg transition-colors hover:bg-tint/[0.03]",
+                selecting &&
+                  "-ml-2 pl-2 -mr-0.5 pr-2 rounded-lg transition-colors hover:bg-tint/[0.03]",
                 selected && "bg-tint/5 hover:bg-tint/5",
               )}
             >
@@ -178,17 +188,10 @@ export function TodoRow({
                 <button
                   className={`truncate text-[16px] sm:text-[15px] transition-colors duration-150 ${todo.completed ? "text-muted line-through" : ""}`}
                   onClick={onSelect}
+                  onPointerEnter={() => prefetchTodo(todo.id)}
                 >
                   {todo.title}
                 </button>
-                {todo.subtodoCount > 0 && (
-                  <TodoSubtodoProgress
-                    completed={todo.completedTodos}
-                    total={todo.subtodoCount}
-                    expanded={expanded}
-                    onToggle={() => setExpanded((value) => !value)}
-                  />
-                )}
                 <TodoImportantButton
                   important={todo.important}
                   onToggle={onToggleImportant}
@@ -198,6 +201,14 @@ export function TodoRow({
               {(todo.dueDate && !hideDueDate) ||
               (showProject && todo.project?.name) ? (
                 <div className="sm:hidden flex flex-wrap items-center gap-1 pl-7.5 pb-1 text-muted">
+                  {todo.subtodoCount > 0 && (
+                    <TodoSubtodoProgress
+                      completed={todo.completedTodos}
+                      total={todo.subtodoCount}
+                      expanded={expanded}
+                      onToggle={() => setExpanded((value) => !value)}
+                    />
+                  )}
                   {!hideDueDate && todo.dueDate && (
                     <TodoDueDate
                       dueDate={todo.dueDate}
@@ -211,6 +222,14 @@ export function TodoRow({
               ) : null}
 
               <div className="hidden sm:flex items-center justify-end gap-1.5 shrink-0 text-muted">
+                {todo.subtodoCount > 0 && (
+                  <TodoSubtodoProgress
+                    completed={todo.completedTodos}
+                    total={todo.subtodoCount}
+                    expanded={expanded}
+                    onToggle={() => setExpanded((value) => !value)}
+                  />
+                )}
                 {showProject && todo.project?.name && (
                   <TodoProjectBadge project={todo.project} pill />
                 )}
@@ -231,7 +250,10 @@ export function TodoRow({
             <CheckSquare className="w-3.5 h-3.5" />
             <span>{selected ? "Deselect" : "Select"}</span>
           </ContextMenuItem>
-          <ContextMenuItem onSelect={onToggleImportant} className="rounded-none">
+          <ContextMenuItem
+            onSelect={onToggleImportant}
+            className="rounded-none"
+          >
             <Star
               className={cn(
                 "w-3.5 h-3.5",
@@ -267,10 +289,7 @@ export function TodoRow({
 
       <Collapse open={open}>
         <div className="flex flex-col pb-1 pl-7">
-          <SubtodoList
-            steps={todo.subtodos}
-            hideDueDate={hideDueDate}
-          />
+          <SubtodoList steps={todo.subtodos} hideDueDate={hideDueDate} />
         </div>
       </Collapse>
     </div>
@@ -341,7 +360,7 @@ function SortableSubtodo({
   group,
   hideDueDate,
 }: SubtodoItemProps) {
-  const { data: todo } = useTodo(step.id);
+  const { data: todo } = useTodo(step.id, { refetchOnMount: false });
   const reordering = useReordering();
   const { ref, isDragging } = useSortable({
     id: step.id,
@@ -357,10 +376,7 @@ function SortableSubtodo({
   if (!todo) {
     return (
       // note: ukuran harus sama dengan baris TodoRow (checkbox 20px, teks 15px) supaya tinggi tidak melompat saat data tiba
-      <div
-        ref={ref}
-        className="flex items-center gap-2 py-2.5 px-3 opacity-60"
-      >
+      <div ref={ref} className="flex items-center gap-2 py-2.5 px-3 opacity-60">
         <span className="w-5 h-5 shrink-0 rounded-[7px] border-[1.5px] border-line bg-raised" />
         <span className="flex-1 min-w-0 truncate text-[16px] sm:text-[15px]">
           {step.title}

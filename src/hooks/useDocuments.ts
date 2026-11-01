@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import * as api from '../api'
+import { GC_TIME, STALE_TIME } from '../lib/query-cache'
 import { patch, tempId, useOptimistic } from './optimistic'
 import type { DocumentContent, ProjectDocument } from '../types'
 
@@ -9,6 +10,8 @@ export function useDocuments(projectId: string) {
   return useQuery({
     queryKey: [...DOCUMENTS_KEY, projectId],
     queryFn: () => api.fetchDocuments(projectId),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 
@@ -17,6 +20,8 @@ export function useDocument(id: string | null) {
     queryKey: [...DOCUMENTS_KEY, 'detail', id],
     queryFn: () => api.fetchDocument(id!),
     enabled: !!id,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 

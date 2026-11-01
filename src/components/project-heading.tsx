@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Box } from "lucide-react";
 import { ProjectColorPicker } from "./project-color-picker";
 import { useUpdateProject } from "../hooks/useProjects";
@@ -6,10 +6,9 @@ import type { Project } from "../types";
 
 type ProjectHeadingProps = {
   project: Project;
-  children?: ReactNode;
 };
 
-export function ProjectHeading({ project, children }: ProjectHeadingProps) {
+export function ProjectHeading({ project }: ProjectHeadingProps) {
   const updateProject = useUpdateProject();
   const [nameDraft, setNameDraft] = useState(project.name);
   const [descriptionDraft, setDescriptionDraft] = useState(
@@ -41,7 +40,7 @@ export function ProjectHeading({ project, children }: ProjectHeadingProps) {
   };
 
   return (
-    <header className="flex flex-col gap-3 px-3 pb-4 pt-2">
+    <header className="flex flex-col gap-3 px-3 pt-2">
       <ProjectColorPicker
         color={project.color}
         onChange={(color) => updateProject.mutate({ id: project.id, color })}
@@ -89,7 +88,6 @@ export function ProjectHeading({ project, children }: ProjectHeadingProps) {
         aria-label="Project summary"
         className="w-full resize-none overflow-hidden bg-transparent border-none outline-none field-sizing-content text-[15px] text-muted placeholder:text-muted/70"
       />
-      {children}
     </header>
   );
 }

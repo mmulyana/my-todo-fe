@@ -1,4 +1,7 @@
+import { memo } from "react";
 import { NavLink, useMatch } from "react-router-dom";
+import { useAtom, useSetAtom } from "jotai";
+import { searchOpenAtom, sidebarOpenAtom } from "@/atoms/layout";
 import {
   ChevronDown,
   LogOut,
@@ -102,13 +105,11 @@ function UserMenu() {
   );
 }
 
-type SidebarProps = {
-  open: boolean;
-  onClose: () => void;
-  onSearch: () => void;
-};
+export const Sidebar = memo(function Sidebar() {
+  const [open, setOpen] = useAtom(sidebarOpenAtom);
+  const setSearchOpen = useSetAtom(searchOpenAtom);
+  const onClose = () => setOpen(false);
 
-export function Sidebar({ open, onClose, onSearch }: SidebarProps) {
   return (
     <>
       <div
@@ -133,7 +134,7 @@ export function Sidebar({ open, onClose, onSearch }: SidebarProps) {
               type="button"
               onClick={() => {
                 onClose();
-                onSearch();
+                setSearchOpen(true);
               }}
               aria-label="Search"
               title="Search (Ctrl K)"
@@ -179,4 +180,4 @@ export function Sidebar({ open, onClose, onSearch }: SidebarProps) {
       </aside>
     </>
   );
-}
+});

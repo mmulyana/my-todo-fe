@@ -7,8 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export type ProjectTab = "todo" | "milestone" | "project" | "resource";
+import type { ProjectTab } from "@/lib/project-tabs";
 
 const TABS: { id: ProjectTab; label: string; icon: LucideIcon }[] = [
   { id: "todo", label: "Todo", icon: ListChecks },
@@ -16,10 +15,6 @@ const TABS: { id: ProjectTab; label: string; icon: LucideIcon }[] = [
   { id: "project", label: "Project", icon: Box },
   { id: "resource", label: "Resource", icon: Paperclip },
 ];
-
-export function parseProjectTab(value: string | null): ProjectTab {
-  return TABS.some((tab) => tab.id === value) ? (value as ProjectTab) : "todo";
-}
 
 export function ProjectContentTabs({
   active,

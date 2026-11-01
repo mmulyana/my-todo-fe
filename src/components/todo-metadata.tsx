@@ -206,14 +206,14 @@ export function TodoSubtodoProgress({
 }: TodoSubtodoProgressProps) {
   return (
     <button
-      className="flex gap-1 items-center opacity-80 hover:opacity-100 rounded-lg"
+      className="flex gap-1 items-center opacity-80 hover:opacity-100 border-line sm:border-[1.5px] sm:pl-1.5 pr-2 sm:py-1 rounded-full"
       title={`${completed} of ${total} subtodos completed`}
       onClick={onToggle}
       aria-expanded={expanded}
       aria-label={expanded ? "Hide steps" : "Show steps"}
     >
-      <CircularProgress value={completed} total={total} size={16} />
-      <p className="text-[14px] sm:text-xs text-fg font-medium mr-1">
+      <CircularProgress value={completed} total={total} size={17} />
+      <p className="text-sm text-fg pb-px">
         <span>{completed}</span>/<span className="opacity-40">{total}</span>
       </p>
     </button>

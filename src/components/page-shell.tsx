@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Menu, SquarePen } from "lucide-react";
-import { useSidebarContext } from "../layouts/app-layout";
+import { useSetAtom } from "jotai";
+import { openNewTaskAtom, sidebarOpenAtom } from "@/atoms/layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +38,8 @@ export function PageShell({
   hideNewTask = false,
   wide = false,
 }: PageShellProps) {
-  const { openSidebar, openNewTask } = useSidebarContext();
+  const setSidebarOpen = useSetAtom(sidebarOpenAtom);
+  const openNewTask = useSetAtom(openNewTaskAtom);
   const navigate = useNavigate();
 
   const goBack = (to?: string) => {
@@ -54,7 +56,7 @@ export function PageShell({
         <div className="flex items-center min-w-0">
           <button
             type="button"
-            onClick={openSidebar}
+            onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
             className="lg:hidden -ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
           >
@@ -103,7 +105,7 @@ export function PageShell({
           {!hideNewTask && (
             <button
               type="button"
-              onClick={() => openNewTask(newTaskProjectId)}
+              onClick={() => openNewTask({ projectId: newTaskProjectId })}
               aria-label="New task"
               title="New task"
               className="grid place-items-center w-8 h-8 rounded-full bg-bg text-muted hover:text-fg transition-colors cursor-pointer"

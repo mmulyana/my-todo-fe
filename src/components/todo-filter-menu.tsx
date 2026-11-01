@@ -27,10 +27,10 @@ import {
   type FilterCategory,
   type TodoFilters,
 } from "@/lib/todo-filters";
+import { useMilestones } from "../hooks/useMilestones";
 import { cn } from "@/lib/utils";
 import type {
   List as TodoList,
-  Milestone,
   Todo,
   TodoPriority,
 } from "../types";
@@ -56,7 +56,7 @@ type TodoFilterMenuProps = {
   todos: Todo[];
   categories?: FilterCategory[];
   lists?: TodoList[];
-  milestones?: Milestone[];
+  milestonesProjectId?: string;
   projects?: { id: string; label: string }[];
   filters: TodoFilters;
   onChange: (filters: TodoFilters) => void;
@@ -69,13 +69,17 @@ export function TodoFilterMenu({
   todos,
   categories: allowed = DEFAULT_CATEGORIES,
   lists = [],
-  milestones = [],
+  milestonesProjectId,
   projects = [],
   filters,
   onChange,
   className,
 }: TodoFilterMenuProps) {
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const { data: milestones = [] } = useMilestones(milestonesProjectId, {
+    enabled: open,
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const activeCount = activeFilterCount(filters);
 
@@ -164,8 +168,9 @@ export function TodoFilterMenu({
 
   return (
     <DropdownMenu
-      onOpenChange={(open) => {
-        if (!open) setQuery("");
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery("");
         else setTimeout(() => inputRef.current?.focus(), 0);
       }}
     >

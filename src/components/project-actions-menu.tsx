@@ -44,14 +44,14 @@ export function ProjectActionsMenu({ project }: ProjectActionsMenuProps) {
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-48 px-0">
         <DropdownMenuItem
           onSelect={() =>
             archived
               ? unarchiveProject.mutate(project.id)
               : archiveProject.mutate(project.id)
           }
-          className="gap-2 cursor-pointer"
+          className="gap-2 cursor-pointer rounded-none"
         >
           {archived ? (
             <ArchiveRestore className="w-4 h-4" />
@@ -62,10 +62,9 @@ export function ProjectActionsMenu({ project }: ProjectActionsMenuProps) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteProjectDialog projectName={project.name} onConfirm={onDelete}>
-          {/* note: preventDefault supaya menu tidak menutup dan mencabut dialog konfirmasi sebelum sempat terbuka */}
           <DropdownMenuItem
             onSelect={(event) => event.preventDefault()}
-            className="gap-2 cursor-pointer text-danger focus:bg-danger/10 focus:text-danger"
+            className="gap-2 cursor-pointer text-danger focus:text-danger rounded-none"
           >
             <Trash2 className="w-4 h-4" />
             Delete project
