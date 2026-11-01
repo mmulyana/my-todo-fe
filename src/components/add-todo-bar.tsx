@@ -10,6 +10,8 @@ type AddTodoBarProps = {
   defaultProjectId?: string | null
   showMobileFab?: boolean
   inline?: boolean
+  autoFocus?: boolean
+  onCancel?: () => void
 }
 
 export function AddTodoBar({
@@ -18,6 +20,8 @@ export function AddTodoBar({
   defaultProjectId,
   showMobileFab = true,
   inline = false,
+  autoFocus,
+  onCancel,
 }: AddTodoBarProps) {
   const [open, setOpen] = useState(false)
 
@@ -29,7 +33,14 @@ export function AddTodoBar({
           inline ? 'block' : 'hidden lg:block p-4 bg-surface',
         )}
       >
-        <TodoInput view={view} lists={lists} defaultProjectId={defaultProjectId} hideComboboxes />
+        <TodoInput
+          view={view}
+          lists={lists}
+          defaultProjectId={defaultProjectId}
+          hideComboboxes
+          autoFocus={autoFocus}
+          onCancel={onCancel}
+        />
       </div>
 
       {showMobileFab && !open && (

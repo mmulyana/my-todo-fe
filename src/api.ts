@@ -470,6 +470,18 @@ export async function moveTodoToList(
   await gql(MoveTodoToListDocument, { input: { id, listId, position } });
 }
 
+const MoveSubtodoDocument = graphql(`
+  mutation MoveSubtodo($input: MoveSubtodoInput!) {
+    moveSubtodo(input: $input) {
+      id
+    }
+  }
+`);
+
+export async function moveSubtodo(id: string, position: number): Promise<void> {
+  await gql(MoveSubtodoDocument, { input: { id, position } });
+}
+
 const RemoveTodoDocument = graphql(`
   mutation RemoveTodo($id: ID!) {
     removeTodo(id: $id) {

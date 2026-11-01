@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { KanbanSquare, LayoutDashboard, List } from "lucide-react";
+import { KanbanSquare, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ProjectView = "overview" | "list" | "kanban";
+export type ProjectView = "list" | "kanban";
 
 const viewKey = (projectId: string) => `projectView:${projectId}`;
 
@@ -16,7 +16,12 @@ export function readProjectView(projectId: string): "list" | "kanban" {
   }
 }
 
+// note: entry point view (List/Board) disembunyikan dulu, ubah ke true untuk menampilkan lagi
+export const SHOW_VIEW_CONTROLS = false;
+
 export function isKanbanLocation(pathname: string, view: string | null): boolean {
+  // note: selama view disembunyikan halaman project selalu List, jangan menekan panel detail karena preferensi Board lama di localStorage
+  if (!SHOW_VIEW_CONTROLS) return false;
   const match = pathname.match(/^\/projects\/([^/]+)\/?$/);
   if (!match) return false;
   if (view === "kanban" || view === "list") return view === "kanban";
@@ -34,7 +39,6 @@ export function saveProjectView(projectId: string, view: "list" | "kanban") {
 const TABS: { view: ProjectView; label: string; icon: typeof List }[] = [
   { view: "list", label: "List", icon: List },
   { view: "kanban", label: "Board", icon: KanbanSquare },
-  { view: "overview", label: "Overview", icon: LayoutDashboard },
 ];
 
 export function ProjectViewTabs({
@@ -44,10 +48,7 @@ export function ProjectViewTabs({
   projectId: string;
   active: ProjectView;
 }) {
-  const hrefFor = (view: ProjectView) =>
-    view === "overview"
-      ? `/projects/${projectId}/details`
-      : `/projects/${projectId}?view=${view}`;
+  const hrefFor = (view: ProjectView) => `/projects/${projectId}?view=${view}`;
 
   return (
     <nav
@@ -61,7 +62,7 @@ export function ProjectViewTabs({
           replace
           aria-current={active === view ? "page" : undefined}
           onClick={() => {
-            if (view !== "overview") saveProjectView(projectId, view);
+            saveProjectView(projectId, view);
           }}
           className={cn(
             "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 font-medium transition-colors hover:text-fg max-lg:py-1.5",

@@ -65,14 +65,30 @@ export function useInfiniteTodos(
   });
 }
 
-export function useTodo(id: string) {
+export function useTodo(
+  id: string,
+  options?: { refetchOnMount?: boolean | "always" },
+) {
   return useQuery({
     queryKey: todoKey(id),
     queryFn: () => api.fetchTodo(id),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: options?.refetchOnMount ?? "always",
   });
+}
+
+export function usePrefetchTodo() {
+  const qc = useQueryClient();
+  return useCallback(
+    (id: string) =>
+      qc.prefetchQuery({
+        queryKey: todoKey(id),
+        queryFn: () => api.fetchTodo(id),
+        staleTime: STALE_TIME,
+      }),
+    [qc],
+  );
 }
 
 export function useActiveTodos(filter: TodoFilter) {
@@ -337,6 +353,13 @@ export function useMoveTodoToList() {
       listId: string | null;
       position: number;
     }) => api.moveTodoToList(id, listId, position),
+  );
+}
+
+export function useMoveSubtodo() {
+  return useRefetchingTodo(
+    ({ id, position }: { id: string; position: number }) =>
+      api.moveSubtodo(id, position),
   );
 }
 

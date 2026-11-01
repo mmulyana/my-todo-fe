@@ -17,6 +17,7 @@ import {
 } from "@tiptap/extension-table";
 import {
   Bold,
+  ChevronDown,
   File as FileIcon,
   Heading2,
   Image as ImageIcon,
@@ -45,10 +46,13 @@ type NoteEditorProps = {
   todoId: string;
   noteJson: DocumentContent | undefined;
   attachments: Attachment[];
+  autoFocus?: boolean;
   onChange: (doc: DocumentContent, signal: AbortSignal) => void;
 };
 
 const SAVE_DELAY = 400;
+// note: harus sama dengan class h-40 pada wrapper editor
+const COLLAPSED_HEIGHT = 160;
 
 // note: harus sama dengan konfigurasi BE (src/common/note-markdown.ts) supaya JSON <-> Markdown tidak lossy
 const extensions = [
@@ -437,10 +441,14 @@ export function NoteEditor({
   todoId,
   noteJson,
   attachments,
+  autoFocus = false,
   onChange,
 }: NoteEditorProps) {
   // note: JSON terakhir yang dikirim editor; kalau server mengembalikan yang sama, editor tidak di-reset (kursor aman)
   const lastEmittedRef = useRef<string | null>(null);
+  const [focused, setFocused] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
 
   const [save] = useDebouncedCallback(
     (doc: DocumentContent, signal: AbortSignal) => onChange(doc, signal),
@@ -450,12 +458,15 @@ export function NoteEditor({
   const editor = useEditor({
     extensions,
     content: (noteJson ?? null) as JSONContent | null,
+    autofocus: autoFocus ? "end" : false,
     editorProps: {
       attributes: {
         class:
-          "prose-editor min-h-48 px-3 py-2.5 outline-none text-sm leading-relaxed",
+          "prose-editor px-3 py-2.5 outline-none text-sm leading-relaxed",
       },
     },
+    onFocus: () => setFocused(true),
+    onBlur: () => setFocused(false),
     onUpdate: ({ editor: e }) => {
       const doc = e.isEmpty ? null : (e.getJSON() as DocumentContent);
       lastEmittedRef.current = JSON.stringify(doc);
@@ -476,13 +487,45 @@ export function NoteEditor({
     lastEmittedRef.current = incoming;
   }, [editor, noteJson]);
 
+  const fullHeight = expanded || focused;
+  useEffect(() => {
+    if (!editor || fullHeight) return;
+    const check = () =>
+      setOverflowing(editor.view.dom.scrollHeight > COLLAPSED_HEIGHT);
+    check();
+    editor.on("update", check);
+    return () => {
+      editor.off("update", check);
+    };
+  }, [editor, fullHeight]);
+
   if (!editor) return null;
 
   return (
     <NoteAttachmentsContext.Provider value={attachments}>
       <div className="rounded-lg border border-line bg-raised focus-within:border-accent">
         <Toolbar editor={editor} todoId={todoId} attachments={attachments} />
-        <EditorContent editor={editor} />
+        <div
+          className={cn("overflow-hidden", !fullHeight && "h-40")}
+        >
+          <EditorContent editor={editor} />
+        </div>
+        {(expanded || (overflowing && !focused)) && (
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-expanded={expanded}
+            className="flex w-full items-center justify-center gap-1 border-t border-line py-1 text-xs text-muted hover:text-fg transition-colors cursor-pointer"
+          >
+            <ChevronDown
+              className={cn(
+                "w-3.5 h-3.5 transition-transform duration-200 ease-out-strong",
+                expanded && "rotate-180",
+              )}
+            />
+            {expanded ? "Collapse" : "Show all"}
+          </button>
+        )}
       </div>
     </NoteAttachmentsContext.Provider>
   );

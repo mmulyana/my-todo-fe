@@ -50,7 +50,7 @@ export function TodaySuggestionsSheet({
                 className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-tint/5"
               >
                 <div className="min-w-0 flex-1">
-                  <TodoRow todo={todo} hideDueDate hideGrab showList={false} />
+                  <TodoRow todo={todo} hideDueDate showList={false} />
                 </div>
                 <Button
                   type="button"

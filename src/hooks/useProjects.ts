@@ -1,5 +1,6 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 import * as api from "../api";
+import { GC_TIME, STALE_TIME } from "../lib/query-cache";
 import { patch, tempId, useOptimistic } from "./optimistic";
 import { LISTS_KEY } from "./useLists";
 import { TODOS_KEY } from "./useTodos";
@@ -9,7 +10,12 @@ import type { List, Project, Todo } from "../types";
 export const PROJECTS_KEY = ["projects"] as const;
 
 export function useProjects() {
-  return useQuery({ queryKey: PROJECTS_KEY, queryFn: api.fetchProjects });
+  return useQuery({
+    queryKey: PROJECTS_KEY,
+    queryFn: api.fetchProjects,
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  });
 }
 
 export function useCreateProject() {

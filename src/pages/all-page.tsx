@@ -3,13 +3,22 @@ import { Infinity as InfinityIcon } from 'lucide-react'
 import { PageShell } from '../components/page-shell'
 import { TodoRow } from '../components/todo-row'
 import { TodoListSkeleton } from '../components/todo-list-skeleton'
-import { AddTodoBar } from '../components/add-todo-bar'
+import { TodoFilterMenu } from '../components/todo-filter-menu'
+import {
+  CROSS_PROJECT_CATEGORIES,
+  useProjectFilterOptions,
+  useTodoFilters,
+} from '../hooks/useTodoFilters'
+import { applyFilters } from '@/lib/todo-filters'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { useInfiniteTodos } from '../hooks/useTodos'
-import { useLists } from '../hooks/useLists'
-import type { TodoFilter, View } from '../types'
+import type { TodoFilter } from '../types'
+import type { TodoFilters } from '@/lib/todo-filters'
 
-const view: View = { kind: 'smart', id: 'all' }
+// note: halaman All memisahkan todo selesai ke section sendiri, jadi tanpa filter completed
+const ALL_CATEGORIES = CROSS_PROJECT_CATEGORIES.filter(
+  (category) => category !== 'completed',
+)
 
 type LoadMoreProps = { hasMore: boolean; loading: boolean; onClick: () => void }
 
@@ -28,10 +37,19 @@ function LoadMore({ hasMore, loading, onClick }: LoadMoreProps) {
 }
 
 // note: baru di-mount saat section dibuka, jadi completed todos tidak di-fetch sebelum itu
-function CompletedTodos({ filter }: { filter: TodoFilter }) {
+function CompletedTodos({
+  filter,
+  filters,
+}: {
+  filter: TodoFilter
+  filters: TodoFilters
+}) {
   const { data = [], hasNextPage, isFetchingNextPage, fetchNextPage, isPending } =
     useInfiniteTodos({ ...filter, completed: true }, { staleTime: 0 })
-  const todos = data.filter((t) => t.completed)
+  const todos = applyFilters(
+    data.filter((t) => t.completed),
+    filters,
+  )
 
   return (
     <>
@@ -63,24 +81,34 @@ export default function AllPage() {
     fetchNextPage,
     isLoading,
   } = useInfiniteTodos({ ...filter, completed: false })
-  const { data: lists = [] } = useLists()
+  const [filters, setFilters] = useTodoFilters('page:all')
+  const projectOptions = useProjectFilterOptions()
+  // note: filter dijalankan di klien atas todo yang sudah dimuat, todo di halaman yang belum di-load lewat "Load more" belum ikut tersaring
+  const openTodos = todos.filter((todo) => !todo.completed)
 
   return (
     <PageShell
       title={query ? `Searching "${query}"` : 'All'}
       icon={<InfinityIcon size={20} className="text-accent" />}
       footer={null}
+      actions={
+        !query ? (
+          <TodoFilterMenu
+            todos={openTodos}
+            categories={ALL_CATEGORIES}
+            projects={projectOptions}
+            filters={filters}
+            onChange={setFilters}
+          />
+        ) : null
+      }
     >
-      {!query && <AddTodoBar view={view} lists={lists} showMobileFab={false} inline />}
-
       {isLoading ? (
         <TodoListSkeleton />
       ) : (
-        todos
-          .filter((todo) => !todo.completed)
-          .map((todo) => (
-            <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
-          ))
+        applyFilters(openTodos, filters).map((todo) => (
+          <TodoRow key={todo.id} todo={todo} showProject skipInvalidate />
+        ))
       )}
       <LoadMore
         hasMore={Boolean(hasNextPage)}
@@ -89,7 +117,7 @@ export default function AllPage() {
       />
 
       <CollapsibleSection className="mt-4" label="Completed">
-        <CompletedTodos filter={filter} />
+        <CompletedTodos filter={filter} filters={filters} />
       </CollapsibleSection>
     </PageShell>
   )

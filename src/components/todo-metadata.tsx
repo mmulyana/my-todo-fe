@@ -1,13 +1,17 @@
-import { Box, Calendar, Check, Flag, GripVertical, Star } from "lucide-react";
+import { Box, Calendar, Check, Flag, Star } from "lucide-react";
 import { CircularProgress } from "./circular-progress";
 import { PRIORITY_CONFIG, PriorityIcon } from "./priority-icon";
 import { formatDue, formatDueRelative, isOverdue, todayISO } from "../lib/dates";
 import type { List, Milestone, TodoPriority, TodoProject } from "../types";
 import { cn } from "@/lib/utils";
 
+const PILL_CLASS =
+  "rounded-full border border-line px-2.5 py-1 text-[13px] bg-transparent";
+
 type TodoDueDateProps = {
   dueDate: string;
   completed: boolean;
+  pill?: boolean;
 };
 
 function duePill({ dueDate, completed }: TodoDueDateProps) {
@@ -20,12 +24,13 @@ function duePill({ dueDate, completed }: TodoDueDateProps) {
   return "!text-fg/70 hover:!bg-tint/5";
 }
 
-export function TodoDueDate({ dueDate, completed }: TodoDueDateProps) {
+export function TodoDueDate({ dueDate, completed, pill }: TodoDueDateProps) {
   return (
     <span
       className={cn(
         "flex gap-1 text-[14px] sm:text-xs items-center rounded-lg text-tint/50 px-2 py-1",
         duePill({ dueDate, completed }),
+        pill && cn(PILL_CLASS, "gap-1.5 whitespace-nowrap sm:text-[13px]"),
       )}
       title={formatDue(dueDate)}
     >
@@ -68,6 +73,23 @@ export function TodoImportantButton({
   );
 }
 
+export function TodoPriorityColumn({
+  priority,
+}: {
+  priority: TodoPriority | null;
+}) {
+  if (priority == null) return null;
+
+  return (
+    <span
+      className="flex w-5 shrink-0 items-center justify-center"
+      title={PRIORITY_CONFIG[priority].label}
+    >
+      <PriorityIcon priority={priority} />
+    </span>
+  );
+}
+
 export function TodoPriorityBadge({ priority }: { priority: TodoPriority }) {
   return (
     <span className="flex items-center" title={PRIORITY_CONFIG[priority].label}>
@@ -96,7 +118,31 @@ export function TodoMilestoneBadge({ milestone }: { milestone: Milestone }) {
   );
 }
 
-export function TodoProjectBadge({ project }: { project: TodoProject }) {
+export function TodoProjectBadge({
+  project,
+  pill,
+}: {
+  project: TodoProject;
+  pill?: boolean;
+}) {
+  if (pill) {
+    return (
+      <span
+        className={cn(
+          PILL_CLASS,
+          "flex items-center gap-1.5 max-w-40 min-w-0 shrink-0 text-fg/70",
+        )}
+        title={project.name}
+      >
+        <span
+          className="w-2.5 h-2.5 shrink-0 rounded-full bg-muted"
+          style={{ backgroundColor: project.color ?? undefined }}
+        />
+        <span className="truncate">{project.name}</span>
+      </span>
+    );
+  }
+
   return (
     <span className={BADGE_CLASS} title={project.name}>
       <Box
@@ -122,7 +168,7 @@ export function TodoCheckbox({
     <button
       type="button"
       className={cn(
-        "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-[background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.96]",
+        "grid place-items-center w-5 h-5 shrink-0 rounded-full border-[1.5px] transition-[background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.96]",
         completed
           ? "bg-accent border-accent text-white"
           : "border-line hover:border-muted",
@@ -136,7 +182,7 @@ export function TodoCheckbox({
           "w-3 h-3",
           completed
             ? "text-white animate-check-in"
-            : "text-muted opacity-0 group-hover/row:opacity-40",
+            : "text-muted opacity-0",
         )}
       >
         <Check className="w-full h-full" strokeWidth={3} />
@@ -160,40 +206,16 @@ export function TodoSubtodoProgress({
 }: TodoSubtodoProgressProps) {
   return (
     <button
-      className="flex gap-1 items-center opacity-80 hover:opacity-100 rounded-lg"
+      className="flex gap-1 items-center opacity-80 hover:opacity-100 border-line sm:border-[1.5px] sm:pl-1.5 pr-2 sm:py-1 rounded-full"
       title={`${completed} of ${total} subtodos completed`}
       onClick={onToggle}
       aria-expanded={expanded}
       aria-label={expanded ? "Hide steps" : "Show steps"}
     >
-      <CircularProgress value={completed} total={total} size={16} />
-      <p className="text-[14px] sm:text-xs text-fg font-medium mr-1">
+      <CircularProgress value={completed} total={total} size={17} />
+      <p className="text-sm text-fg pb-px">
         <span>{completed}</span>/<span className="opacity-40">{total}</span>
       </p>
     </button>
-  );
-}
-
-type TodoDragHandleProps = {
-  title: string;
-  dragHandleRef?: (element: Element | null) => void;
-};
-
-export function TodoDragHandle({ title, dragHandleRef }: TodoDragHandleProps) {
-  return (
-    <span className="flex justify-center w-5 h-5 shrink-0">
-      {dragHandleRef && (
-        <button
-          type="button"
-          ref={dragHandleRef}
-          className="flex items-center justify-center w-5 h-5 rounded-md text-muted opacity-0 group-hover/row:opacity-100 hover:bg-tint/10 hover:text-fg cursor-grab active:cursor-grabbing touch-none"
-          aria-label={`Reorder ${title}`}
-          title="Drag to reorder"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <GripVertical size={14} />
-        </button>
-      )}
-    </span>
   );
 }

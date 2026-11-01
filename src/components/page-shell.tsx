@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Menu } from "lucide-react";
-import { useSidebarContext } from "../layouts/app-layout";
+import { ArrowLeft, Menu, SquarePen } from "lucide-react";
+import { useSetAtom } from "jotai";
+import { openNewTaskAtom, sidebarOpenAtom } from "@/atoms/layout";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,9 @@ type PageShellProps = {
   footer?: ReactNode;
   classNameChildren?: string;
   fill?: boolean;
+  newTaskProjectId?: string | null;
+  hideNewTask?: boolean;
+  wide?: boolean;
 };
 
 export function PageShell({
@@ -30,8 +34,12 @@ export function PageShell({
   footer = null,
   classNameChildren,
   fill = false,
+  newTaskProjectId = null,
+  hideNewTask = false,
+  wide = false,
 }: PageShellProps) {
-  const { openSidebar } = useSidebarContext();
+  const setSidebarOpen = useSetAtom(sidebarOpenAtom);
+  const openNewTask = useSetAtom(openNewTaskAtom);
   const navigate = useNavigate();
 
   const goBack = (to?: string) => {
@@ -48,7 +56,7 @@ export function PageShell({
         <div className="flex items-center min-w-0">
           <button
             type="button"
-            onClick={openSidebar}
+            onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
             className="lg:hidden -ml-1.5 mr-1.5 p-1.5 shrink-0 rounded-lg text-muted hover:text-fg hover:bg-tint/5 transition-colors cursor-pointer"
           >
@@ -94,6 +102,17 @@ export function PageShell({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {actions}
+          {!hideNewTask && (
+            <button
+              type="button"
+              onClick={() => openNewTask({ projectId: newTaskProjectId })}
+              aria-label="New task"
+              title="New task"
+              className="grid place-items-center w-8 h-8 rounded-full bg-bg text-muted hover:text-fg transition-colors cursor-pointer"
+            >
+              <SquarePen className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -104,11 +123,19 @@ export function PageShell({
       ) : (
         <div
           className={cn(
-            "flex-1 min-h-0 overflow-y-auto px-0.5 py-4 pr-4",
+            "flex-1 min-h-0 overflow-y-auto py-4",
+            wide ? "px-0.5 pr-4" : "px-4",
             classNameChildren,
           )}
         >
-          <div className="flex flex-col">{children}</div>
+          <div
+            className={cn(
+              "flex flex-col",
+              !wide && "w-full max-w-[1200px] mx-auto",
+            )}
+          >
+            {children}
+          </div>
         </div>
       )}
 

@@ -1,16 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
 import * as api from '../api'
+import { GC_TIME, STALE_TIME } from '../lib/query-cache'
 import { patch, tempId, useOptimistic } from './optimistic'
 import { TODOS_KEY } from './useTodos'
 import type { Milestone, Todo } from '../types'
 
 export const MILESTONES_KEY = ['milestones'] as const
 
-export function useMilestones(projectId?: string) {
+export function useMilestones(
+  projectId?: string,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [...MILESTONES_KEY, projectId ?? null],
     queryFn: () => api.fetchMilestones(projectId),
-    enabled: Boolean(projectId),
+    enabled: Boolean(projectId) && (options?.enabled ?? true),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
   })
 }
 

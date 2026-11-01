@@ -1,74 +1,50 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, useParams } from "react-router-dom";
-import { Archive, Eye, EyeOff } from "lucide-react";
-import { ProjectLists } from "../components/project-lists";
+import { useParams } from "react-router-dom";
+import { Archive } from "lucide-react";
+import { ProjectBody } from "../components/project-body";
+import { ProjectActionsMenu } from "../components/project-actions-menu";
 import { PageShell } from "../components/page-shell";
 import {
   ProjectViewTabs,
+  SHOW_VIEW_CONTROLS,
   readProjectView,
 } from "../components/project-view-tabs";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { KanbanBoard } from "@/components/kanban-board";
+import { useSearchParam } from "../hooks/useSearchParam";
 import { useTodos } from "../hooks/useTodos";
-import { useLists } from "../hooks/useLists";
 import { useProjects } from "../hooks/useProjects";
 import { isArchived, projectTrail } from "../projects";
 import { cn } from "@/lib/utils";
 
-const hideCompletedKey = (projectId: string) => `hideCompleted:${projectId}`;
-
-function readHideCompleted(projectId: string): boolean {
-  try {
-    return localStorage.getItem(hideCompletedKey(projectId)) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export default function ProjectPage() {
   const { projectId } = useParams();
+  return <ProjectPageContent key={projectId} />;
+}
+
+function SearchResults({ query }: { query: string }) {
+  const { data: todos = [], isLoading } = useTodos({ q: query });
+
+  if (isLoading) return <TodoListSkeleton />;
+  return todos.map((todo) => (
+    <TodoRow key={todo.id} todo={todo} skipInvalidate />
+  ));
+}
+
+function ProjectPageContent() {
+  const { projectId } = useParams();
   const id = projectId!;
-  const [hideCompleted, setHideCompleted] = useState(() => readHideCompleted(id));
 
-  useEffect(() => {
-    setHideCompleted(readHideCompleted(id));
-  }, [id]);
-
-  const toggleHideCompleted = () => {
-    setHideCompleted((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(hideCompletedKey(id), next ? "1" : "0");
-      } catch {
-        // ignore (private mode / blocked storage)
-      }
-      return next;
-    });
-  };
-
-  const [params] = useSearchParams();
-  const query = (params.get("q") ?? "").trim();
-  const viewParam = params.get("view");
-  const activeView: "list" | "kanban" =
-    viewParam === "kanban" || viewParam === "list"
+  const query = (useSearchParam("q") ?? "").trim();
+  const viewParam = useSearchParam("view");
+  const activeView: "list" | "kanban" = !SHOW_VIEW_CONTROLS
+    ? "list"
+    : viewParam === "kanban" || viewParam === "list"
       ? viewParam
       : readProjectView(id);
 
-  const { data: todos = [], isLoading } = useTodos(
-    query ? { q: query } : { projectId: id },
-  );
-  const { data: lists = [] } = useLists();
   const { data: projects = [] } = useProjects();
-
   const project = projects.find((p) => p.id === id) ?? null;
-  const listsOfProject = lists.filter((l) => l.projectId === id);
-
-  const rootTodos = query ? todos : todos.filter((t) => !t.listId);
-  const visibleTodos = hideCompleted ? todos.filter((t) => !t.completed) : todos;
-
-  const completedCount = todos.filter((t) => t.completed).length;
-
   const archived = project ? isArchived(project) : false;
 
   const projectActions = project ? (
@@ -79,57 +55,31 @@ export default function ProjectPage() {
           <span>Archived</span>
         </span>
       )}
-      {completedCount > 0 && (
-        <button
-          type="button"
-          onClick={toggleHideCompleted}
-          aria-pressed={hideCompleted}
-          title={hideCompleted ? "Show completed" : "Hide completed"}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium transition-colors cursor-pointer max-lg:p-1.5",
-            hideCompleted
-              ? "text-fg bg-tint/10"
-              : "text-muted hover:text-fg hover:bg-tint/5",
-          )}
-        >
-          {hideCompleted ? <EyeOff size={14} /> : <Eye size={14} />}
-          <span className="max-lg:hidden">
-            {hideCompleted ? "Show completed" : "Hide completed"}
-          </span>
-        </button>
+      {SHOW_VIEW_CONTROLS && (
+        <ProjectViewTabs projectId={id} active={activeView} />
       )}
-      <ProjectViewTabs projectId={id} active={activeView} />
+      <ProjectActionsMenu project={project} />
     </div>
   ) : null;
 
   return (
-    <>
-      <PageShell
-        title={query ? `Searching "${query}"` : (project?.name ?? "Project")}
-        subtitle={query ? null : (project?.description ?? null)}
-        actions={!query ? projectActions : null}
-        trail={query ? [] : projectTrail(projects, id)}
-        footer={null}
-        classNameChildren={cn(activeView === "kanban" && "pb-0 pr-0")}
-      >
-        {activeView === "kanban" && !query ? (
-          <KanbanBoard projectId={id} hideCompleted={hideCompleted} />
-        ) : isLoading ? (
-          <TodoListSkeleton />
-        ) : query ? (
-          rootTodos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} skipInvalidate />
-          ))
-        ) : (
-          <ProjectLists
-            key={id}
-            projectId={id}
-            lists={listsOfProject}
-            todos={visibleTodos}
-          />
-        )}
-      </PageShell>
-
-    </>
+    <PageShell
+      title={query ? `Searching "${query}"` : (project?.name ?? "Project")}
+      subtitle={query ? null : (project?.description ?? null)}
+      actions={!query ? projectActions : null}
+      newTaskProjectId={id}
+      trail={query ? [] : projectTrail(projects, id)}
+      footer={null}
+      classNameChildren={cn(activeView === "kanban" && "pb-0 pr-0")}
+      wide={activeView === "kanban" && !query}
+    >
+      {activeView === "kanban" && !query ? (
+        <KanbanBoard projectId={id} hideCompleted={false} />
+      ) : query ? (
+        <SearchResults query={query} />
+      ) : (
+        <ProjectBody projectId={id} project={project} />
+      )}
+    </PageShell>
   );
 }

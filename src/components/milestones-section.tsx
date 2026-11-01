@@ -57,32 +57,36 @@ export function MilestonesSection({ projectId }: MilestonesSectionProps) {
   const unassignedTodos = todos.filter((t) => !t.milestoneId);
 
   return (
-    <div className="flex flex-col rounded-xl border border-line divide-y divide-line overflow-hidden">
-      {milestones.map((milestone) => (
-        <MilestoneCard
-          key={milestone.id}
-          projectId={projectId}
-          milestone={milestone}
-          todos={todos.filter((t) => t.milestoneId === milestone.id)}
-          unassignedTodos={unassignedTodos}
-        />
-      ))}
+    <div className="px-3">
+      <div className="flex flex-col rounded-xl border border-line divide-y divide-line overflow-hidden">
+        {milestones.map((milestone) => (
+          <MilestoneCard
+            key={milestone.id}
+            projectId={projectId}
+            milestone={milestone}
+            todos={todos.filter((t) => t.milestoneId === milestone.id)}
+            unassignedTodos={unassignedTodos}
+          />
+        ))}
 
-      <form
-        onSubmit={submit}
-        className="flex items-center gap-2 px-2.5 h-10 text-muted"
-      >
-        <div className="shrink-0 w-5 flex justify-center">
-          <Plus size={14} />
-        </div>
-        <input
-          value={nameDraft}
-          onChange={(e) => setNameDraft(e.target.value)}
-          placeholder={milestones.length ? "New milestone" : "Add your first milestone"}
-          aria-label="New milestone name"
-          className="flex-1 min-w-0 bg-transparent border-none text-sm text-fg outline-none placeholder:text-muted"
-        />
-      </form>
+        <form
+          onSubmit={submit}
+          className="flex items-center gap-2 px-2.5 h-10 text-muted"
+        >
+          <div className="shrink-0 w-5 flex justify-center">
+            <Plus size={14} />
+          </div>
+          <input
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            placeholder={
+              milestones.length ? "New milestone" : "Add your first milestone"
+            }
+            aria-label="New milestone name"
+            className="flex-1 min-w-0 bg-transparent border-none text-sm text-fg outline-none placeholder:text-muted"
+          />
+        </form>
+      </div>
     </div>
   );
 }
@@ -193,7 +197,10 @@ function MilestoneCard({
           aria-expanded={expanded}
         >
           <ChevronRight
-            className={cn("w-4 h-4 transition-transform", expanded && "rotate-90")}
+            className={cn(
+              "w-4 h-4 transition-transform",
+              expanded && "rotate-90",
+            )}
           />
         </button>
 
@@ -278,7 +285,7 @@ function MilestoneCard({
           </div>
 
           {todos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} hideGrab hideMilestone />
+            <TodoRow key={todo.id} todo={todo} hideMilestone />
           ))}
 
           {todos.length === 0 && (
@@ -305,7 +312,6 @@ function MilestoneCard({
           >
             Delete milestone
           </button>
-
         </div>
       )}
     </div>

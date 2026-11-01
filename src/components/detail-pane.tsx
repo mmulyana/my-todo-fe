@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { AttachmentSection } from "./attachment-section";
-import { NoteEditor } from "./note-editor";
-import { SubtodoSection } from "./subtodo-section";
+import { TodoDetailTabs } from "./todo-detail-tabs";
 import { PriorityIcon } from "./priority-icon";
 import { formatDue, fromISODate, isOverdue, toISODate } from "../lib/dates";
 import {
@@ -51,6 +49,8 @@ import {
 import type { ReactNode } from "react";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
+
+const SHOW_KANBAN_STATUS = false;
 
 type DetailPaneContentProps = {
   todoId: string;
@@ -171,10 +171,10 @@ export function DetailPaneContent({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="px-4 pt-4 flex items-center gap-2">
+        <div className="px-4 pt-4 flex items-start gap-2">
           <button
             className={cn(
-              "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
+              "mt-0.5 grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors cursor-pointer",
               todo.completed
                 ? "bg-accent border-accent text-white"
                 : "border-line hover:border-muted bg-raised",
@@ -192,20 +192,26 @@ export function DetailPaneContent({
           >
             {todo.completed && <Check className="w-4.5 h-4.5" />}
           </button>
-          <input
+          <textarea
             className={cn(
-              "flex-1 min-w-0 border-none bg-transparent text-lg font-semibold outline-none",
+              "flex-1 min-w-0 resize-none overflow-hidden border-none bg-transparent text-lg leading-snug font-semibold outline-none field-sizing-content break-words",
               todo.completed && "text-muted line-through",
             )}
+            rows={1}
             value={titleDraft}
-            onChange={(e) => onTitleChange(e.target.value)}
+            onChange={(e) => onTitleChange(e.target.value.replace(/\n/g, " "))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.currentTarget.blur();
+              }
+            }}
             placeholder="Task title..."
             aria-label="Todo title"
           />
         </div>
-        <SubtodoSection todo={todo} onOpenTodo={onOpenTodo} />
 
-        <div className="px-4 pt-4 flex flex-col">
+        <div className="px-4 pt-2 flex flex-col">
           <MetaRow icon={<Star className="w-4 h-4" />} label="Important">
             <button
               className={cn(
@@ -299,7 +305,7 @@ export function DetailPaneContent({
               />
             </MetaRow>
           )}
-          {todo.projectId && (
+          {SHOW_KANBAN_STATUS && todo.projectId && (
             <MetaRow icon={<Columns3 className="w-4 h-4" />} label="Status">
               <Select
                 value={todo.kanbanColumnId ?? ""}
@@ -430,22 +436,11 @@ export function DetailPaneContent({
             </div>
           </MetaRow>
 
-          <div className="flex flex-col gap-1.5 mt-1">
-            <span className="text-sm">Note</span>
-            <NoteEditor
-              key={todo.id}
-              todoId={todo.id}
-              noteJson={todo.noteJson}
-              attachments={todo.attachments}
-              onChange={(noteJson, signal) => update({ noteJson }, signal)}
-            />
-          </div>
-
           <div className="mt-4">
-            <AttachmentSection
-              todoId={todo.id}
-              attachments={todo.attachments}
-              tabbed
+            <TodoDetailTabs
+              todo={todo}
+              onOpenTodo={onOpenTodo}
+              onNoteChange={(noteJson, signal) => update({ noteJson }, signal)}
             />
           </div>
         </div>
@@ -507,8 +502,8 @@ type MetaRowProps = {
 function MetaRow({ icon, label, children }: MetaRowProps) {
   return (
     <div className="flex items-center gap-3 min-h-9">
-      <div className="flex items-center gap-2 w-28 shrink-0 text-sm text-muted">
-        <span className="shrink-0 w-5.25 h-5.25 items-center flex justify-center">
+      <div className="flex items-center gap-2.5 w-28 shrink-0 text-sm text-muted">
+        <span className="shrink-0 w-5.25 h-5.25 items-center flex justify-center pl-0.5">
           {icon}
         </span>
         <span>{label}</span>
