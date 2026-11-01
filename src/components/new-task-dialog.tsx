@@ -409,6 +409,7 @@ export function NewTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         hideClose
+        mobileBottomSheet
         className="max-w-md grid-cols-[minmax(0,1fr)] gap-0 rounded-2xl p-0"
       >
         <DialogTitle className="sr-only">New task</DialogTitle>

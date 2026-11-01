@@ -4,11 +4,11 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-function useKeyboardInset() {
+function useKeyboardInset(enabled: boolean) {
   const [inset, setInset] = React.useState(0);
   React.useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) return;
+    if (!enabled || !vv) return;
     const update = () => {
       if (window.innerWidth >= 640) return setInset(0);
       setInset(
@@ -22,8 +22,8 @@ function useKeyboardInset() {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
     };
-  }, []);
-  return inset;
+  }, [enabled]);
+  return enabled ? inset : 0;
 }
 
 const Dialog = DialogPrimitive.Root;
@@ -53,20 +53,23 @@ type DialogContentProps = React.ComponentPropsWithoutRef<
   typeof DialogPrimitive.Content
 > & {
   hideClose?: boolean;
+  mobileBottomSheet?: boolean;
 };
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, hideClose, style, ...props }, ref) => {
-  const keyboardInset = useKeyboardInset();
+>(({ className, children, hideClose, mobileBottomSheet, style, ...props }, ref) => {
+  const keyboardInset = useKeyboardInset(!!mobileBottomSheet);
   return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 top-auto z-50 grid max-h-[calc(100dvh-1.5rem)] w-full max-w-none overflow-y-auto gap-4 border border-line bg-raised p-6 shadow-lg duration-200 max-sm:rounded-b-none max-sm:data-[state=open]:slide-in-from-bottom max-sm:data-[state=closed]:slide-out-to-bottom data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 rounded-xl sm:inset-x-auto sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border border-line bg-raised p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+        mobileBottomSheet &&
+          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:left-0 max-sm:data-[state=open]:slide-in-from-bottom max-sm:data-[state=closed]:slide-out-to-bottom max-sm:data-[state=open]:zoom-in-100 max-sm:data-[state=closed]:zoom-out-100",
         className,
       )}
       style={{
