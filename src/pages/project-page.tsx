@@ -27,6 +27,10 @@ import {
 } from "../components/project-view-tabs";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
+import {
+  ProjectHeadingSkeleton,
+  ProjectListSkeleton,
+} from "../components/project-page-skeleton";
 import { KanbanBoard } from "@/components/kanban-board";
 import { useTodos } from "../hooks/useTodos";
 import { useLists } from "../hooks/useLists";
@@ -114,14 +118,17 @@ function ProjectPageContent() {
       >
         {activeView === "kanban" && !query ? (
           <KanbanBoard projectId={id} hideCompleted={false} />
-        ) : isLoading ? (
-          <TodoListSkeleton />
         ) : query ? (
-          rootTodos.map((todo) => (
-            <TodoRow key={todo.id} todo={todo} skipInvalidate />
-          ))
+          isLoading ? (
+            <TodoListSkeleton />
+          ) : (
+            rootTodos.map((todo) => (
+              <TodoRow key={todo.id} todo={todo} skipInvalidate />
+            ))
+          )
         ) : (
           <>
+            {!project && <ProjectHeadingSkeleton />}
             {project && (
               <ProjectHeading project={project}>
                 <ProjectContentTabs
@@ -143,16 +150,19 @@ function ProjectPageContent() {
                 />
               </ProjectHeading>
             )}
-            {tab === "todo" && (
-              <ReorderContext.Provider value={reordering}>
-                <ProjectLists
-                  projectId={id}
-                  lists={listsOfProject}
-                  todos={visibleTodos}
-                />
-              </ReorderContext.Provider>
-            )}
-          {tab === "milestone" && <MilestonesSection projectId={id} />}
+            {tab === "todo" &&
+              (isLoading ? (
+                <ProjectListSkeleton />
+              ) : (
+                <ReorderContext.Provider value={reordering}>
+                  <ProjectLists
+                    projectId={id}
+                    lists={listsOfProject}
+                    todos={visibleTodos}
+                  />
+                </ReorderContext.Provider>
+              ))}
+            {tab === "milestone" && <MilestonesSection projectId={id} />}
             {tab === "project" && <SubProjectList projectId={id} />}
             {tab === "resource" && project && (
               <ProjectResources project={project} />
