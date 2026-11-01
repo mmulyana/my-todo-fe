@@ -4,6 +4,28 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+function useKeyboardInset() {
+  const [inset, setInset] = React.useState(0);
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      if (window.innerWidth >= 640) return setInset(0);
+      setInset(
+        Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)),
+      );
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+  return inset;
+}
+
 const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -36,15 +58,21 @@ type DialogContentProps = React.ComponentPropsWithoutRef<
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, hideClose, ...props }, ref) => (
+>(({ className, children, hideClose, style, ...props }, ref) => {
+  const keyboardInset = useKeyboardInset();
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-3 z-50 grid max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1.5rem)] max-w-md translate-x-[-50%] translate-y-0 overflow-y-auto sm:top-[50%] sm:max-h-[calc(100dvh-2rem)] sm:w-full sm:translate-y-[-50%] gap-4 border border-line bg-raised p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+        "fixed inset-x-0 bottom-0 top-auto z-50 grid max-h-[calc(100dvh-1.5rem)] w-full max-w-none overflow-y-auto gap-4 border border-line bg-raised p-6 shadow-lg duration-200 max-sm:rounded-b-none max-sm:data-[state=open]:slide-in-from-bottom max-sm:data-[state=closed]:slide-out-to-bottom data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 rounded-xl sm:inset-x-auto sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
         className,
       )}
+      style={{
+        ...style,
+        ...(keyboardInset ? { bottom: keyboardInset } : null),
+      }}
       {...props}
     >
       {children}
@@ -56,7 +84,8 @@ const DialogContent = React.forwardRef<
       )}
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({
