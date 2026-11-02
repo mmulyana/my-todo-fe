@@ -86,16 +86,14 @@ const DialogContent = React.forwardRef<
       className={cn(
         "fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border border-line bg-raised p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
         mobileBottomSheet &&
-          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:left-0 max-sm:data-[state=open]:slide-in-from-bottom max-sm:data-[state=closed]:slide-out-to-bottom max-sm:data-[state=open]:zoom-in-100 max-sm:data-[state=closed]:zoom-out-100",
+          "max-sm:inset-x-0 max-sm:bottom-(--keyboard-inset) max-sm:top-auto max-sm:transition-[bottom] max-sm:duration-200 max-sm:ease-[cubic-bezier(0.23,1,0.32,1)] max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:left-0 max-sm:data-[state=open]:slide-in-from-bottom max-sm:data-[state=closed]:slide-out-to-bottom max-sm:data-[state=open]:zoom-in-100 max-sm:data-[state=closed]:zoom-out-100",
         className,
       )}
       style={{
         ...style,
+        // note: lewat CSS variable, karena `bottom` inline ikut berlaku di desktop dan menarik dialog setinggi setengah layar.
         ...(mobileBottomSheet
-          ? {
-              bottom: keyboardInset,
-              transition: "bottom 200ms cubic-bezier(0.23, 1, 0.32, 1)",
-            }
+          ? ({ "--keyboard-inset": `${keyboardInset}px` } as React.CSSProperties)
           : null),
       }}
       {...props}
