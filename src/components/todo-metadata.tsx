@@ -168,7 +168,7 @@ export function TodoCheckbox({
     <button
       type="button"
       className={cn(
-        "grid place-items-center w-5 h-5 shrink-0 rounded-full border-[1.5px] transition-[background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.96]",
+        "grid place-items-center w-6 h-6 sm:w-5 sm:h-5 shrink-0 rounded-full border-[1.5px] transition-[background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.96]",
         completed
           ? "bg-accent border-accent text-white"
           : "border-line hover:border-muted",
@@ -179,7 +179,7 @@ export function TodoCheckbox({
     >
       <span
         className={cn(
-          "w-3 h-3",
+          "w-3.5 h-3.5 sm:w-3 sm:h-3",
           completed
             ? "text-white animate-check-in"
             : "text-muted opacity-0",

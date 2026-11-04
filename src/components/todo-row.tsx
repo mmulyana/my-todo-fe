@@ -170,7 +170,7 @@ export function TodoRow({
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "grid place-items-center w-5 h-5 shrink-0 rounded-full border-[1.5px] transition-colors",
+                      "grid place-items-center w-6 h-6 sm:w-5 sm:h-5 shrink-0 rounded-full border-[1.5px] transition-colors",
                       selected
                         ? "bg-accent border-accent text-white"
                         : "border-line group-hover/row:border-muted",
@@ -200,7 +200,7 @@ export function TodoRow({
 
               {(todo.dueDate && !hideDueDate) ||
               (showProject && todo.project?.name) ? (
-                <div className="sm:hidden flex flex-wrap items-center gap-1 pl-7.5 pb-1 text-muted">
+                <div className="sm:hidden flex flex-wrap items-center gap-1 pl-9 pb-1 text-muted">
                   {todo.subtodoCount > 0 && (
                     <TodoSubtodoProgress
                       completed={todo.completedTodos}
@@ -288,7 +288,7 @@ export function TodoRow({
       </ContextMenu>
 
       <Collapse open={open}>
-        <div className="flex flex-col pb-1 pl-7">
+        <div className="flex flex-col pb-1 pl-8 sm:pl-7">
           <SubtodoList steps={todo.subtodos} hideDueDate={hideDueDate} />
         </div>
       </Collapse>
@@ -375,9 +375,9 @@ function SortableSubtodo({
 
   if (!todo) {
     return (
-      // note: ukuran harus sama dengan baris TodoRow (checkbox 20px, teks 15px) supaya tinggi tidak melompat saat data tiba
+      // note: ukuran harus sama dengan baris TodoRow (checkbox 24px mobile / 20px desktop, teks 16px / 15px) supaya tinggi tidak melompat saat data tiba
       <div ref={ref} className="flex items-center gap-2 py-2.5 px-3 opacity-60">
-        <span className="w-5 h-5 shrink-0 rounded-[7px] border-[1.5px] border-line bg-raised" />
+        <span className="w-6 h-6 sm:w-5 sm:h-5 shrink-0 rounded-[7px] border-[1.5px] border-line bg-raised" />
         <span className="flex-1 min-w-0 truncate text-[16px] sm:text-[15px]">
           {step.title}
         </span>

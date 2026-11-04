@@ -43,6 +43,8 @@ type NewTaskDialogProps = {
   onOpenChange: (open: boolean) => void;
   defaultProjectId?: string | null;
   defaultListId?: string | null;
+  defaultMyDay?: boolean;
+  defaultImportant?: boolean;
 };
 
 const PRIORITIES: TodoPriority[] = [1, 2, 3];
@@ -189,10 +191,14 @@ function ScrollRow({ children }: { children: ReactNode }) {
 function NewTaskForm({
   defaultProjectId,
   defaultListId,
+  defaultMyDay,
+  defaultImportant,
   onClose,
 }: {
   defaultProjectId: string | null;
   defaultListId: string | null;
+  defaultMyDay: boolean;
+  defaultImportant: boolean;
   onClose: () => void;
 }) {
   const createTodo = useCreateTodo();
@@ -204,8 +210,8 @@ function NewTaskForm({
   const [projectId, setProjectId] = useState<string | null>(defaultProjectId);
   const [listId, setListId] = useState<string | null>(defaultListId);
   const [priority, setPriority] = useState<TodoPriority | null>(null);
-  const [important, setImportant] = useState(false);
-  const [myDay, setMyDay] = useState(false);
+  const [important, setImportant] = useState(defaultImportant);
+  const [myDay, setMyDay] = useState(defaultMyDay);
 
   const lists = allLists.filter((list) => list.projectId === projectId);
   const project = projects.find((item) => item.id === projectId);
@@ -404,6 +410,8 @@ export function NewTaskDialog({
   onOpenChange,
   defaultProjectId = null,
   defaultListId = null,
+  defaultMyDay = false,
+  defaultImportant = false,
 }: NewTaskDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   return (
@@ -431,6 +439,8 @@ export function NewTaskDialog({
         <NewTaskForm
           defaultProjectId={defaultProjectId}
           defaultListId={defaultListId}
+          defaultMyDay={defaultMyDay}
+          defaultImportant={defaultImportant}
           onClose={() => onOpenChange(false)}
         />
       </DialogContent>

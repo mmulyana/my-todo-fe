@@ -19,6 +19,8 @@ type PageShellProps = {
   classNameChildren?: string;
   fill?: boolean;
   newTaskProjectId?: string | null;
+  newTaskMyDay?: boolean;
+  newTaskImportant?: boolean;
   hideNewTask?: boolean;
   wide?: boolean;
 };
@@ -35,6 +37,8 @@ export function PageShell({
   classNameChildren,
   fill = false,
   newTaskProjectId = null,
+  newTaskMyDay = false,
+  newTaskImportant = false,
   hideNewTask = false,
   wide = false,
 }: PageShellProps) {
@@ -105,7 +109,13 @@ export function PageShell({
           {!hideNewTask && (
             <button
               type="button"
-              onClick={() => openNewTask({ projectId: newTaskProjectId })}
+              onClick={() =>
+                openNewTask({
+                  projectId: newTaskProjectId,
+                  myDay: newTaskMyDay,
+                  important: newTaskImportant,
+                })
+              }
               aria-label="New task"
               title="New task"
               className="grid place-items-center w-8 h-8 rounded-full bg-bg text-muted hover:text-fg transition-colors cursor-pointer"
