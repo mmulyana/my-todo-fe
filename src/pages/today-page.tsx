@@ -49,6 +49,7 @@ export default function TodayPage() {
 
   return (
     <PageShell
+      newTaskMyDay
       title={query ? `Searching "${query}"` : "Today"}
       icon={<Sun size={20} className="text-warn" />}
       subtitle={query ? null : todayLabel}

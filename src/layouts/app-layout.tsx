@@ -79,6 +79,8 @@ function NewTaskHost() {
       onOpenChange={(open) => setState((prev) => ({ ...prev, open }))}
       defaultProjectId={state.projectId}
       defaultListId={state.listId}
+      defaultMyDay={state.myDay}
+      defaultImportant={state.important}
     />
   )
 }
