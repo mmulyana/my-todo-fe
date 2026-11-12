@@ -9,9 +9,11 @@ import { parseSettingsTab, type SettingsTab } from '@/lib/settings-tabs'
 import { CommandPalette } from '@/components/command-palette'
 import { Sidebar } from '@/components/sidebar'
 import { NewTaskDialog } from '@/components/new-task-dialog'
+import { NewTaskFab } from '@/components/new-task-fab'
 import { DocumentTitleTimer } from '@/components/document-title-timer'
 import { isKanbanLocation } from '@/components/project-view-tabs'
 import { newTaskAtom, searchOpenAtom, sidebarOpenAtom } from '@/atoms/layout'
+import { useIsDesktop } from '@/hooks/useMediaQuery'
 import { currentSearchParams } from '@/lib/search-params'
 
 function SidebarEffects() {
@@ -72,6 +74,9 @@ function SearchHost() {
 
 function NewTaskHost() {
   const [state, setState] = useAtom(newTaskAtom)
+  const isDesktop = useIsDesktop()
+
+  if (isDesktop) return null
 
   return (
     <NewTaskDialog
@@ -137,6 +142,7 @@ export function AppLayout() {
         <SidebarEffects />
         <Sidebar />
         <NewTaskHost />
+        <NewTaskFab />
         <BulkActionBar />
         <SettingsHost />
         <SearchHost />

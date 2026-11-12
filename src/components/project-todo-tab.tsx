@@ -1,10 +1,12 @@
 import { useMemo } from "react";
+import { DesktopTodoInput } from "./desktop-todo-input";
 import { ProjectLists } from "./project-lists";
 import { ProjectListSkeleton } from "./project-page-skeleton";
 import { useLists } from "../hooks/useLists";
 import { useTodos } from "../hooks/useTodos";
 import { useProjectTodoView } from "@/lib/project-todo-view";
 import { applyFilters } from "@/lib/todo-filters";
+import type { View } from "../types";
 
 export function ProjectTodoTab({ projectId }: { projectId: string }) {
   const { filters } = useProjectTodoView();
@@ -20,9 +22,19 @@ export function ProjectTodoTab({ projectId }: { projectId: string }) {
     [todos, filters],
   );
 
-  if (isLoading) return <ProjectListSkeleton />;
+  const view = useMemo<View>(
+    () => ({ kind: "project", id: projectId }),
+    [projectId],
+  );
 
   return (
-    <ProjectLists projectId={projectId} lists={lists} todos={visibleTodos} />
+    <>
+      <DesktopTodoInput view={view} />
+      {isLoading ? (
+        <ProjectListSkeleton />
+      ) : (
+        <ProjectLists projectId={projectId} lists={lists} todos={visibleTodos} />
+      )}
+    </>
   );
 }

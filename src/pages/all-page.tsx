@@ -12,7 +12,8 @@ import {
 import { applyFilters } from '@/lib/todo-filters'
 import { CollapsibleSection } from '../components/collapsible-section'
 import { useInfiniteTodos } from '../hooks/useTodos'
-import type { TodoFilter } from '../types'
+import { DesktopTodoInput } from '../components/desktop-todo-input'
+import type { TodoFilter, View } from '../types'
 import type { TodoFilters } from '@/lib/todo-filters'
 
 // note: halaman All memisahkan todo selesai ke section sendiri, jadi tanpa filter completed
@@ -66,6 +67,8 @@ function CompletedTodos({
   )
 }
 
+const ALL_VIEW: View = { kind: 'smart', id: 'all' }
+
 export default function AllPage() {
   const [params] = useSearchParams()
   const query = (params.get('q') ?? '').trim()
@@ -103,6 +106,7 @@ export default function AllPage() {
         ) : null
       }
     >
+      {!query && <DesktopTodoInput view={ALL_VIEW} />}
       {isLoading ? (
         <TodoListSkeleton />
       ) : (

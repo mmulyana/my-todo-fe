@@ -4,6 +4,8 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { move } from "@dnd-kit/helpers";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { TodoRow } from "./todo-row";
+import { INLINE_INPUT_CLASS, TodoInput } from "./todo-input";
+import { useIsDesktop } from "../hooks/useMediaQuery";
 import { useCreateList, useDeleteList, useUpdateList } from "../hooks/useLists";
 import { useMoveTodoToList } from "../hooks/useTodos";
 import { cn } from "@/lib/utils";
@@ -270,6 +272,8 @@ function ListSection({
   const updateList = useUpdateList();
   const deleteList = useDeleteList();
   const openNewTask = useSetAtom(openNewTaskAtom);
+  const isDesktop = useIsDesktop();
+  const [adding, setAdding] = useState(false);
 
   const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(
     null,
@@ -291,12 +295,23 @@ function ListSection({
         onDelete={() => deleteList.mutate(list.id)}
         onAdd={() => {
           setCollapsedOverride(false);
-          openNewTask({ projectId: list.projectId, listId: list.id });
+          if (isDesktop) setAdding(true);
+          else openNewTask({ projectId: list.projectId, listId: list.id });
         }}
       />
 
       <Collapse open={!collapsed}>
         <DropZone id={list.id} className={cn("pb-1", dragging && "min-h-10")}>
+          {adding && (
+            <TodoInput
+              autoFocus
+              hideComboboxes
+              defaultProjectId={list.projectId}
+              defaultListId={list.id}
+              onCancel={() => setAdding(false)}
+              className={INLINE_INPUT_CLASS}
+            />
+          )}
           {todos.map((todo, index) => (
             <SortableTodoRow
               key={todo.id}

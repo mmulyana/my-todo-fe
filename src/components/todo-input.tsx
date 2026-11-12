@@ -12,6 +12,9 @@ import { parseQuickAdd } from "../lib/quick-add";
 import { cn } from "@/lib/utils";
 import type { List, View } from "../types";
 
+export const INLINE_INPUT_CLASS =
+  "px-3 py-2.5 rounded-xl border border-transparent transition-[background-color,border-color,box-shadow] focus-within:border-line focus-within:bg-raised focus-within:shadow-md";
+
 type TodoInputProps = {
   view?: View;
   defaultProjectId?: string | null;
@@ -133,12 +136,12 @@ export function TodoInput({
       )}
       onSubmit={handleSubmit}
     >
-      <div className="flex-1 flex items-center gap-2.5 min-w-0">
+      <div className="flex-1 flex items-center gap-2 min-w-0">
         <span
           className={cn(
-            "grid place-items-center w-5.5 h-5.5 shrink-0 rounded-[7px] border-[1.5px] transition-colors",
+            "grid place-items-center w-6 h-6 sm:w-5 sm:h-5 shrink-0 rounded-full border-[1.5px] transition-colors",
             showCheckbox
-              ? "border-line hover:border-muted bg-raised"
+              ? "border-line hover:border-muted"
               : "border-transparent",
           )}
         >

@@ -20,19 +20,29 @@ export const newTaskAtom = atom<NewTaskState>({
   important: false,
 });
 
+type NewTaskTarget = {
+  projectId?: string | null;
+  listId?: string | null;
+  myDay?: boolean;
+  important?: boolean;
+};
+
+export const newTaskDefaultsAtom = atom<NewTaskTarget & { enabled: boolean }>({
+  enabled: false,
+});
+
+export const newTaskFabVisibleAtom = atom((get) => get(newTaskDefaultsAtom).enabled);
+
 export const openNewTaskAtom = atom(
   null,
-  (_get, set, target?: {
-    projectId?: string | null;
-    listId?: string | null;
-    myDay?: boolean;
-    important?: boolean;
-  }) =>
+  (get, set, target?: NewTaskTarget) => {
+    const source = target ?? get(newTaskDefaultsAtom);
     set(newTaskAtom, {
       open: true,
-      projectId: target?.projectId ?? null,
-      listId: target?.listId ?? null,
-      myDay: target?.myDay ?? false,
-      important: target?.important ?? false,
-    }),
+      projectId: source.projectId ?? null,
+      listId: source.listId ?? null,
+      myDay: source.myDay ?? false,
+      important: source.important ?? false,
+    });
+  },
 );
