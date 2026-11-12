@@ -13,7 +13,10 @@ import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { useOverdueTodos, useUpcomingTodos } from "../hooks/useTodos";
 import { formatDue, todayISO } from "../lib/dates";
-import type { Todo } from "../types";
+import { DesktopTodoInput } from "../components/desktop-todo-input";
+import type { Todo, View } from "../types";
+
+const ALL_VIEW: View = { kind: "smart", id: "all" };
 
 const DAYS = 14;
 
@@ -52,6 +55,7 @@ export default function UpcomingPage() {
         />
       }
     >
+      <DesktopTodoInput view={ALL_VIEW} />
       {isLoading || loadingOverdue ? (
         <TodoListSkeleton rows={6} />
       ) : (

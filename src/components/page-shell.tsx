@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Menu, SquarePen } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { useSetAtom } from "jotai";
-import { openNewTaskAtom, sidebarOpenAtom } from "@/atoms/layout";
+import { sidebarOpenAtom } from "@/atoms/layout";
+import { useNewTaskDefaults } from "../hooks/useNewTaskDefaults";
 import type { Project } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,12 @@ export function PageShell({
   wide = false,
 }: PageShellProps) {
   const setSidebarOpen = useSetAtom(sidebarOpenAtom);
-  const openNewTask = useSetAtom(openNewTaskAtom);
+  useNewTaskDefaults({
+    projectId: newTaskProjectId,
+    myDay: newTaskMyDay,
+    important: newTaskImportant,
+    enabled: !hideNewTask,
+  });
   const navigate = useNavigate();
 
   const goBack = (to?: string) => {
@@ -106,23 +112,6 @@ export function PageShell({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {actions}
-          {!hideNewTask && (
-            <button
-              type="button"
-              onClick={() =>
-                openNewTask({
-                  projectId: newTaskProjectId,
-                  myDay: newTaskMyDay,
-                  important: newTaskImportant,
-                })
-              }
-              aria-label="New task"
-              title="New task"
-              className="grid place-items-center w-8 h-8 rounded-full bg-bg text-muted hover:text-fg transition-colors cursor-pointer"
-            >
-              <SquarePen className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </header>
 

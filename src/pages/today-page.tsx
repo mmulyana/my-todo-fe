@@ -10,6 +10,8 @@ import {
 } from "../hooks/useTodoFilters";
 import { applyFilters } from "@/lib/todo-filters";
 import { PageShell } from "../components/page-shell";
+import { DesktopTodoInput } from "../components/desktop-todo-input";
+import type { View } from "../types";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import {
@@ -17,6 +19,8 @@ import {
   useMyDayTodos,
   useTodos,
 } from "../hooks/useTodos";
+
+const TODAY_VIEW: View = { kind: "smart", id: "today" };
 
 export default function TodayPage() {
   const [params] = useSearchParams();
@@ -79,6 +83,7 @@ export default function TodayPage() {
       }
     >
       <div className="space-y-1.5">
+        {!query && <DesktopTodoInput view={TODAY_VIEW} />}
         <div>
           {loading ? (
             <TodoListSkeleton />

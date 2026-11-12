@@ -1,6 +1,8 @@
 import { useSearchParams } from "react-router-dom";
 import { Star } from "lucide-react";
 import { PageShell } from "../components/page-shell";
+import { DesktopTodoInput } from "../components/desktop-todo-input";
+import type { View } from "../types";
 import { TodoRow } from "../components/todo-row";
 import { TodoListSkeleton } from "../components/todo-list-skeleton";
 import { TodoFilterMenu } from "../components/todo-filter-menu";
@@ -11,6 +13,8 @@ import {
 } from "../hooks/useTodoFilters";
 import { applyFilters } from "@/lib/todo-filters";
 import { useTodos } from "../hooks/useTodos";
+
+const IMPORTANT_VIEW: View = { kind: "smart", id: "important" };
 
 export default function ImportantPage() {
   const [params] = useSearchParams();
@@ -42,6 +46,7 @@ export default function ImportantPage() {
       }
     >
       <div className="space-y-1.5">
+        {!query && <DesktopTodoInput view={IMPORTANT_VIEW} />}
         <div className="space-y-1">
           {isLoading ? (
             <TodoListSkeleton />
